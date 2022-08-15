@@ -1,0 +1,366 @@
+---
+title: "Two faces of holistic face processing -- analyses and results"
+author: "[Haiyang Jin](https://haiyangjin.github.io/)"
+date: "`r format(Sys.time(), '%d-%m-%Y')`"
+output: 
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: true
+    toc_depth: 4
+    toc_float: true
+---
+
+```{=html}
+<style>
+pre {
+overflow-x: auto;
+}
+pre code {
+word-wrap: normal;
+white-space: pre;
+}
+</style>
+```
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 1500)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      include = TRUE, cache = FALSE, tidy = FALSE, 
+                      size = "big", fig.width=8, fig.asp=0.7)
+xaringanExtra::use_clipboard()
+```
+
+# Preparations
+```{r setup}
+## load libraries
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(optimx)
+library(emmeans)
+library(ggpubr)
+```
+
+```{r}
+# ylimit_cf_d <- c(-.5, 3.2)
+# ylimit_cf_fi_d <- c(-1.1, 1.1)
+# ylimit_cf_rt <- c(650, 1150)
+# ylimit_cf_fi_rt <- c(-100, 100)
+# 
+# # colors
+# con_color <- c("#e28743", "#0000ff")  #ffb14e #e3b342
+# sig_color <- "black"
+
+# APA theme for figures
+theme_set(papaja::theme_apa(base_size = 12, base_family = "Helvetica", box = FALSE))
+theme_update(strip.placement = "outside")
+```
+
+## Load data 
+```{r read the data file}
+# list filenames
+prolific_list <- list.files(file.path("data", "pilot", "prolific"), 
+                            pattern = "*.csv", full.names = TRUE)
+testable1_list <- list.files(file.path("data", "pilot", "testable1"), 
+                             pattern = "*.csv", full.names = TRUE)
+
+# load data
+df_raw_p <- map_dfr(prolific_list, read_csv, show_col_types = FALSE, .id="id") 
+df_raw_t1 <- map_dfr(testable1_list, read_csv, show_col_types = FALSE, .id="id") 
+
+# combine data from the two experiments
+df_raw_p_tmp <- df_raw_p %>% 
+  filter(trial_frame=="test_face") %>% 
+  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
+         Correct_ans_posi, Correct_response, response, Correct, RT) %>% 
+  mutate(platform = "Prolific")
+
+df_raw_t1_tmp <- df_raw_t1 %>% 
+  filter(trial_frame=="test_face") %>% 
+  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
+         Correct_ans_posi, Correct_response, response, Correct, RT) %>% 
+  mutate(platform = "Testable1")
+
+df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>% 
+  mutate(Exp_name = as_factor(Exp_name),
+         Subject = paste0("subj",as.numeric(as_factor(Subject))),
+         Subject = as_factor(Subject),
+         Task = as_factor(Task_name),
+         Section = as_factor(Section),
+         PW = as_factor(PW), 
+         Feature = as_factor(Feature),
+         Cue = as_factor(Cue),
+         Congruency = as_factor(Congruency),
+         Alignment = as_factor(Alignment),
+         SameDifferent = as_factor(SameDifferent),
+         Correct_ans_posi = as_factor(Correct_ans_posi),
+         platform = as_factor(platform))
+
+head(df_raw)
+```
+
+## Tidy data
+```{r}
+df_tidy <- df_raw 
+```
+
+
+
+## Steps to obtain the optimal model
+
+1. If the maximal model did not converge, correlations between random effects were removed, making the zero-correlation-parameter (ZCP) model. 
+2. Principal component analysis implemented with `rePCA()` function was then used to identify random effects that explained less than 0.1% of the total variances; they were removed from the ZCP model to make the reduced model. 
+3. The extended model was built by adding back the correlations between random effects in the reduced model. 
+4. If the extended model did not converge, the random effects that explained less than 1% of total variances were identified by `rePCA()` and removed to make the updated extended model; this step was iterated until an extended model converged. 
+5. The converged extended model was then compared to the reduced model via `anova()` function and the model that explained the data better (with smaller Bayesian Information Criterion) was used as the optimal model. 
+6. All follow-up analyses were performed on the optimal model. 
+
+# Holistic processing effects
+
+Linear mixed-effects models are used to examine the holistic processing effects in the part-whole, standard composite face task, and complete composite face task.
+
+## Part-whole task
+
+```{r}
+df_pw <- df_tidy %>% 
+  filter(Task_name == "PW",
+         Section == "main") %>% 
+  select(Subject, PW, Feature, Correct, RT, platform) 
+
+head(df_pw)
+```
+
+
+### Accuracy 
+
+```{r}
+lmm_pw_acc <- glmer(Correct ~ PW * Feature + (PW * Feature | Subject),
+                    df_pw,
+                    family = binomial(link = "logit"),
+                    control = glmerControl(optimizer = "optimx", 
+                                           optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_pw_acc)
+```
+
+
+```{r}
+emm_pw_acc <- emmeans(lmm_pw_acc, ~ PW + Feature, type = "response")
+emm_pw_acc
+```
+
+```{r}
+contrast(emmeans(lmm_pw_acc, ~ PW), "pairwise")
+```
+
+```{r}
+contrast(emmeans(lmm_pw_acc, ~ PW | Feature), "pairwise")
+```
+
+
+```{r}
+emmip(lmm_pw_acc, ~ PW | Feature, CIs = TRUE, type = "response") 
+```
+
+
+
+### Correct response times
+
+```{r}
+lmm_pw_rt <- lmer(log(RT) ~ PW * Feature + (PW * Feature | Subject),
+                  filter(df_pw, Correct),
+                  control = lmerControl(optimizer = "optimx", 
+                                        optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_pw_rt)
+```
+
+
+```{r}
+emm_pw_rt <- emmeans(lmm_pw_acc, ~ PW + Feature)
+emm_pw_rt
+```
+
+```{r}
+contrast(emmeans(lmm_pw_rt, ~ PW), "pairwise")
+```
+
+```{r}
+contrast(emmeans(lmm_pw_rt, ~ PW), "pairwise", type = "response")
+```
+
+```{r}
+contrast(emmeans(lmm_pw_rt, ~ PW | Feature), "pairwise")
+```
+
+
+```{r}
+emmip(lmm_pw_rt, ~ PW | Feature, CIs = TRUE, type = "response") 
+```
+
+
+## Standard composite face task
+
+```{r}
+df_scf <- df_tidy %>% 
+  filter(Task_name == "SCF",
+         Section == "main",
+         SameDifferent == "same") %>% # only use trials when the top is the same
+  select(Subject, Alignment, Correct, RT, platform) 
+
+head(df_scf)
+```
+
+### Accuracy 
+
+```{r}
+lmm_scf_acc <- glmer(Correct ~ Alignment + (Alignment | Subject),
+                     df_scf,
+                     family = binomial(link = "logit"),
+                     control = glmerControl(optimizer = "optimx", 
+                                            optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_scf_acc)
+```
+
+
+```{r}
+emm_scf_acc <- emmeans(lmm_scf_acc, ~ Alignment, type="response")
+emm_scf_acc
+```
+
+```{r}
+contrast(emmeans(lmm_scf_acc, ~ Alignment), "pairwise")
+```
+
+
+```{r}
+emmip(lmm_scf_acc, ~ Alignment, CIs = TRUE, type = "response") 
+```
+
+
+
+### Correct response times
+
+```{r}
+lmm_scf_rt <- lmer(log(RT) ~ Alignment + (Alignment | Subject),
+                   filter(df_scf, Correct),
+                   control = lmerControl(optimizer = "optimx", 
+                                         optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_scf_rt)
+```
+
+
+```{r}
+emm_scf_rt <- emmeans(lmm_scf_rt, ~ Alignment, type = "response")
+emm_scf_rt
+```
+
+```{r}
+contrast(emmeans(lmm_scf_rt, ~ Alignment), "pairwise")
+```
+
+```{r}
+contrast(emmeans(lmm_scf_rt, ~ Alignment), "pairwise", type = "response")
+```
+
+
+```{r}
+emmip(lmm_scf_rt, ~ Alignment, CIs = TRUE, type = "response") 
+```
+
+
+## Complete composite face task
+
+```{r}
+df_ccf <- df_tidy %>% 
+  filter(Task_name == "CCF",
+         Section == "main",
+         Alignment != "isolated") %>% # only use trials when the top is the same
+  mutate(isSame = if_else(
+    ((SameDifferent=="same")&Correct) | ((SameDifferent=="different")&!Correct), 1,
+    if_else(((SameDifferent=="same")&!Correct) | ((SameDifferent=="different")&Correct), 0, NaN))) %>% 
+  select(Subject, Cue, Congruency, Alignment, SD=SameDifferent, Correct, isSame, RT, platform) 
+
+head(df_ccf)
+```
+
+### Sensitivity d'
+
+```{r}
+lmm_ccf_d <- glmer(isSame ~ Congruency * Alignment * SD + 
+                     (Congruency * Alignment * SD | Subject),
+                   df_ccf,
+                   family = binomial(link = "probit"),
+                   control = glmerControl(optimizer = "optimx", 
+                                          optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_ccf_d)
+```
+
+```{r}
+(emm_ccf_probit <- emmeans(lmm_ccf_d, ~ Congruency + Alignment + SD, type = "response"))
+```
+
+
+```{r}
+emm_ccf_d <- contrast(emm_ccf_probit, "pairwise", simple="SD")
+emm_ccf_d[1:4]
+```
+
+```{r}
+cong_emm <- contrast(emm_ccf_probit, interaction="pairwise", by="Alignment")
+cong_emm[2]
+```
+
+```{r}
+contrast(emm_ccf_probit, interaction="pairwise")
+```
+
+
+```{r}
+emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
+```
+
+
+
+### Correct response times
+
+
+```{r}
+lmm_ccf_rt <- lmer(log(RT) ~ Congruency * Alignment + (Congruency * Alignment | Subject),
+                   filter(df_ccf, Correct),
+                   control = lmerControl(optimizer = "optimx", 
+                                         optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+
+summary(lmm_ccf_rt)
+```
+
+```{r}
+emm_ccf_rt <- emmeans(lmm_ccf_rt, ~ Congruency + Alignment, type = "response",
+                      lmerTest.limit = 6400,
+                      pbkrtest.limit = 6400)
+emm_ccf_rt
+```
+
+```{r}
+contrast(emm_ccf_rt, interaction="pairwise")
+```
+
+```{r}
+contrast(emm_ccf_rt, interaction="pairwise", type = "response")
+```
+
+
+```{r}
+emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
+```
+
+
+
+# Session information {.unlisted .unnumbered}
+```{r}
+sessionInfo()
+```
