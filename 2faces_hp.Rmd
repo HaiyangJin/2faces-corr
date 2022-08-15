@@ -275,14 +275,17 @@ emmip(lmm_scf_rt, ~ Alignment, CIs = TRUE, type = "response")
 ## Complete composite face task
 
 ```{r}
-df_ccf <- df_tidy %>% 
+# including isolated condition
+df_ccf_iso <- df_tidy %>% 
   filter(Task_name == "CCF",
-         Section == "main",
-         Alignment != "isolated") %>% # only use trials when the top is the same
+         Section == "main") %>% # only use trials when the top is the same
   mutate(isSame = if_else(
     ((SameDifferent=="same")&Correct) | ((SameDifferent=="different")&!Correct), 1,
     if_else(((SameDifferent=="same")&!Correct) | ((SameDifferent=="different")&Correct), 0, NaN))) %>% 
   select(Subject, Cue, Congruency, Alignment, SD=SameDifferent, Correct, isSame, RT, platform) 
+
+df_ccf <- df_ccf_iso %>% 
+  filter(Alignment != "isolated")
 
 head(df_ccf)
 ```
@@ -358,6 +361,376 @@ contrast(emm_ccf_rt, interaction="pairwise", type = "response")
 emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
+
+# Relationships among effects
+
+
+## Calculate holistic processing effects
+
+### Part-whole task
+
+#### Subtraction
+
+```{r}
+pwe_acc <- df_pw %>% 
+  group_by(Subject, PW) %>% 
+  summarize(acc = mean(Correct),
+            .groups = "drop") %>% 
+  pivot_wider(Subject, names_from = PW, values_from = acc) %>% 
+  mutate(pwe_subt = whole - part)
+  
+pwe_acc
+```
+
+
+```{r}
+pwe_rt <- df_pw %>% 
+  filter(Correct) %>% 
+  group_by(Subject, PW) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop") %>% 
+  pivot_wider(Subject, names_from = PW, values_from = rt) %>% 
+  mutate(pwe_subt = whole - part)
+  
+pwe_rt
+```
+
+
+#### Regression
+
+```{r}
+lm_pwe_acc <- lm(whole ~ part, pwe_acc)
+summary(lm_pwe_acc)
+```
+
+```{r}
+pwe_acc <- pwe_acc %>% 
+  mutate(pwe_regr = residuals(lm_pwe_acc))
+pwe_acc
+```
+
+
+```{r}
+lm_pwe_rt <- lm(whole ~ part, pwe_rt)
+summary(lm_pwe_rt)
+```
+
+```{r}
+pwe_rt <- pwe_rt %>% 
+  mutate(pwe_regr = residuals(lm_pwe_rt))
+pwe_rt
+```
+
+
+### Standard composite face task
+
+#### Subtraction
+
+```{r}
+scfe_acc <- df_scf %>% 
+  group_by(Subject, Alignment) %>% 
+  summarize(acc = mean(Correct),
+            .groups = "drop") %>% 
+  pivot_wider(Subject, names_from = Alignment, values_from = acc) %>% 
+  mutate(scfe_subt = aligned - misaligned)
+scfe_acc
+```
+
+
+```{r}
+scfe_rt <- df_scf %>% 
+  filter(Correct) %>% 
+  group_by(Subject, Alignment) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop") %>% 
+  pivot_wider(Subject, names_from = Alignment, values_from = rt) %>% 
+  mutate(scfe_subt = aligned - misaligned)
+scfe_rt
+```
+
+#### Regression
+
+```{r}
+lm_scfe_acc <- lm(aligned ~ misaligned, scfe_acc)
+summary(lm_scfe_acc)
+```
+
+```{r}
+scfe_acc <- scfe_acc %>% 
+  mutate(scfe_regr = residuals(lm_scfe_acc))
+scfe_acc
+```
+
+
+```{r}
+lm_scfe_rt <- lm(aligned ~ misaligned, scfe_rt)
+summary(lm_scfe_rt)
+```
+
+
+```{r}
+scfe_rt <- scfe_rt %>% 
+  mutate(scfe_regr = residuals(lm_scfe_rt))
+scfe_rt
+```
+
+
+### Complete compositie face task
+
+#### Subtraction
+
+```{r}
+ccfe_d <- df_ccf_iso %>% 
+  group_by(Subject, Congruency, Alignment, SD) %>% 
+  summarize(count = n(),
+            same_adjust = (sum(isSame)+0.5)/(count+1), # Snodgrass & Corwin (1988)
+            .groups = "drop") %>% 
+  mutate(z = qnorm(same_adjust)) %>% 
+  select(-same_adjust) %>% 
+  pivot_wider(names_from = "SD", values_from = z) %>% 
+  mutate(d = same - different) %>% 
+  pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = d) %>% 
+  rename(isolated = isolated_isolated) %>% 
+  mutate(fac_subt = congruent_aligned - congruent_misaligned,
+         int_subt = incongruent_aligned - incongruent_misaligned,
+         ccfe_subt = fac_subt - int_subt,
+         fac_subt_iso = congruent_aligned - isolated,
+         int_subt_iso = incongruent_aligned - isolated)
+ccfe_d
+```
+
+
+```{r}
+ccfe_rt <- df_ccf_iso %>% 
+  filter(Correct) %>% 
+  group_by(Subject, Congruency, Alignment) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop") %>% 
+  pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = rt) %>% 
+  rename(isolated = isolated_isolated) %>% 
+  mutate(fac_subt = congruent_aligned - congruent_misaligned,
+         int_subt = incongruent_aligned - incongruent_misaligned,
+         ccfe_subt = fac_subt - int_subt,
+         fac_subt_iso = congruent_aligned - isolated,
+         int_subt_iso = incongruent_aligned - isolated)
+
+ccfe_rt
+```
+
+
+#### Regression
+
+Facilitation
+```{r}
+lm_ccfe_d_fac <- lm(congruent_aligned ~ congruent_misaligned, ccfe_d)
+summary(lm_ccfe_d_fac)
+```
+
+```{r}
+ccfe_d <- ccfe_d %>% 
+  mutate(fac_regr = residuals(lm_ccfe_d_fac))
+ccfe_d
+```
+
+
+Facilitation (isolated)
+```{r}
+lm_ccfe_d_fac_iso <- lm(congruent_aligned ~ isolated, ccfe_d)
+summary(lm_ccfe_d_fac_iso)
+```
+
+```{r}
+ccfe_d <- ccfe_d %>% 
+  mutate(fac_regr_iso = residuals(lm_ccfe_d_fac_iso))
+ccfe_d
+```
+
+
+Interference
+```{r}
+lm_ccfe_d_int <- lm(incongruent_aligned ~ incongruent_misaligned, ccfe_d)
+summary(lm_ccfe_d_int)
+```
+
+```{r}
+ccfe_d <- ccfe_d %>% 
+  mutate(int_regr = residuals(lm_ccfe_d_int))
+ccfe_d
+```
+
+Interference (isolated)
+```{r}
+lm_ccfe_d_int_iso <- lm(incongruent_aligned ~ isolated, ccfe_d)
+summary(lm_ccfe_d_int_iso)
+```
+
+```{r}
+ccfe_d <- ccfe_d %>% 
+  mutate(int_regr_iso = residuals(lm_ccfe_d_int_iso))
+ccfe_d
+```
+
+Facilitation 
+
+```{r}
+lm_ccfe_rt_fac <- lm(congruent_aligned ~ congruent_misaligned, ccfe_rt)
+summary(lm_ccfe_rt_fac)
+```
+
+```{r}
+ccfe_rt <- ccfe_rt %>% 
+  mutate(fac_regr = residuals(lm_ccfe_rt_fac))
+ccfe_rt
+```
+
+
+Facilitation (isolated)
+```{r}
+lm_ccfe_rt_fac_iso <- lm(congruent_aligned ~ isolated, ccfe_rt)
+summary(lm_ccfe_rt_fac_iso)
+```
+
+```{r}
+ccfe_rt <- ccfe_rt %>% 
+  mutate(fac_regr_iso = residuals(lm_ccfe_rt_fac_iso))
+ccfe_rt
+```
+
+
+Interference
+```{r}
+lm_ccfe_rt_int <- lm(incongruent_aligned ~ incongruent_misaligned, ccfe_rt)
+summary(lm_ccfe_rt_int)
+```
+
+```{r}
+ccfe_rt <- ccfe_rt %>% 
+  mutate(int_regr = residuals(lm_ccfe_rt_int))
+ccfe_rt
+```
+
+Interference (isolated)
+```{r}
+lm_ccfe_rt_int_iso <- lm(incongruent_aligned ~ isolated, ccfe_rt)
+summary(lm_ccfe_rt_int_iso)
+```
+
+```{r}
+ccfe_rt <- ccfe_rt %>% 
+  mutate(int_regr_iso = residuals(lm_ccfe_rt_int_iso))
+ccfe_rt
+```
+
+## Correlations
+
+### PW and Facilitation in CCF
+
+#### Subtraction
+
+```{r}
+cor.test(pwe_acc$pwe_subt, ccfe_d$fac_subt)
+```
+
+
+```{r}
+cor.test(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
+```
+
+```{r}
+cor.test(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
+```
+
+
+```{r}
+cor.test(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
+```
+
+#### Regressions
+
+```{r}
+cor.test(pwe_acc$pwe_regr, ccfe_d$fac_regr)
+```
+
+
+```{r}
+cor.test(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
+```
+
+```{r}
+cor.test(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
+```
+
+
+```{r}
+cor.test(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
+```
+
+### SCF and Interference in CCF
+
+#### Subtraction
+
+```{r}
+cor.test(scfe_acc$scfe_subt, ccfe_d$int_subt)
+```
+
+```{r}
+cor.test(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
+```
+
+```{r}
+cor.test(scfe_rt$scfe_subt, ccfe_rt$int_subt)
+```
+
+```{r}
+cor.test(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
+```
+
+#### Regressions
+
+```{r}
+cor.test(scfe_acc$scfe_regr, ccfe_d$int_regr)
+```
+
+```{r}
+cor.test(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
+```
+
+```{r}
+cor.test(scfe_rt$scfe_regr, ccfe_rt$int_regr)
+```
+
+```{r}
+cor.test(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
+```
+
+### Pairwise correlations
+
+```{r}
+library(corrplot)
+```
+
+#### Performance
+
+```{r}
+left_join(pwe_acc, scfe_acc, by="Subject") %>% 
+  left_join(ccfe_d, by="Subject") %>% 
+  select(-Subject) %>% 
+  cor() %>% 
+  corrplot(type = "upper", order = "hclust", 
+          tl.col = "black", tl.srt = 45)
+```
+
+
+#### Response times
+
+```{r}
+left_join(pwe_rt, scfe_rt, by="Subject") %>% 
+  left_join(ccfe_rt, by="Subject") %>% 
+  select(-Subject) %>% 
+  cor() %>% 
+  corrplot(type = "upper", order = "hclust", 
+          tl.col = "black", tl.srt = 45)
+```
 
 
 # Session information {.unlisted .unnumbered}
