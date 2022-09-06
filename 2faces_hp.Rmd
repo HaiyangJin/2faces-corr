@@ -623,6 +623,34 @@ ccfe_rt
 
 ## Correlations
 
+```{r}
+# equivalence interval
+delta_null <- .15  # the equivalent interval will be [-delta_null, delta_null]
+
+df_equi <- tibble(
+  Scenarios = paste("Scenario", 1:7),
+  CI_low = c(delta_null+.02, delta_null-.1, .03, -delta_null+.05, -.14, -delta_null-.03, -.05),
+  CI_upp = CI_low + c(.2, .2, 0.1, .2, 0.1, .3, .3)
+) %>% 
+  mutate(Scenarios = factor(Scenarios),
+         Scenarios = factor(Scenarios, levels = rev(levels(Scenarios))))
+
+plot_equi <- ggplot(df_equi, aes(xmin = CI_low, xmax = CI_upp, y = Scenarios)) +
+  geom_errorbarh(height = .4, color = c("#D55E00", "#D55E00", "#D55E00",
+                                        "#56B4E9", "#56B4E9", "#56B4E9", "gray30"), size = 1) + 
+  geom_vline(xintercept = 0, linetype = "longdash") +
+  geom_vline(xintercept = delta_null, linetype = "dashed", color = "gray30") +
+  scale_x_continuous(limits = c(-.25, .4), breaks = c(-delta_null, 0, delta_null)) +
+  xlab("Correlation coefficient") +
+  papaja::theme_apa() +
+  NULL
+
+# ggsave("equivalence_test.png", plot_equi, width = 8, height = 5)
+
+plot_equi
+```
+
+
 ### PW and Facilitation in CCF
 
 #### Subtraction
