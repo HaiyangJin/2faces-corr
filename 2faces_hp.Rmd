@@ -125,8 +125,15 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 ```{r}
 df_pw <- df_tidy %>% 
   filter(Task_name == "PW",
+         Feature != "nose", # do not include Nose trials in GLMM
          Section == "main") %>% 
-  select(Subject, PW, Feature, Correct, RT, platform) 
+  select(Subject, PW, Feature, Correct, RT) %>% 
+  mutate(PW_C = if_else(PW=="part", -.5, if_else(PW=="whole", .5, NaN)),
+         Feature_C = if_else(Feature=="mouth", -.5, 
+                             if_else(Feature=="eyes", .5, NaN)),
+         PW_Feature = PW_C * Feature_C) 
+
+# saveRDS(df_pw, file=file.path("jubail", "df_pw.rds"))
 
 head(df_pw)
 ```
@@ -134,35 +141,141 @@ head(df_pw)
 
 ### Accuracy 
 
-```{r}
-lmm_pw_acc <- glmer(Correct ~ PW * Feature + (PW * Feature | Subject),
-                    df_pw,
-                    family = binomial(link = "logit"),
-                    control = glmerControl(optimizer = "optimx", 
-                                           optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+#### Maximal model
 
-summary(lmm_pw_acc)
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_acc_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_acc_max <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_acc_max <- 
+    glmer(Correct ~ PW * Feature + (PW * Feature | Subject),
+          df_pw,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_pw_acc_max, thisfile)
+}
+
+summary(lmm_pw_acc_max)
 ```
 
+#### Zero-correlation-parameter model
 
 ```{r}
-emm_pw_acc <- emmeans(lmm_pw_acc, ~ PW + Feature, type = "response")
+thisfile <- file.path("jubail", "lmm_pw_acc_zcp.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_acc_zcp <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_acc_zcp <- 
+    glmer(Correct ~ PW * Feature + 
+            (PW_C + Feature_C + PW_Feature || Subject),
+          df_pw,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_pw_acc_zcp, thisfile)
+}
+
+summary(lmm_pw_acc_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_pw_acc_zcp))
+```
+
+#### Reduced model
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_acc_rdc.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_acc_rdc <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_acc_rdc <- 
+    glmer(Correct ~ PW * Feature + 
+            (PW_C + Feature_C || Subject),
+          df_pw,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_pw_acc_rdc, thisfile)
+}
+
+summary(lmm_pw_acc_rdc)
+```
+
+#### Extended model
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_acc_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_acc_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_acc_etd <- 
+    glmer(Correct ~ PW * Feature + 
+            (PW_C + Feature_C | Subject),
+          df_pw,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_pw_acc_etd, thisfile)
+}
+
+summary(lmm_pw_acc_etd)
+```
+
+#### Optimal model
+
+```{r}
+anova(lmm_pw_acc_rdc, lmm_pw_acc_etd)
+```
+
+```{r}
+lmm_pw_acc_opt <- lmm_pw_acc_etd
+```
+
+#### Effects of interest
+```{r}
+emm_pw_acc <- emmeans(lmm_pw_acc_opt, ~ PW + Feature, type = "response")
 emm_pw_acc
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_acc, ~ PW), "pairwise")
+contrast(emmeans(lmm_pw_acc_opt, ~ PW), "revpairwise")
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_acc, ~ PW | Feature), "pairwise")
+contrast(emmeans(lmm_pw_acc_opt, ~ PW), "revpairwise", type="response")
+```
+
+```{r}
+contrast(emmeans(lmm_pw_acc_opt, ~ PW | Feature), "pairwise")
 ```
 
 
 ```{r}
-emmip(lmm_pw_acc, ~ PW | Feature, CIs = TRUE, type = "response") 
+emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response") 
 ```
-
 
 
 ### Correct response times
