@@ -39,6 +39,8 @@ library(lme4)
 library(lmerTest)
 library(optimx)
 library(emmeans)
+library(psych)
+library(Lambda4)
 library(ggpubr)
 ```
 
@@ -73,21 +75,21 @@ df_raw_t1 <- map_dfr(testable1_list, read_csv, show_col_types = FALSE, .id="id")
 df_raw_p_tmp <- df_raw_p %>% 
   filter(trial_frame=="test_face") %>% 
   select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
-         Correct_ans_posi, Correct_response, response, Correct, RT) %>% 
+         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
   mutate(platform = "Prolific")
 
 df_raw_t1_tmp <- df_raw_t1 %>% 
   filter(trial_frame=="test_face") %>% 
   select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
-         Correct_ans_posi, Correct_response, response, Correct, RT) %>% 
+         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
   mutate(platform = "Testable1")
 
 df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>% 
+  filter(Section=="main") %>% # exclude practice trials
   mutate(Exp_name = as_factor(Exp_name),
          Subject = paste0("subj",as.numeric(as_factor(Subject))),
          Subject = as_factor(Subject),
          Task = as_factor(Task_name),
-         Section = as_factor(Section),
          PW = as_factor(PW), 
          Feature = as_factor(Feature),
          Cue = as_factor(Cue),
@@ -95,7 +97,10 @@ df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>%
          Alignment = as_factor(Alignment),
          SameDifferent = as_factor(SameDifferent),
          Correct_ans_posi = as_factor(Correct_ans_posi),
-         platform = as_factor(platform))
+         platform = as_factor(platform),
+         
+         stim = paste(StudyFace, TestFace, sep="_")) %>% 
+  select(-c(Section, StudyFace, TestFace))
 
 head(df_raw)
 ```
@@ -125,8 +130,7 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 ```{r}
 df_pw <- df_tidy %>% 
   filter(Task_name == "PW",
-         Feature != "nose", # do not include Nose trials in GLMM
-         Section == "main") %>% 
+         Feature != "nose") %>% # do not include Nose trials in GLMM
   select(Subject, PW, Feature, Correct, RT) %>% 
   mutate(PW_C = if_else(PW=="part", -.5, if_else(PW=="whole", .5, NaN)),
          Feature_C = if_else(Feature=="mouth", -.5, 
@@ -291,7 +295,7 @@ summary(lmm_pw_rt)
 
 
 ```{r}
-emm_pw_rt <- emmeans(lmm_pw_acc, ~ PW + Feature)
+emm_pw_rt <- emmeans(lmm_pw_acc_opt, ~ PW + Feature)
 emm_pw_rt
 ```
 
@@ -406,7 +410,7 @@ head(df_ccf)
 ### Sensitivity d'
 
 ```{r}
-lmm_ccf_d <- glmer(isSame ~ Congruency * Alignment * SD + 
+lmm_ccf_d <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
                      (Congruency * Alignment * SD | Subject),
                    df_ccf,
                    family = binomial(link = "probit"),
@@ -734,7 +738,201 @@ ccfe_rt <- ccfe_rt %>%
 ccfe_rt
 ```
 
-## Correlations
+
+## Reliability of measurement
+
+```{r}
+df_pw_rel <- df_tidy %>% 
+  filter(Task_name == "PW",
+         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
+  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
+  filter(stim!="s19")  # do not need this in later analysis
+  
+```
+
+```{r}
+df_scf_rel <- df_tidy %>% 
+  filter(Task_name == "SCF",
+         SameDifferent == "same") %>% 
+  group_by(Subject, Alignment, StimGroup) %>% 
+  summarize(acc = mean(Correct), rt = mean(RT),
+            .groups = "drop")
+  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+```
+
+
+
+### Prepare data
+Needs to prepare data for `Lambda4::lambda2()`: each row is one participant and each column is one trial (e.g., with the same stimuli) for each condition in each task separately.  
+```{r}
+df_tidy %>%
+  filter(Task_name == "PW",
+         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
+  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
+  filter(stim!="s19") %>%  # do not need this in later analysis
+  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
+  data.matrix() %>% 
+  lambda2()
+```
+
+```{r warning=FALSE}
+df_tidy %>%
+  filter(Task_name == "PW",
+         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
+  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
+  filter(stim!="s19") %>%  # do not need this in later analysis
+  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
+  data.matrix() %>%
+  psych::guttman()
+```
+
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="aligned") %>% 
+  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  lambda2(standardize=TRUE)
+```
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="aligned") %>% 
+  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  splitHalf(check.keys=FALSE)
+```
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="misaligned") %>% 
+  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>% 
+  lambda2(missing="pairwise", standardize=TRUE)
+```
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="misaligned") %>% 
+  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>% 
+  splitHalf(check.keys=FALSE)
+```
+
+```{r}
+sigmar <- df_scf_rel %>%
+  filter(Alignment=="misaligned") %>% 
+  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>% 
+  cor()
+
+n <- nrow(sigmar)
+sigma0 <- sigmar
+diag(sigma0) <- 0
+
+gamma2<-sum(sigma0^2)
+L1<-1-sum(diag(sigmar))/sum(sigmar)
+
+lambda2<-L1+sqrt((n/(n-1))*gamma2)/sum(sigmar)
+lambda2
+```
+
+
+```{r}
+
+sumr <- sum(sigmar)
+ off <- sigmar
+diag(off) <- 0
+sumsq.off <- sum(off^2)
+sum.off <- sumr - tr(sigmar)
+alpha <- (sum.off/sumr) * n/(n-1)
+lambda2 <- (sum.off+ sqrt(sumsq.off*n/(n-1)))/sumr
+lambda2
+```
+
+
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="aligned") %>% 
+  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  lambda2(standardize=TRUE)
+```
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="aligned") %>% 
+  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  splitHalf(check.keys=FALSE)
+```
+
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="misaligned") %>% 
+  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  lambda2()
+```
+
+```{r}
+df_scf_rel %>%
+  filter(Alignment=="misaligned") %>% 
+  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
+  data.matrix() %>% 
+  splitHalf(check.keys=FALSE)
+```
+
+
+```{r}
+df_tidy %>%
+  mutate(Task_name == "CCF") %>% 
+  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
+  data.matrix() %>% 
+  lambda2()
+```
+
+
+## Correlations among holistic processing effects
+
+```{r}
+# equivalence interval
+delta_null_hp <- .15  # the equivalent interval will be [-delta_null_hp, delta_null_hp]
+
+df_equi_hp <- tibble(
+  Scenarios = paste("Scenario", 1:6),
+  CI_low = c(delta_null_hp-.05, -delta_null_hp-.08, -delta_null_hp+.02, -.04, -delta_null_hp-.04, -delta_null_hp-.02),
+  CI_upp = CI_low + c(rep(0.2, 5), 0.34)
+) %>% 
+  mutate(Scenarios = factor(Scenarios),
+         Scenarios = factor(Scenarios, levels = rev(levels(Scenarios))))
+
+plot_equi_hp <- ggplot(df_equi_hp, aes(xmin = CI_low, xmax = CI_upp, y = Scenarios)) +
+  geom_errorbarh(height = .4, color = c("#D55E00", "#D55E00", "#56B4E9",
+                                        "gray30", "gray30", "gray30"), size = 1) +  # , "gray30"
+  geom_vline(xintercept = 0, linetype = "longdash") +
+  geom_vline(xintercept = c(-delta_null_hp,delta_null_hp), linetype = "dashed", color = "gray30") +
+  scale_x_continuous(limits = c(-.3, .3), breaks = c(-delta_null_hp, 0, delta_null_hp)) +
+  xlab("Correlation coefficient") +
+  papaja::theme_apa() +
+  NULL
+
+# ggsave("equivalence_test_hp.png", plot_equi_hp, width = 8, height = 5)
+
+plot_equi_hp
+```
+
+
+## Correlations for facilitation and interference
 
 ```{r}
 # equivalence interval
