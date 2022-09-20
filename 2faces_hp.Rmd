@@ -85,13 +85,14 @@ df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>%
          PW = as_factor(PW), 
          Feature = as_factor(Feature),
          Cue = as_factor(Cue),
-         Congruency = as_factor(Congruency),
-         Alignment = as_factor(Alignment),
-         SameDifferent = as_factor(SameDifferent),
+         Congruency = as_factor(str_sub(Congruency, 1, 3)),
+         Alignment = as_factor(str_sub(Alignment, 1, 3)),
+         SD = as_factor(str_sub(SameDifferent, 1, 3)),
+         SD = fct_relevel(SD, "sam", "dif"),
          Correct_ans_posi = as_factor(Correct_ans_posi),
          StimGroup = if_else(Task_name=="PW", str_remove(basename(StudyFace),".png"), StimGroup),
          platform = as_factor(platform)) %>% 
-  select(-c(Section))
+  select(-c(Section, SameDifferent))
 
 head(df_raw)
 ```
@@ -126,8 +127,9 @@ head(df_pw)
 ```{r}
 df_scf <- df_tidy %>% 
   filter(Task_name == "SCF",
-         SameDifferent == "same") %>% # only use trials when the top is the same
-  select(Subject, Alignment, Correct, RT, StimGroup) 
+         SD == "sam") %>% # only use trials when the top is the same
+  select(Subject, Alignment, Correct, RT, StimGroup) %>% 
+  mutate(Alignment = fct_drop(Alignment))
 
 head(df_scf)
 ```
@@ -139,12 +141,14 @@ head(df_scf)
 df_ccf_iso <- df_tidy %>% 
   filter(Task_name == "CCF") %>% # only use trials when the top is the same
   mutate(isSame = if_else( # whether participants responded "same" (signal)
-    ((SameDifferent=="same")&Correct) | ((SameDifferent=="different")&!Correct), 1,
-    if_else(((SameDifferent=="same")&!Correct) | ((SameDifferent=="different")&Correct), 0, NaN))) %>% 
-  select(Subject, Cue, Congruency, Alignment, SD=SameDifferent, Correct, isSame, RT, StimGroup) 
+    ((SD=="sam")&Correct) | ((SD=="dif")&!Correct), 1,
+    if_else(((SD=="sam")&!Correct) | ((SD=="dif")&Correct), 0, NaN))) %>% 
+  select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, StimGroup) 
 
 df_ccf <- df_ccf_iso %>% 
-  filter(Alignment != "isolated")
+  filter(Alignment != "iso") %>% 
+  mutate(Alignment = fct_drop(Alignment),
+         Congruency = fct_drop(Congruency))
 
 head(df_ccf)
 ```
@@ -633,7 +637,7 @@ scfe_acc <- df_scf %>%
   summarize(acc = mean(Correct),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = Alignment, values_from = acc) %>% 
-  mutate(scfe_subt = aligned - misaligned)
+  mutate(scfe_subt = ali - mis)
 scfe_acc
 ```
 
@@ -645,14 +649,14 @@ scfe_rt <- df_scf %>%
   summarize(rt = mean(RT),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = Alignment, values_from = rt) %>% 
-  mutate(scfe_subt = aligned - misaligned)
+  mutate(scfe_subt = ali - mis)
 scfe_rt
 ```
 
 #### Regression
 
 ```{r}
-lm_scfe_acc <- lm(aligned ~ misaligned, scfe_acc)
+lm_scfe_acc <- lm(ali ~ mis, scfe_acc)
 summary(lm_scfe_acc)
 ```
 
@@ -664,7 +668,7 @@ scfe_acc
 
 
 ```{r}
-lm_scfe_rt <- lm(aligned ~ misaligned, scfe_rt)
+lm_scfe_rt <- lm(ali ~ mis, scfe_rt)
 summary(lm_scfe_rt)
 ```
 
@@ -689,15 +693,15 @@ ccfe_d <- df_ccf_iso %>%
   mutate(z = qnorm(same_adjust)) %>% 
   select(-same_adjust) %>% 
   pivot_wider(names_from = "SD", values_from = z) %>% 
-  mutate(d = same - different) %>% 
+  mutate(d = sam - dif) %>% 
   pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = d) %>% 
-  rename(isolated = isolated_isolated) %>% 
-  mutate(fac_subt = congruent_aligned - congruent_misaligned,
-         int_subt = incongruent_aligned - incongruent_misaligned,
-         fac_subt_iso = congruent_aligned - isolated,
-         int_subt_iso = incongruent_aligned - isolated,
-         cong_ali_subt = congruent_aligned - incongruent_aligned,
-         cong_mis_subt = congruent_misaligned - incongruent_misaligned,
+  rename(isolated = iso_iso) %>% 
+  mutate(fac_subt = con_ali - con_mis,
+         int_subt = inc_ali - inc_mis,
+         fac_subt_iso = con_ali - isolated,
+         int_subt_iso = inc_ali - isolated,
+         cong_ali_subt = con_ali - inc_ali,
+         cong_mis_subt = con_mis - inc_mis,
          # ccfe_subt = fac_subt - int_subt, # value is the same as next line
          ccfe_subt = cong_ali_subt - cong_mis_subt)
 ccfe_d 
@@ -711,13 +715,13 @@ ccfe_rt <- df_ccf_iso %>%
   summarize(rt = mean(RT),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = rt) %>% 
-  rename(isolated = isolated_isolated) %>% 
-  mutate(fac_subt = congruent_aligned - congruent_misaligned,
-         int_subt = incongruent_aligned - incongruent_misaligned,
-         fac_subt_iso = congruent_aligned - isolated,
-         int_subt_iso = incongruent_aligned - isolated,
-         cong_ali_subt = congruent_aligned - incongruent_aligned,
-         cong_mis_subt = congruent_misaligned - incongruent_misaligned,
+  rename(isolated = iso_iso) %>% 
+  mutate(fac_subt = con_ali - con_mis,
+         int_subt = inc_ali - inc_mis,
+         fac_subt_iso = con_ali - isolated,
+         int_subt_iso = inc_ali - isolated,
+         cong_ali_subt = con_ali - inc_ali,
+         cong_mis_subt = con_mis - inc_mis,
          # ccfe_subt = fac_subt - int_subt, # value is the same as next line
          ccfe_subt = cong_ali_subt - cong_mis_subt
          )
@@ -730,7 +734,7 @@ ccfe_rt
 
 Facilitation
 ```{r}
-lm_ccfe_d_fac <- lm(congruent_aligned ~ congruent_misaligned, ccfe_d)
+lm_ccfe_d_fac <- lm(con_ali ~ con_mis, ccfe_d)
 summary(lm_ccfe_d_fac)
 ```
 
@@ -743,7 +747,7 @@ ccfe_d
 
 Facilitation (isolated)
 ```{r}
-lm_ccfe_d_fac_iso <- lm(congruent_aligned ~ isolated, ccfe_d)
+lm_ccfe_d_fac_iso <- lm(con_ali ~ isolated, ccfe_d)
 summary(lm_ccfe_d_fac_iso)
 ```
 
@@ -756,7 +760,7 @@ ccfe_d
 
 Interference
 ```{r}
-lm_ccfe_d_int <- lm(incongruent_aligned ~ incongruent_misaligned, ccfe_d)
+lm_ccfe_d_int <- lm(inc_ali ~ inc_mis, ccfe_d)
 summary(lm_ccfe_d_int)
 ```
 
@@ -768,7 +772,7 @@ ccfe_d
 
 Interference (isolated)
 ```{r}
-lm_ccfe_d_int_iso <- lm(incongruent_aligned ~ isolated, ccfe_d)
+lm_ccfe_d_int_iso <- lm(inc_ali ~ isolated, ccfe_d)
 summary(lm_ccfe_d_int_iso)
 ```
 
@@ -781,7 +785,7 @@ ccfe_d
 Facilitation (RT)
 
 ```{r}
-lm_ccfe_rt_fac <- lm(congruent_aligned ~ congruent_misaligned, ccfe_rt)
+lm_ccfe_rt_fac <- lm(con_ali ~ con_mis, ccfe_rt)
 summary(lm_ccfe_rt_fac)
 ```
 
@@ -794,7 +798,7 @@ ccfe_rt
 
 Facilitation (isolated)
 ```{r}
-lm_ccfe_rt_fac_iso <- lm(congruent_aligned ~ isolated, ccfe_rt)
+lm_ccfe_rt_fac_iso <- lm(con_ali ~ isolated, ccfe_rt)
 summary(lm_ccfe_rt_fac_iso)
 ```
 
@@ -807,7 +811,7 @@ ccfe_rt
 
 Interference (RT)
 ```{r}
-lm_ccfe_rt_int <- lm(incongruent_aligned ~ incongruent_misaligned, ccfe_rt)
+lm_ccfe_rt_int <- lm(inc_ali ~ inc_mis, ccfe_rt)
 summary(lm_ccfe_rt_int)
 ```
 
@@ -819,7 +823,7 @@ ccfe_rt
 
 Interference (isolated)
 ```{r}
-lm_ccfe_rt_int_iso <- lm(incongruent_aligned ~ isolated, ccfe_rt)
+lm_ccfe_rt_int_iso <- lm(inc_ali ~ isolated, ccfe_rt)
 summary(lm_ccfe_rt_int_iso)
 ```
 
@@ -992,25 +996,25 @@ df_scf_rel_rt <- df_scf %>%
 #### Reliability of each condition
 Accuracy for aligned:
 ```{r}
-rel_scf_acc_a <- rel_each(df_scf_rel_acc, "acc", Alignment=="aligned")
+rel_scf_acc_a <- rel_each(df_scf_rel_acc, "acc", Alignment=="ali")
 rel_scf_acc_a
 ```
 
-Accuracy for misaligned
+Accuracy for misgned
 ```{r}
-rel_scf_acc_m <- rel_each(df_scf_rel_acc, "acc", Alignment=="misaligned")
+rel_scf_acc_m <- rel_each(df_scf_rel_acc, "acc", Alignment=="mis")
 rel_scf_acc_m
 ```
 
 RT for aligned
 ```{r}
-rel_scf_rt_a <- rel_each(df_scf_rel_rt, "rt", Alignment=="aligned")
+rel_scf_rt_a <- rel_each(df_scf_rel_rt, "rt", Alignment=="ali")
 rel_scf_rt_a
 ```
 
 RT for misaligned
 ```{r}
-rel_scf_rt_m <- rel_each(df_scf_rel_rt, "rt", Alignment=="misaligned")
+rel_scf_rt_m <- rel_each(df_scf_rel_rt, "rt", Alignment=="mis")
 rel_scf_rt_m
 ```
 
@@ -1018,22 +1022,22 @@ rel_scf_rt_m
 
 Subtraction of accuracy
 ```{r}
-rel_sub(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$aligned, scfe_acc$misaligned)
+rel_sub(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis)
 ```
 
 Regression of accuracy
 ```{r}
-rel_reg(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$aligned, scfe_acc$misaligned)
+rel_reg(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis)
 ```
 
 Subtraction of RT
 ```{r}
-rel_sub(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+rel_sub(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
 ```
 
 Regression of RT
 ```{r}
-rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
 ```
 
 ### Complete composite face task
@@ -1048,7 +1052,7 @@ df_ccf_rel_d <- df_ccf_iso %>% # need to include the isolated condition
   mutate(z = qnorm(same_adjust)) %>% 
   select(-same_adjust) %>% 
   pivot_wider(names_from = "SD", values_from = z) %>% 
-  mutate(d = same - different) %>% 
+  mutate(d = sam - dif) %>% 
   select(Subject, Congruency, Alignment, StimGroup, d)
 
 df_ccf_rel_rt <- df_ccf_iso %>% 
@@ -1064,9 +1068,9 @@ df_ccf_rel_rt <- df_ccf_iso %>%
 Congruency in accuracy (aligned)
 ```{r}
 rel_ccf_d_cong_a <- df_ccf_rel_d %>%
-  filter(Alignment == "aligned") %>% # to filter out conditions
+  filter(Alignment == "ali") %>% # to filter out conditions
   pivot_wider(c(Subject, StimGroup), values_from = d, names_from = Congruency) %>% 
-  mutate(d_cong = congruent - incongruent) %>% 
+  mutate(d_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = d_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
   data.matrix() %>%
@@ -1079,9 +1083,9 @@ rel_ccf_d_cong_a
 Congruency in accuracy (misaligned)
 ```{r}
 rel_ccf_d_cong_m <- df_ccf_rel_d %>%
-  filter(Alignment == "misaligned") %>% # to filter out conditions
+  filter(Alignment == "mis") %>% # to filter out conditions
   pivot_wider(c(Subject, StimGroup), values_from = d, names_from = Congruency) %>% 
-  mutate(d_cong = congruent - incongruent) %>% 
+  mutate(d_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = d_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
   data.matrix() %>%
@@ -1094,9 +1098,9 @@ rel_ccf_d_cong_m
 Congruency in RT (aligned)
 ```{r}
 rel_ccf_rt_cong_a <- df_ccf_rel_rt %>%
-  filter(Alignment == "aligned") %>% # to filter out conditions
+  filter(Alignment == "ali") %>% # to filter out conditions
   pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
-  mutate(rt_cong = congruent - incongruent) %>% 
+  mutate(rt_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
   data.matrix() %>%
@@ -1109,9 +1113,9 @@ rel_ccf_rt_cong_a
 Congruency in RT (misaligned)
 ```{r}
 rel_ccf_rt_cong_m <- df_ccf_rel_rt %>%
-  filter(Alignment == "misaligned") %>% # to filter out conditions
+  filter(Alignment == "mis") %>% # to filter out conditions
   pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
-  mutate(rt_cong = congruent - incongruent) %>% 
+  mutate(rt_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
   data.matrix() %>%
@@ -1140,7 +1144,7 @@ rel_sub(rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, ccfe_rt$cong_ali_subt, ccfe_rt$con
 
 Regression of RT
 ```{r}
-rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
 ```
 
 #### Reliability of each condition
@@ -1148,70 +1152,70 @@ rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
 d for congruent aligned:
 ```{r}
 rel_ccf_d_ca <- rel_each(df_ccf_rel_d, "d", 
-                         Congruency=="congruent", Alignment=="aligned")
+                         Congruency=="con", Alignment=="ali")
 rel_ccf_d_ca
 ```
 
 d for incongruent aligned:
 ```{r}
 rel_ccf_d_ia <- rel_each(df_ccf_rel_d, "d", 
-                         Congruency=="incongruent", Alignment=="aligned")
+                         Congruency=="inc", Alignment=="ali")
 rel_ccf_d_ia
 ```
 
 d for congruent misaligned:
 ```{r}
 rel_ccf_d_cm <- rel_each(df_ccf_rel_d, "d", 
-                         Congruency=="congruent", Alignment=="misaligned")
+                         Congruency=="con", Alignment=="mis")
 rel_ccf_d_cm
 ```
 
 d for incongruent misaligned:
 ```{r}
 rel_ccf_d_im <- rel_each(df_ccf_rel_d, "d", 
-                         Congruency=="incongruent", Alignment=="misaligned")
+                         Congruency=="inc", Alignment=="mis")
 rel_ccf_d_im
 ```
 
 d for isolated:
 ```{r}
 rel_ccf_d_iso <- rel_each(df_ccf_rel_d, "d", 
-                          Congruency=="isolated", Alignment=="isolated")
+                          Congruency=="iso", Alignment=="iso")
 rel_ccf_d_iso
 ```
 
 RT for congruent aligned:
 ```{r}
 rel_ccf_rt_ca <- rel_each(df_ccf_rel_rt, "rt", 
-                          Congruency=="congruent", Alignment=="aligned")
+                          Congruency=="con", Alignment=="ali")
 rel_ccf_rt_ca
 ```
 
 RT for incongruent aligned:
 ```{r}
 rel_ccf_rt_ia <- rel_each(df_ccf_rel_rt, "rt", 
-                          Congruency=="incongruent", Alignment=="aligned")
+                          Congruency=="inc", Alignment=="ali")
 rel_ccf_rt_ia
 ```
 
 RT for congruent misaligned:
 ```{r}
 rel_ccf_rt_cm <- rel_each(df_ccf_rel_rt, "rt", 
-                          Congruency=="congruent", Alignment=="misaligned")
+                          Congruency=="con", Alignment=="mis")
 rel_ccf_rt_cm
 ```
 
 RT for incongruent misaligned:
 ```{r}
 rel_ccf_rt_im <- rel_each(df_ccf_rel_rt, "rt", 
-                          Congruency=="incongruent", Alignment=="misaligned")
+                          Congruency=="inc", Alignment=="mis")
 rel_ccf_rt_im
 ```
 
 RT for isolated:
 ```{r}
 rel_ccf_rt_iso <- rel_each(df_ccf_rel_rt, "rt", 
-                           Congruency=="isolated", Alignment=="isolated")
+                           Congruency=="iso", Alignment=="iso")
 rel_ccf_rt_iso
 ```
 
@@ -1220,42 +1224,42 @@ rel_ccf_rt_iso
 
 Subtraction of accuracy (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$congruent_aligned, ccfe_d$isolated)
+rel_sub(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated)
 ```
 
 Regression of accuracy (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$congruent_aligned, ccfe_d$isolated)
+rel_reg(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated)
 ```
 
 Subtraction of RT (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$congruent_aligned, ccfe_rt$isolated)
+rel_sub(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated)
 ```
 
 Regression of RT (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$congruent_aligned, ccfe_rt$isolated)
+rel_reg(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated)
 ```
 
 Subtraction of accuracy (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$congruent_aligned, ccfe_d$congruent_misaligned)
+rel_sub(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis)
 ```
 
 Regression of accuracy (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$congruent_aligned, ccfe_d$congruent_misaligned)
+rel_reg(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis)
 ```
 
 Subtraction of RT (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$congruent_aligned, ccfe_rt$congruent_misaligned)
+rel_sub(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis)
 ```
 
 Regression of RT (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$congruent_aligned, ccfe_rt$congruent_misaligned)
+rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis)
 ```
 
 
@@ -1263,42 +1267,42 @@ rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$congruent_aligned, ccfe_rt$congrue
 
 Subtraction of accuracy (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$incongruent_aligned, ccfe_d$isolated)
+rel_sub(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated)
 ```
 
 Regression of accuracy (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$incongruent_aligned, ccfe_d$isolated)
+rel_reg(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated)
 ```
 
 Subtraction of RT (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$incongruent_aligned, ccfe_rt$isolated)
+rel_sub(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated)
 ```
 
 Regression of RT (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$incongruent_aligned, ccfe_rt$isolated)
+rel_reg(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated)
 ```
 
 Subtraction of accuracy (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$incongruent_aligned, ccfe_d$incongruent_misaligned)
+rel_sub(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis)
 ```
 
 Regression of accuracy (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$incongruent_aligned, ccfe_d$incongruent_misaligned)
+rel_reg(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis)
 ```
 
 Subtraction of RT (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$incongruent_aligned, ccfe_rt$incongruent_misaligned)
+rel_sub(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
 ```
 
 Regression of RT (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$incongruent_aligned, ccfe_rt$incongruent_misaligned)
+rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
 ```
 
 
