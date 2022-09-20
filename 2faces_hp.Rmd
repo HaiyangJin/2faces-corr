@@ -40,19 +40,11 @@ library(lmerTest)
 library(optimx)
 library(emmeans)
 library(psych)
-library(Lambda4)
 library(ggpubr)
 ```
 
 ```{r}
-# ylimit_cf_d <- c(-.5, 3.2)
-# ylimit_cf_fi_d <- c(-1.1, 1.1)
-# ylimit_cf_rt <- c(650, 1150)
-# ylimit_cf_fi_rt <- c(-100, 100)
-# 
-# # colors
-# con_color <- c("#e28743", "#0000ff")  #ffb14e #e3b342
-# sig_color <- "black"
+two_colors <- c("#D55E00", "#56B4E9")
 
 # APA theme for figures
 theme_set(papaja::theme_apa(base_size = 12, base_family = "Helvetica", box = FALSE))
@@ -97,41 +89,28 @@ df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>%
          Alignment = as_factor(Alignment),
          SameDifferent = as_factor(SameDifferent),
          Correct_ans_posi = as_factor(Correct_ans_posi),
-         platform = as_factor(platform),
-         
-         stim = paste(StudyFace, TestFace, sep="_")) %>% 
-  select(-c(Section, StudyFace, TestFace))
+         StimGroup = if_else(Task_name=="PW", str_remove(basename(StudyFace),".png"), StimGroup),
+         platform = as_factor(platform)) %>% 
+  select(-c(Section))
 
 head(df_raw)
 ```
 
 ## Tidy data
+
+Remove outlier participants and outlier trials. 
 ```{r}
 df_tidy <- df_raw 
 ```
 
 
-
-## Steps to obtain the optimal model
-
-1. If the maximal model did not converge, correlations between random effects were removed, making the zero-correlation-parameter (ZCP) model. 
-2. Principal component analysis implemented with `rePCA()` function was then used to identify random effects that explained less than 0.1% of the total variances; they were removed from the ZCP model to make the reduced model. 
-3. The extended model was built by adding back the correlations between random effects in the reduced model. 
-4. If the extended model did not converge, the random effects that explained less than 1% of total variances were identified by `rePCA()` and removed to make the updated extended model; this step was iterated until an extended model converged. 
-5. The converged extended model was then compared to the reduced model via `anova()` function and the model that explained the data better (with smaller Bayesian Information Criterion) was used as the optimal model. 
-6. All follow-up analyses were performed on the optimal model. 
-
-# Holistic processing effects
-
-Linear mixed-effects models are used to examine the holistic processing effects in the part-whole, standard composite face task, and complete composite face task.
-
-## Part-whole task
+### Part-whole task
 
 ```{r}
 df_pw <- df_tidy %>% 
   filter(Task_name == "PW",
          Feature != "nose") %>% # do not include Nose trials in GLMM
-  select(Subject, PW, Feature, Correct, RT) %>% 
+  select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
   mutate(PW_C = if_else(PW=="part", -.5, if_else(PW=="whole", .5, NaN)),
          Feature_C = if_else(Feature=="mouth", -.5, 
                              if_else(Feature=="eyes", .5, NaN)),
@@ -142,6 +121,49 @@ df_pw <- df_tidy %>%
 head(df_pw)
 ```
 
+### Standard composite face task
+
+```{r}
+df_scf <- df_tidy %>% 
+  filter(Task_name == "SCF",
+         SameDifferent == "same") %>% # only use trials when the top is the same
+  select(Subject, Alignment, Correct, RT, StimGroup) 
+
+head(df_scf)
+```
+
+### Complete composite face task
+
+```{r}
+# including isolated condition
+df_ccf_iso <- df_tidy %>% 
+  filter(Task_name == "CCF") %>% # only use trials when the top is the same
+  mutate(isSame = if_else( # whether participants responded "same" (signal)
+    ((SameDifferent=="same")&Correct) | ((SameDifferent=="different")&!Correct), 1,
+    if_else(((SameDifferent=="same")&!Correct) | ((SameDifferent=="different")&Correct), 0, NaN))) %>% 
+  select(Subject, Cue, Congruency, Alignment, SD=SameDifferent, Correct, isSame, RT, StimGroup) 
+
+df_ccf <- df_ccf_iso %>% 
+  filter(Alignment != "isolated")
+
+head(df_ccf)
+```
+
+
+# Holistic processing effects
+
+Linear mixed-effects models are used to examine the holistic processing effects in the part-whole, standard composite face task, and complete composite face task.
+
+## Steps to obtain the optimal model
+
+1. If the maximal model did not converge, correlations between random effects were removed, making the zero-correlation-parameter (ZCP) model. 
+2. Principal component analysis implemented with `rePCA()` function was then used to identify random effects that explained less than 0.1% of the total variances; they were removed from the ZCP model to make the reduced model. 
+3. The extended model was built by adding back the correlations between random effects in the reduced model. 
+4. If the extended model did not converge, the random effects that explained less than 1% of total variances were identified by `rePCA()` and removed to make the updated extended model; this step was iterated until an extended model converged. 
+5. The converged extended model was then compared to the reduced model via `anova()` function and the model that explained the data better (with smaller Bayesian Information Criterion) was used as the optimal model. 
+6. All follow-up analyses were performed on the optimal model. 
+
+## Part-whole task
 
 ### Accuracy 
 
@@ -319,16 +341,6 @@ emmip(lmm_pw_rt, ~ PW | Feature, CIs = TRUE, type = "response")
 
 ## Standard composite face task
 
-```{r}
-df_scf <- df_tidy %>% 
-  filter(Task_name == "SCF",
-         Section == "main",
-         SameDifferent == "same") %>% # only use trials when the top is the same
-  select(Subject, Alignment, Correct, RT, platform) 
-
-head(df_scf)
-```
-
 ### Accuracy 
 
 ```{r}
@@ -390,22 +402,6 @@ emmip(lmm_scf_rt, ~ Alignment, CIs = TRUE, type = "response")
 
 
 ## Complete composite face task
-
-```{r}
-# including isolated condition
-df_ccf_iso <- df_tidy %>% 
-  filter(Task_name == "CCF",
-         Section == "main") %>% # only use trials when the top is the same
-  mutate(isSame = if_else(
-    ((SameDifferent=="same")&Correct) | ((SameDifferent=="different")&!Correct), 1,
-    if_else(((SameDifferent=="same")&!Correct) | ((SameDifferent=="different")&Correct), 0, NaN))) %>% 
-  select(Subject, Cue, Congruency, Alignment, SD=SameDifferent, Correct, isSame, RT, platform) 
-
-df_ccf <- df_ccf_iso %>% 
-  filter(Alignment != "isolated")
-
-head(df_ccf)
-```
 
 ### Sensitivity d'
 
