@@ -606,10 +606,13 @@ ccfe_d <- df_ccf_iso %>%
   rename(isolated = isolated_isolated) %>% 
   mutate(fac_subt = congruent_aligned - congruent_misaligned,
          int_subt = incongruent_aligned - incongruent_misaligned,
-         ccfe_subt = fac_subt - int_subt,
          fac_subt_iso = congruent_aligned - isolated,
-         int_subt_iso = incongruent_aligned - isolated)
-ccfe_d
+         int_subt_iso = incongruent_aligned - isolated,
+         cong_ali_subt = congruent_aligned - incongruent_aligned,
+         cong_mis_subt = congruent_misaligned - incongruent_misaligned,
+         # ccfe_subt = fac_subt - int_subt, # value is the same as next line
+         ccfe_subt = cong_ali_subt - cong_mis_subt)
+ccfe_d 
 ```
 
 
@@ -623,9 +626,13 @@ ccfe_rt <- df_ccf_iso %>%
   rename(isolated = isolated_isolated) %>% 
   mutate(fac_subt = congruent_aligned - congruent_misaligned,
          int_subt = incongruent_aligned - incongruent_misaligned,
-         ccfe_subt = fac_subt - int_subt,
          fac_subt_iso = congruent_aligned - isolated,
-         int_subt_iso = incongruent_aligned - isolated)
+         int_subt_iso = incongruent_aligned - isolated,
+         cong_ali_subt = congruent_aligned - incongruent_aligned,
+         cong_mis_subt = congruent_misaligned - incongruent_misaligned,
+         # ccfe_subt = fac_subt - int_subt, # value is the same as next line
+         ccfe_subt = cong_ali_subt - cong_mis_subt
+         )
 
 ccfe_rt
 ```
@@ -683,7 +690,7 @@ ccfe_d <- ccfe_d %>%
 ccfe_d
 ```
 
-Facilitation 
+Facilitation (RT)
 
 ```{r}
 lm_ccfe_rt_fac <- lm(congruent_aligned ~ congruent_misaligned, ccfe_rt)
@@ -710,7 +717,7 @@ ccfe_rt
 ```
 
 
-Interference
+Interference (RT)
 ```{r}
 lm_ccfe_rt_int <- lm(incongruent_aligned ~ incongruent_misaligned, ccfe_rt)
 summary(lm_ccfe_rt_int)
@@ -746,18 +753,69 @@ ccfe_rt
   
 ```{r}
 # a general (custom) function to calculate the reliability for each condition
-cal_re <- function(.data, DV, ...){
+rel_each <- function(.data, DV, ...){
   
   out <- 
     .data %>%
     filter(...) %>% # to filter out conditions
     pivot_wider(Subject, values_from = all_of(DV), names_from = StimGroup) %>% 
+    select(-Subject) %>%
     data.matrix() %>%
     splitHalf(check.keys=FALSE)
   
   return(out$lambda2) # only output lambda2
 }
 ```
+
+```{r}
+# function to calculate the reliability of subtraction scores
+rel_sub <- function(re_inte, re_base, raw_inte, raw_base){
+  
+  # re_inte: the reliability of the condition of interest
+  # re_base: the reliability of the baseline condition
+  # raw_inte: the raw values for each participant in the condition of interest
+  # raw_base: the raw values for each participant in the baseline condition
+  
+  tmp <- 2*sd(raw_inte)*sd(raw_base)*cor(raw_inte, raw_base)
+  
+  top <- var(raw_inte) * re_inte + var(raw_base) * re_base - tmp
+  bot <- var(raw_inte) + var(raw_base) - tmp
+  
+  return(top/bot)
+}
+
+rel_sub1 <- function(re_inte, re_base, raw_inte, raw_base){
+  # used in DeGutis et al (2013), but used more assumptions. [to be removed]
+  # re_inte: the reliability of the condition of interest
+  # re_base: the reliability of the baseline condition
+  # raw_inte: the raw values for each participant in the condition of interest
+  # raw_base: the raw values for each participant in the baseline condition
+
+  return(((re_inte + re_base)/2 - cor(raw_inte, raw_base))/(1-cor(raw_inte, raw_base)))
+}
+
+
+```
+
+```{r}
+# function to calculate the reliability of regression scores
+rel_reg <- function(re_inte, re_base, raw_inte, raw_base){
+  
+  # re_inte: the reliability of the condition of interest
+  # re_base: the reliability of the baseline condition
+  # raw_inte: the raw values for each participant in the condition of interest
+  # raw_base: the raw values for each participant in the baseline condition
+  
+  tmp1 <- cor(raw_inte, raw_base)^2
+    
+  top <- re_inte + re_base * tmp1 - 2 * tmp1
+  bot <- 1 - tmp1
+  
+  return(top/bot)
+}
+
+```
+
 
 ### Part-whole task
 
@@ -777,29 +835,55 @@ df_pw_rel_rt <- df_pw %>%
 
 #### Reliability of each condition
 
+Accuracy for whole:
 ```{r}
-rel_pw_acc_w <- cal_re(df_pw_rel_acc, "acc", PW=="whole")
+rel_pw_acc_w <- rel_each(df_pw_rel_acc, "acc", PW=="whole")
 rel_pw_acc_w
 ```
 
+Accuracy for part:
 ```{r}
-rel_pw_acc_p <- cal_re(df_pw_rel_acc, "acc", PW=="part")
+rel_pw_acc_p <- rel_each(df_pw_rel_acc, "acc", PW=="part")
 rel_pw_acc_p
 ```
 
+RT for whole:
 ```{r}
-rel_pw_rt_w <- cal_re(df_pw_rel_rt, "rt", PW=="whole")
+rel_pw_rt_w <- rel_each(df_pw_rel_rt, "rt", PW=="whole")
 rel_pw_rt_w
 ```
 
+RT for part:
 ```{r}
-rel_pw_rt_p <- cal_re(df_pw_rel_rt, "rt", PW=="part")
+rel_pw_rt_p <- rel_each(df_pw_rel_rt, "rt", PW=="part")
 rel_pw_rt_p
 ```
 
 #### Reliability of the part-whole effect
 
+Subtraction of accuracy
+```{r}
+rel_sub(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part)
+```
 
+```{r}
+rel_sub1(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part)
+```
+
+Regression of accuracy
+```{r}
+rel_reg(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part)
+```
+
+Subtraction of RT
+```{r}
+rel_sub(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part)
+```
+
+Regression of RT
+```{r}
+rel_reg(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part)
+```
 
 ### Standard composite face task
 
@@ -818,29 +902,51 @@ df_scf_rel_rt <- df_scf %>%
 ```
 
 #### Reliability of each condition
-
+Accuracy for aligned:
 ```{r}
-rel_scf_acc_a <- cal_re(df_scf_rel_acc, "acc", Alignment=="aligned")
+rel_scf_acc_a <- rel_each(df_scf_rel_acc, "acc", Alignment=="aligned")
 rel_scf_acc_a
 ```
 
+Accuracy for misaligned
 ```{r}
-rel_scf_acc_m <- cal_re(df_scf_rel_acc, "acc", Alignment=="misaligned")
+rel_scf_acc_m <- rel_each(df_scf_rel_acc, "acc", Alignment=="misaligned")
 rel_scf_acc_m
 ```
 
+RT for aligned
 ```{r}
-rel_scf_rt_a <- cal_re(df_scf_rel_rt, "rt", Alignment=="aligned")
+rel_scf_rt_a <- rel_each(df_scf_rel_rt, "rt", Alignment=="aligned")
 rel_scf_rt_a
 ```
 
+RT for misaligned
 ```{r}
-rel_scf_rt_m <- cal_re(df_scf_rel_rt, "rt", Alignment=="misaligned")
+rel_scf_rt_m <- rel_each(df_scf_rel_rt, "rt", Alignment=="misaligned")
 rel_scf_rt_m
 ```
 
 #### Reliability of the composite effect
 
+Subtraction of accuracy
+```{r}
+rel_sub(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$aligned, scfe_acc$misaligned)
+```
+
+Regression of accuracy
+```{r}
+rel_reg(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$aligned, scfe_acc$misaligned)
+```
+
+Subtraction of RT
+```{r}
+rel_sub(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+```
+
+Regression of RT
+```{r}
+rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+```
 
 ### Complete composite face task
 
@@ -865,70 +971,247 @@ df_ccf_rel_rt <- df_ccf_iso %>%
 ```
 
 
+#### Reliability of congruency effects
+
+Congruency in accuracy (aligned)
+```{r}
+rel_ccf_d_cong_a <- df_ccf_rel_d %>%
+  filter(Alignment == "aligned") %>% # to filter out conditions
+  pivot_wider(c(Subject, StimGroup), values_from = d, names_from = Congruency) %>% 
+  mutate(d_cong = congruent - incongruent) %>% 
+  pivot_wider(Subject, values_from = d_cong, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>%
+  splitHalf(check.keys=FALSE) 
+rel_ccf_d_cong_a <- rel_ccf_d_cong_a$lambda2 # only output lambda2
+
+rel_ccf_d_cong_a
+```
+
+Congruency in accuracy (misaligned)
+```{r}
+rel_ccf_d_cong_m <- df_ccf_rel_d %>%
+  filter(Alignment == "misaligned") %>% # to filter out conditions
+  pivot_wider(c(Subject, StimGroup), values_from = d, names_from = Congruency) %>% 
+  mutate(d_cong = congruent - incongruent) %>% 
+  pivot_wider(Subject, values_from = d_cong, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>%
+  splitHalf(check.keys=FALSE) 
+rel_ccf_d_cong_m <- rel_ccf_d_cong_m$lambda2 # only output lambda2
+
+rel_ccf_d_cong_m
+```
+
+Congruency in RT (aligned)
+```{r}
+rel_ccf_rt_cong_a <- df_ccf_rel_rt %>%
+  filter(Alignment == "aligned") %>% # to filter out conditions
+  pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
+  mutate(rt_cong = congruent - incongruent) %>% 
+  pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>%
+  splitHalf(check.keys=FALSE) 
+rel_ccf_rt_cong_a <- rel_ccf_rt_cong_a$lambda2 # only output lambda2
+
+rel_ccf_rt_cong_a
+```
+
+Congruency in RT (misaligned)
+```{r}
+rel_ccf_rt_cong_m <- df_ccf_rel_rt %>%
+  filter(Alignment == "misaligned") %>% # to filter out conditions
+  pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
+  mutate(rt_cong = congruent - incongruent) %>% 
+  pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
+  select(-Subject) %>% 
+  data.matrix() %>%
+  splitHalf(check.keys=FALSE) 
+rel_ccf_rt_cong_m <- rel_ccf_rt_cong_m$lambda2 # only output lambda2
+
+rel_ccf_rt_cong_m
+```
+
+#### Reliability of the composite effect
+
+Subtraction of Congruency (composite effect) in d
+```{r}
+rel_sub(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt)
+```
+
+Regression of Congruency (composite effect) in d
+```{r}
+rel_reg(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt)
+```
+
+Subtraction of RT
+```{r}
+rel_sub(rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, ccfe_rt$cong_ali_subt, ccfe_rt$cong_mis_subt)
+```
+
+Regression of RT
+```{r}
+rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$aligned, scfe_rt$misaligned)
+```
+
 #### Reliability of each condition
 
+d for congruent aligned:
 ```{r}
-rel_ccf_d_ca <- cal_re(df_ccf_rel_d, "d", 
-                        Congruency=="congruent", Alignment=="aligned")
+rel_ccf_d_ca <- rel_each(df_ccf_rel_d, "d", 
+                         Congruency=="congruent", Alignment=="aligned")
 rel_ccf_d_ca
 ```
 
+d for incongruent aligned:
 ```{r}
-rel_ccf_d_ia <- cal_re(df_ccf_rel_d, "d", 
-                        Congruency=="incongruent", Alignment=="aligned")
+rel_ccf_d_ia <- rel_each(df_ccf_rel_d, "d", 
+                         Congruency=="incongruent", Alignment=="aligned")
 rel_ccf_d_ia
 ```
 
+d for congruent misaligned:
 ```{r}
-rel_ccf_d_cm <- cal_re(df_ccf_rel_d, "d", 
-                        Congruency=="congruent", Alignment=="misaligned")
+rel_ccf_d_cm <- rel_each(df_ccf_rel_d, "d", 
+                         Congruency=="congruent", Alignment=="misaligned")
 rel_ccf_d_cm
 ```
 
+d for incongruent misaligned:
 ```{r}
-rel_ccf_d_im <- cal_re(df_ccf_rel_d, "d", 
-                        Congruency=="incongruent", Alignment=="misaligned")
+rel_ccf_d_im <- rel_each(df_ccf_rel_d, "d", 
+                         Congruency=="incongruent", Alignment=="misaligned")
 rel_ccf_d_im
 ```
 
+d for isolated:
 ```{r}
-rel_ccf_d_iso <- cal_re(df_ccf_rel_d, "d", 
-                        Congruency=="isolated", Alignment=="isolated")
+rel_ccf_d_iso <- rel_each(df_ccf_rel_d, "d", 
+                          Congruency=="isolated", Alignment=="isolated")
 rel_ccf_d_iso
 ```
 
+RT for congruent aligned:
 ```{r}
-rel_ccf_rt_ca <- cal_re(df_ccf_rel_rt, "rt", 
-                        Congruency=="congruent", Alignment=="aligned")
+rel_ccf_rt_ca <- rel_each(df_ccf_rel_rt, "rt", 
+                          Congruency=="congruent", Alignment=="aligned")
 rel_ccf_rt_ca
 ```
 
+RT for incongruent aligned:
 ```{r}
-rel_ccf_rt_ia <- cal_re(df_ccf_rel_rt, "rt", 
-                        Congruency=="incongruent", Alignment=="aligned")
+rel_ccf_rt_ia <- rel_each(df_ccf_rel_rt, "rt", 
+                          Congruency=="incongruent", Alignment=="aligned")
 rel_ccf_rt_ia
 ```
 
+RT for congruent misaligned:
 ```{r}
-rel_ccf_rt_cm <- cal_re(df_ccf_rel_rt, "rt", 
-                        Congruency=="congruent", Alignment=="misaligned")
+rel_ccf_rt_cm <- rel_each(df_ccf_rel_rt, "rt", 
+                          Congruency=="congruent", Alignment=="misaligned")
 rel_ccf_rt_cm
 ```
 
+RT for incongruent misaligned:
 ```{r}
-rel_ccf_rt_im <- cal_re(df_ccf_rel_rt, "rt", 
-                        Congruency=="incongruent", Alignment=="misaligned")
+rel_ccf_rt_im <- rel_each(df_ccf_rel_rt, "rt", 
+                          Congruency=="incongruent", Alignment=="misaligned")
 rel_ccf_rt_im
 ```
 
+RT for isolated:
 ```{r}
-rel_ccf_rt_iso <- cal_re(df_ccf_rel_rt, "rt", 
-                        Congruency=="isolated", Alignment=="isolated")
+rel_ccf_rt_iso <- rel_each(df_ccf_rel_rt, "rt", 
+                           Congruency=="isolated", Alignment=="isolated")
 rel_ccf_rt_iso
 ```
 
 
-#### Reliability of the composite effect
+#### Reliability of facilitation
+
+Subtraction of accuracy (with isolated baselines)
+```{r}
+rel_sub(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$congruent_aligned, ccfe_d$isolated)
+```
+
+Regression of accuracy (with isolated baselines)
+```{r}
+rel_reg(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$congruent_aligned, ccfe_d$isolated)
+```
+
+Subtraction of RT (with isolated baselines)
+```{r}
+rel_sub(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$congruent_aligned, ccfe_rt$isolated)
+```
+
+Regression of RT (with isolated baselines)
+```{r}
+rel_reg(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$congruent_aligned, ccfe_rt$isolated)
+```
+
+Subtraction of accuracy (with misaligned baselines)
+```{r}
+rel_sub(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$congruent_aligned, ccfe_d$congruent_misaligned)
+```
+
+Regression of accuracy (with misaligned baselines)
+```{r}
+rel_reg(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$congruent_aligned, ccfe_d$congruent_misaligned)
+```
+
+Subtraction of RT (with misaligned baselines)
+```{r}
+rel_sub(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$congruent_aligned, ccfe_rt$congruent_misaligned)
+```
+
+Regression of RT (with misaligned baselines)
+```{r}
+rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$congruent_aligned, ccfe_rt$congruent_misaligned)
+```
+
+
+#### Reliability of interference
+
+Subtraction of accuracy (with isolated baselines)
+```{r}
+rel_sub(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$incongruent_aligned, ccfe_d$isolated)
+```
+
+Regression of accuracy (with isolated baselines)
+```{r}
+rel_reg(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$incongruent_aligned, ccfe_d$isolated)
+```
+
+Subtraction of RT (with isolated baselines)
+```{r}
+rel_sub(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$incongruent_aligned, ccfe_rt$isolated)
+```
+
+Regression of RT (with isolated baselines)
+```{r}
+rel_reg(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$incongruent_aligned, ccfe_rt$isolated)
+```
+
+Subtraction of accuracy (with misaligned baselines)
+```{r}
+rel_sub(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$incongruent_aligned, ccfe_d$incongruent_misaligned)
+```
+
+Regression of accuracy (with misaligned baselines)
+```{r}
+rel_reg(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$incongruent_aligned, ccfe_d$incongruent_misaligned)
+```
+
+Subtraction of RT (with misaligned baselines)
+```{r}
+rel_sub(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$incongruent_aligned, ccfe_rt$incongruent_misaligned)
+```
+
+Regression of RT (with misaligned baselines)
+```{r}
+rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$incongruent_aligned, ccfe_rt$incongruent_misaligned)
+```
 
 
 ## Correlations among holistic processing effects
