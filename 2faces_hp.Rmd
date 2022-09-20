@@ -734,168 +734,201 @@ ccfe_rt <- ccfe_rt %>%
 ccfe_rt
 ```
 
-
 ## Reliability of measurement
 
-```{r}
-df_pw_rel <- df_tidy %>% 
-  filter(Task_name == "PW",
-         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
-  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
-  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
-  filter(stim!="s19")  # do not need this in later analysis
+`psych::splitHalf(..., check.keys=FALSE)` is used to calculate the Guttman's $\lambda_2$ (although it will report results of various methods). Thus, the data have to be prepared to fit the desired structure:
+
+1. The average performance for each `StimGroup` and each participant (for each dependent variable in each task) will be calculated.
+2. Then the data needs to be formatted as following, which will be completed later when calculating the reliability for each condition separately.  
+  - Each matrix is for one condition (and one dependent variable).  
+  - Each row of the matrix is for one participant.  
+  - Each column of the matrix is for one `StimGroup`.
   
+```{r}
+# a general (custom) function to calculate the reliability for each condition
+cal_re <- function(.data, DV, ...){
+  
+  out <- 
+    .data %>%
+    filter(...) %>% # to filter out conditions
+    pivot_wider(Subject, values_from = all_of(DV), names_from = StimGroup) %>% 
+    data.matrix() %>%
+    splitHalf(check.keys=FALSE)
+  
+  return(out$lambda2) # only output lambda2
+}
+```
+
+### Part-whole task
+
+```{r}
+# PW
+df_pw_rel_acc <- df_pw %>%
+  group_by(Subject, PW, StimGroup) %>% 
+  summarize(acc = mean(Correct),
+            .groups = "drop") 
+  
+df_pw_rel_rt <- df_pw %>%
+  filter(Correct) %>% # only keep correct trials
+  group_by(Subject, PW, StimGroup) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop") 
+```
+
+#### Reliability of each condition
+
+```{r}
+rel_pw_acc_w <- cal_re(df_pw_rel_acc, "acc", PW=="whole")
+rel_pw_acc_w
 ```
 
 ```{r}
-df_scf_rel <- df_tidy %>% 
-  filter(Task_name == "SCF",
-         SameDifferent == "same") %>% 
+rel_pw_acc_p <- cal_re(df_pw_rel_acc, "acc", PW=="part")
+rel_pw_acc_p
+```
+
+```{r}
+rel_pw_rt_w <- cal_re(df_pw_rel_rt, "rt", PW=="whole")
+rel_pw_rt_w
+```
+
+```{r}
+rel_pw_rt_p <- cal_re(df_pw_rel_rt, "rt", PW=="part")
+rel_pw_rt_p
+```
+
+#### Reliability of the part-whole effect
+
+
+
+### Standard composite face task
+
+```{r}  
+# SCF
+df_scf_rel_acc <- df_scf %>% 
   group_by(Subject, Alignment, StimGroup) %>% 
-  summarize(acc = mean(Correct), rt = mean(RT),
+  summarize(acc = mean(Correct),
             .groups = "drop")
-  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
+
+df_scf_rel_rt <- df_scf %>% 
+  filter(Correct) %>% # only keep correct trials
+  group_by(Subject, Alignment, StimGroup) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop")
 ```
 
-
-
-### Prepare data
-Needs to prepare data for `Lambda4::lambda2()`: each row is one participant and each column is one trial (e.g., with the same stimuli) for each condition in each task separately.  
-```{r}
-df_tidy %>%
-  filter(Task_name == "PW",
-         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
-  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
-  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
-  filter(stim!="s19") %>%  # do not need this in later analysis
-  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
-  data.matrix() %>% 
-  lambda2()
-```
-
-```{r warning=FALSE}
-df_tidy %>%
-  filter(Task_name == "PW",
-         Feature != "nose" ) %>%  # do not include Nose trials in GLMM
-  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
-  mutate(stim = paste0("s", as.integer(as.factor(stim)))) %>% 
-  filter(stim!="s19") %>%  # do not need this in later analysis
-  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
-  data.matrix() %>%
-  psych::guttman()
-```
-
+#### Reliability of each condition
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="aligned") %>% 
-  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  lambda2(standardize=TRUE)
+rel_scf_acc_a <- cal_re(df_scf_rel_acc, "acc", Alignment=="aligned")
+rel_scf_acc_a
 ```
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="aligned") %>% 
-  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  splitHalf(check.keys=FALSE)
+rel_scf_acc_m <- cal_re(df_scf_rel_acc, "acc", Alignment=="misaligned")
+rel_scf_acc_m
 ```
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="misaligned") %>% 
-  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
-  select(-Subject) %>% 
-  data.matrix() %>% 
-  lambda2(missing="pairwise", standardize=TRUE)
+rel_scf_rt_a <- cal_re(df_scf_rel_rt, "rt", Alignment=="aligned")
+rel_scf_rt_a
 ```
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="misaligned") %>% 
-  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
-  select(-Subject) %>% 
-  data.matrix() %>% 
-  splitHalf(check.keys=FALSE)
+rel_scf_rt_m <- cal_re(df_scf_rel_rt, "rt", Alignment=="misaligned")
+rel_scf_rt_m
+```
+
+#### Reliability of the composite effect
+
+
+### Complete composite face task
+
+```{r}
+# CCF
+df_ccf_rel_d <- df_ccf_iso %>% # need to include the isolated condition
+  group_by(Subject, StimGroup, Congruency, Alignment, SD) %>% 
+  summarize(count = n(),
+            same_adjust = (sum(isSame)+0.5)/(count+1), # Snodgrass & Corwin (1988)
+            .groups = "drop") %>% 
+  mutate(z = qnorm(same_adjust)) %>% 
+  select(-same_adjust) %>% 
+  pivot_wider(names_from = "SD", values_from = z) %>% 
+  mutate(d = same - different) %>% 
+  select(Subject, Congruency, Alignment, StimGroup, d)
+
+df_ccf_rel_rt <- df_ccf_iso %>% 
+  filter(Correct) %>% 
+  group_by(Subject, StimGroup, Congruency, Alignment) %>% 
+  summarize(rt = mean(RT),
+            .groups = "drop")
+```
+
+
+#### Reliability of each condition
+
+```{r}
+rel_ccf_d_ca <- cal_re(df_ccf_rel_d, "d", 
+                        Congruency=="congruent", Alignment=="aligned")
+rel_ccf_d_ca
 ```
 
 ```{r}
-sigmar <- df_scf_rel %>%
-  filter(Alignment=="misaligned") %>% 
-  pivot_wider(Subject, values_from = acc, names_from = StimGroup) %>% 
-  select(-Subject) %>% 
-  data.matrix() %>% 
-  cor()
-
-n <- nrow(sigmar)
-sigma0 <- sigmar
-diag(sigma0) <- 0
-
-gamma2<-sum(sigma0^2)
-L1<-1-sum(diag(sigmar))/sum(sigmar)
-
-lambda2<-L1+sqrt((n/(n-1))*gamma2)/sum(sigmar)
-lambda2
-```
-
-
-```{r}
-
-sumr <- sum(sigmar)
- off <- sigmar
-diag(off) <- 0
-sumsq.off <- sum(off^2)
-sum.off <- sumr - tr(sigmar)
-alpha <- (sum.off/sumr) * n/(n-1)
-lambda2 <- (sum.off+ sqrt(sumsq.off*n/(n-1)))/sumr
-lambda2
-```
-
-
-
-```{r}
-df_scf_rel %>%
-  filter(Alignment=="aligned") %>% 
-  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  lambda2(standardize=TRUE)
+rel_ccf_d_ia <- cal_re(df_ccf_rel_d, "d", 
+                        Congruency=="incongruent", Alignment=="aligned")
+rel_ccf_d_ia
 ```
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="aligned") %>% 
-  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  splitHalf(check.keys=FALSE)
-```
-
-
-```{r}
-df_scf_rel %>%
-  filter(Alignment=="misaligned") %>% 
-  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  lambda2()
+rel_ccf_d_cm <- cal_re(df_ccf_rel_d, "d", 
+                        Congruency=="congruent", Alignment=="misaligned")
+rel_ccf_d_cm
 ```
 
 ```{r}
-df_scf_rel %>%
-  filter(Alignment=="misaligned") %>% 
-  pivot_wider(Subject, values_from = rt, names_from = StimGroup) %>% 
-  data.matrix() %>% 
-  splitHalf(check.keys=FALSE)
+rel_ccf_d_im <- cal_re(df_ccf_rel_d, "d", 
+                        Congruency=="incongruent", Alignment=="misaligned")
+rel_ccf_d_im
 ```
-
 
 ```{r}
-df_tidy %>%
-  mutate(Task_name == "CCF") %>% 
-  # select(Subject, PW, Feature, Correct, RT, stim) %>% 
-  pivot_wider(Subject, values_from = Correct, names_from = stim) %>% 
-  data.matrix() %>% 
-  lambda2()
+rel_ccf_d_iso <- cal_re(df_ccf_rel_d, "d", 
+                        Congruency=="isolated", Alignment=="isolated")
+rel_ccf_d_iso
 ```
+
+```{r}
+rel_ccf_rt_ca <- cal_re(df_ccf_rel_rt, "rt", 
+                        Congruency=="congruent", Alignment=="aligned")
+rel_ccf_rt_ca
+```
+
+```{r}
+rel_ccf_rt_ia <- cal_re(df_ccf_rel_rt, "rt", 
+                        Congruency=="incongruent", Alignment=="aligned")
+rel_ccf_rt_ia
+```
+
+```{r}
+rel_ccf_rt_cm <- cal_re(df_ccf_rel_rt, "rt", 
+                        Congruency=="congruent", Alignment=="misaligned")
+rel_ccf_rt_cm
+```
+
+```{r}
+rel_ccf_rt_im <- cal_re(df_ccf_rel_rt, "rt", 
+                        Congruency=="incongruent", Alignment=="misaligned")
+rel_ccf_rt_im
+```
+
+```{r}
+rel_ccf_rt_iso <- cal_re(df_ccf_rel_rt, "rt", 
+                        Congruency=="isolated", Alignment=="isolated")
+rel_ccf_rt_iso
+```
+
+
+#### Reliability of the composite effect
 
 
 ## Correlations among holistic processing effects
