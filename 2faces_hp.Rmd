@@ -1,7 +1,7 @@
 ---
 title: "Two faces of holistic face processing -- analyses and results"
 author: "[Haiyang Jin](https://haiyangjin.github.io/)"
-date: "`r format(Sys.time(), '%d-%m-%Y')`"
+date: "`r format(Sys.Date(), '%Y %b %d')`"
 output: 
   html_document:
     code_folding: hide
@@ -307,35 +307,49 @@ emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 ### Correct response times
 
 ```{r}
-lmm_pw_rt <- lmer(log(RT) ~ PW * Feature + (PW * Feature | Subject),
-                  filter(df_pw, Correct),
-                  control = lmerControl(optimizer = "optimx", 
-                                        optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+thisfile <- file.path("jubail", "lmm_pw_rt_max.rds")
 
-summary(lmm_pw_rt)
+if (file.exists(thisfile)) {
+  
+  lmm_pw_rt_max <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_rt_max <- 
+    lmer(log(RT) ~ PW * Feature + (PW * Feature | Subject),
+         filter(df_pw, Correct),
+         control = lmerControl(optimizer = "optimx", 
+                               optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+  saveRDS(lmm_pw_rt_max, thisfile)
+}
+
+summary(lmm_pw_rt_max)
+```
+
+```{r}
+lmm_pw_rt_opt <- lmm_pw_rt_max
 ```
 
 
 ```{r}
-emm_pw_rt <- emmeans(lmm_pw_acc_opt, ~ PW + Feature)
+emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature)
 emm_pw_rt
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_rt, ~ PW), "pairwise")
+contrast(emmeans(lmm_pw_rt_opt, ~ PW), "pairwise")
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_rt, ~ PW), "pairwise", type = "response")
+contrast(emmeans(lmm_pw_rt_opt, ~ PW), "pairwise", type = "response")
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_rt, ~ PW | Feature), "pairwise")
+contrast(emmeans(lmm_pw_rt_opt, ~ PW | Feature), "pairwise")
 ```
 
 
 ```{r}
-emmip(lmm_pw_rt, ~ PW | Feature, CIs = TRUE, type = "response") 
+emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response") 
 ```
 
 
@@ -344,28 +358,44 @@ emmip(lmm_pw_rt, ~ PW | Feature, CIs = TRUE, type = "response")
 ### Accuracy 
 
 ```{r}
-lmm_scf_acc <- glmer(Correct ~ Alignment + (Alignment | Subject),
-                     df_scf,
-                     family = binomial(link = "logit"),
-                     control = glmerControl(optimizer = "optimx", 
-                                            optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+thisfile <- file.path("jubail", "lmm_scf_acc_max.rds")
 
-summary(lmm_scf_acc)
+if (file.exists(thisfile)) {
+  
+  lmm_scf_acc_max <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_acc_max <- glmer(Correct ~ Alignment + (Alignment | Subject),
+                           df_scf,
+                           family = binomial(link = "logit"),
+                           control = glmerControl(optimizer = "optimx", 
+                                                  optCtrl = list(method = "nlminb", 
+                                                                 starttests = FALSE, 
+                                                                 kkt = FALSE)))
+  saveRDS(lmm_scf_acc_max, thisfile)
+}
+
+summary(lmm_scf_acc_max)
 ```
 
 
 ```{r}
-emm_scf_acc <- emmeans(lmm_scf_acc, ~ Alignment, type="response")
+lmm_scf_acc_opt <- lmm_scf_acc_max
+```
+
+
+```{r}
+emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment, type="response")
 emm_scf_acc
 ```
 
 ```{r}
-contrast(emmeans(lmm_scf_acc, ~ Alignment), "pairwise")
+contrast(emmeans(lmm_scf_acc_opt, ~ Alignment), "pairwise")
 ```
 
 
 ```{r}
-emmip(lmm_scf_acc, ~ Alignment, CIs = TRUE, type = "response") 
+emmip(lmm_scf_acc_opt, ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
 
@@ -373,31 +403,46 @@ emmip(lmm_scf_acc, ~ Alignment, CIs = TRUE, type = "response")
 ### Correct response times
 
 ```{r}
-lmm_scf_rt <- lmer(log(RT) ~ Alignment + (Alignment | Subject),
+thisfile <- file.path("jubail", "lmm_scf_rt_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_scf_rt_max <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_rt_max <- lmer(log(RT) ~ Alignment + (Alignment | Subject),
                    filter(df_scf, Correct),
                    control = lmerControl(optimizer = "optimx", 
-                                         optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+                                         optCtrl = list(method = "nlminb", 
+                                                        starttests = FALSE, 
+                                                        kkt = FALSE)))
+  saveRDS(lmm_scf_rt_max, thisfile)
+}
 
-summary(lmm_scf_rt)
+summary(lmm_scf_rt_max)
+```
+
+```{r}
+lmm_scf_rt_opt <- lmm_scf_rt_max
 ```
 
 
 ```{r}
-emm_scf_rt <- emmeans(lmm_scf_rt, ~ Alignment, type = "response")
+emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type = "response")
 emm_scf_rt
 ```
 
 ```{r}
-contrast(emmeans(lmm_scf_rt, ~ Alignment), "pairwise")
+contrast(emmeans(lmm_scf_rt_opt, ~ Alignment), "pairwise")
 ```
 
 ```{r}
-contrast(emmeans(lmm_scf_rt, ~ Alignment), "pairwise", type = "response")
+contrast(emmeans(lmm_scf_rt_opt, ~ Alignment), "pairwise", type = "response")
 ```
 
 
 ```{r}
-emmip(lmm_scf_rt, ~ Alignment, CIs = TRUE, type = "response") 
+emmip(lmm_scf_rt_opt, ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
 
@@ -406,18 +451,34 @@ emmip(lmm_scf_rt, ~ Alignment, CIs = TRUE, type = "response")
 ### Sensitivity d'
 
 ```{r}
-lmm_ccf_d <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
+thisfile <- file.path("jubail", "lmm_ccf_d_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_max <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_max <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
                      (Congruency * Alignment * SD | Subject),
                    df_ccf,
                    family = binomial(link = "probit"),
                    control = glmerControl(optimizer = "optimx", 
-                                          optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+                                          optCtrl = list(method = "nlminb", 
+                                                         starttests = FALSE, 
+                                                         kkt = FALSE)))
+  saveRDS(lmm_ccf_d_max, thisfile)
+}
 
-summary(lmm_ccf_d)
+summary(lmm_ccf_d_max)
 ```
 
 ```{r}
-(emm_ccf_probit <- emmeans(lmm_ccf_d, ~ Congruency + Alignment + SD, type = "response"))
+lmm_ccf_d_opt <- lmm_ccf_d_max
+```
+
+
+```{r}
+(emm_ccf_probit <- emmeans(lmm_ccf_d_opt, ~ Congruency + Alignment + SD, type = "response"))
 ```
 
 
@@ -444,20 +505,47 @@ emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
 
 ### Correct response times
 
-
 ```{r}
-lmm_ccf_rt <- lmer(log(RT) ~ Congruency * Alignment + (Congruency * Alignment | Subject),
+thisfile <- file.path("jubail", "lmm_ccf_rt_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_rt_max <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + (Congruency * Alignment | Subject),
                    filter(df_ccf, Correct),
                    control = lmerControl(optimizer = "optimx", 
-                                         optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+                                         optCtrl = list(method = "nlminb", 
+                                                        starttests = FALSE, 
+                                                        kkt = FALSE)))
+  saveRDS(lmm_ccf_rt_max, thisfile)
+}
 
-summary(lmm_ccf_rt)
+summary(lmm_ccf_rt_max)
 ```
 
+
 ```{r}
-emm_ccf_rt <- emmeans(lmm_ccf_rt, ~ Congruency + Alignment, type = "response",
+lmm_ccf_rt_opt <- lmm_ccf_rt_max
+```
+
+
+```{r}
+thisfile <- file.path("jubail", "emm_ccf_rt.rds")
+
+if (file.exists(thisfile)) {
+  
+  emm_ccf_rt <- readRDS(thisfile)
+  
+} else {
+  emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response",
                       lmerTest.limit = 6400,
                       pbkrtest.limit = 6400)
+  
+  saveRDS(emm_ccf_rt, thisfile)
+}
+
 emm_ccf_rt
 ```
 
