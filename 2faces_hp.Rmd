@@ -572,9 +572,25 @@ emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response")
 
 ## Calculate holistic processing effects
 
-### Part-whole task
+```{r}
+# custom function to use linear models to apply the regression method
+cal_reg <- function(.data, formula, outvar){
+  
+  # .data: the input dataframe
+  # formula: used in lm()
+  # outvar: the column name for the regression effect (residuals) [new column]
+  
+  # perform linear regression
+  lm_tmp <- lm(formula, .data)
+  
+  # save the residuals
+  return(mutate(.data, {{outvar}} := residuals(lm_tmp))) # outvar is a variable
+  # return(mutate(.data, "{outvar}" := residuals(lm_tmp))) # outvar is a string
+}
+```
 
-#### Subtraction
+
+### Part-whole task
 
 ```{r}
 pwe_acc <- df_pw %>% 
@@ -582,8 +598,9 @@ pwe_acc <- df_pw %>%
   summarize(acc = mean(Correct),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = PW, values_from = acc) %>% 
-  mutate(pwe_subt = whole - part)
-  
+  mutate(pwe_subt = whole - part) %>% # subtraction
+  cal_reg(whole ~ part, pwe_regr) # regression
+
 pwe_acc
 ```
 
@@ -595,41 +612,13 @@ pwe_rt <- df_pw %>%
   summarize(rt = mean(RT),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = PW, values_from = rt) %>% 
-  mutate(pwe_subt = whole - part)
-  
+  mutate(pwe_subt = whole - part) %>% # subtraction
+  cal_reg(whole ~ part, pwe_regr) # regression
+
 pwe_rt
 ```
-
-
-#### Regression
-
-```{r}
-lm_pwe_acc <- lm(whole ~ part, pwe_acc)
-summary(lm_pwe_acc)
-```
-
-```{r}
-pwe_acc <- pwe_acc %>% 
-  mutate(pwe_regr = residuals(lm_pwe_acc))
-pwe_acc
-```
-
-
-```{r}
-lm_pwe_rt <- lm(whole ~ part, pwe_rt)
-summary(lm_pwe_rt)
-```
-
-```{r}
-pwe_rt <- pwe_rt %>% 
-  mutate(pwe_regr = residuals(lm_pwe_rt))
-pwe_rt
-```
-
 
 ### Standard composite face task
-
-#### Subtraction
 
 ```{r}
 scfe_acc <- df_scf %>% 
@@ -637,7 +626,9 @@ scfe_acc <- df_scf %>%
   summarize(acc = mean(Correct),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = Alignment, values_from = acc) %>% 
-  mutate(scfe_subt = ali - mis)
+  mutate(scfe_subt = ali - mis) %>% # subtraction
+  cal_reg(ali ~ mis, scfe_regr) # regression
+
 scfe_acc
 ```
 
@@ -649,40 +640,13 @@ scfe_rt <- df_scf %>%
   summarize(rt = mean(RT),
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = Alignment, values_from = rt) %>% 
-  mutate(scfe_subt = ali - mis)
+  mutate(scfe_subt = ali - mis) %>% # subtraction
+  cal_reg(ali ~ mis, scfe_regr) # regression
+  
 scfe_rt
 ```
-
-#### Regression
-
-```{r}
-lm_scfe_acc <- lm(ali ~ mis, scfe_acc)
-summary(lm_scfe_acc)
-```
-
-```{r}
-scfe_acc <- scfe_acc %>% 
-  mutate(scfe_regr = residuals(lm_scfe_acc))
-scfe_acc
-```
-
-
-```{r}
-lm_scfe_rt <- lm(ali ~ mis, scfe_rt)
-summary(lm_scfe_rt)
-```
-
-
-```{r}
-scfe_rt <- scfe_rt %>% 
-  mutate(scfe_regr = residuals(lm_scfe_rt))
-scfe_rt
-```
-
 
 ### Complete compositie face task
-
-#### Subtraction
 
 ```{r}
 ccfe_d <- df_ccf_iso %>% 
@@ -696,14 +660,22 @@ ccfe_d <- df_ccf_iso %>%
   mutate(d = sam - dif) %>% 
   pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = d) %>% 
   rename(isolated = iso_iso) %>% 
-  mutate(fac_subt = con_ali - con_mis,
-         int_subt = inc_ali - inc_mis,
-         fac_subt_iso = con_ali - isolated,
-         int_subt_iso = inc_ali - isolated,
-         cong_ali_subt = con_ali - inc_ali,
-         cong_mis_subt = con_mis - inc_mis,
-         # ccfe_subt = fac_subt - int_subt, # value is the same as next line
-         ccfe_subt = cong_ali_subt - cong_mis_subt)
+  mutate(fac_subt = con_ali - con_mis, # subtraction
+         int_subt = inc_ali - inc_mis, # subtraction
+         fac_subt_iso = con_ali - isolated, # subtraction
+         int_subt_iso = inc_ali - isolated, # subtraction
+         cong_ali_subt = con_ali - inc_ali, # subtraction
+         cong_mis_subt = con_mis - inc_mis, # subtraction
+         ccfe_subt = cong_ali_subt - cong_mis_subt) %>%  # subtraction
+  cal_reg(con_ali ~ con_mis, fac_regr) %>% # regression
+  cal_reg(inc_ali ~ inc_mis, int_regr) %>% # regression
+  cal_reg(con_ali ~ isolated, fac_regr_iso) %>% # regression
+  cal_reg(inc_ali ~ isolated, int_regr_iso) %>% # regression
+  cal_reg(con_ali ~ inc_ali, cong_ali_regr) %>% # regression
+  cal_reg(con_mis ~ inc_mis, cong_mis_regr) %>% # regression
+  cal_reg(cong_ali_subt ~ cong_mis_subt, ccfe_subt_regr) %>% # regression
+  cal_reg(cong_ali_regr ~ cong_mis_regr, ccfe_regr_regr) # regression
+  
 ccfe_d 
 ```
 
@@ -716,122 +688,25 @@ ccfe_rt <- df_ccf_iso %>%
             .groups = "drop") %>% 
   pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = rt) %>% 
   rename(isolated = iso_iso) %>% 
-  mutate(fac_subt = con_ali - con_mis,
-         int_subt = inc_ali - inc_mis,
-         fac_subt_iso = con_ali - isolated,
-         int_subt_iso = inc_ali - isolated,
-         cong_ali_subt = con_ali - inc_ali,
-         cong_mis_subt = con_mis - inc_mis,
-         # ccfe_subt = fac_subt - int_subt, # value is the same as next line
-         ccfe_subt = cong_ali_subt - cong_mis_subt
-         )
+  mutate(fac_subt = con_ali - con_mis, # subtraction
+         int_subt = inc_ali - inc_mis, # subtraction
+         fac_subt_iso = con_ali - isolated, # subtraction
+         int_subt_iso = inc_ali - isolated, # subtraction
+         cong_ali_subt = con_ali - inc_ali, # subtraction
+         cong_mis_subt = con_mis - inc_mis, # subtraction
+         ccfe_subt = cong_ali_subt - cong_mis_subt) %>% # subtraction
+  cal_reg(con_ali ~ con_mis, fac_regr) %>% # regression
+  cal_reg(inc_ali ~ inc_mis, int_regr) %>% # regression
+  cal_reg(con_ali ~ isolated, fac_regr_iso) %>% # regression
+  cal_reg(inc_ali ~ isolated, int_regr_iso) %>% # regression
+  cal_reg(con_ali ~ inc_ali, cong_ali_regr) %>% # regression
+  cal_reg(con_mis ~ inc_mis, cong_mis_regr) %>% # regression
+  cal_reg(cong_ali_subt ~ cong_mis_subt, ccfe_subt_regr) %>% # regression
+  cal_reg(cong_ali_regr ~ cong_mis_regr, ccfe_regr_regr) # regression
 
 ccfe_rt
 ```
 
-
-#### Regression
-
-Facilitation
-```{r}
-lm_ccfe_d_fac <- lm(con_ali ~ con_mis, ccfe_d)
-summary(lm_ccfe_d_fac)
-```
-
-```{r}
-ccfe_d <- ccfe_d %>% 
-  mutate(fac_regr = residuals(lm_ccfe_d_fac))
-ccfe_d
-```
-
-
-Facilitation (isolated)
-```{r}
-lm_ccfe_d_fac_iso <- lm(con_ali ~ isolated, ccfe_d)
-summary(lm_ccfe_d_fac_iso)
-```
-
-```{r}
-ccfe_d <- ccfe_d %>% 
-  mutate(fac_regr_iso = residuals(lm_ccfe_d_fac_iso))
-ccfe_d
-```
-
-
-Interference
-```{r}
-lm_ccfe_d_int <- lm(inc_ali ~ inc_mis, ccfe_d)
-summary(lm_ccfe_d_int)
-```
-
-```{r}
-ccfe_d <- ccfe_d %>% 
-  mutate(int_regr = residuals(lm_ccfe_d_int))
-ccfe_d
-```
-
-Interference (isolated)
-```{r}
-lm_ccfe_d_int_iso <- lm(inc_ali ~ isolated, ccfe_d)
-summary(lm_ccfe_d_int_iso)
-```
-
-```{r}
-ccfe_d <- ccfe_d %>% 
-  mutate(int_regr_iso = residuals(lm_ccfe_d_int_iso))
-ccfe_d
-```
-
-Facilitation (RT)
-
-```{r}
-lm_ccfe_rt_fac <- lm(con_ali ~ con_mis, ccfe_rt)
-summary(lm_ccfe_rt_fac)
-```
-
-```{r}
-ccfe_rt <- ccfe_rt %>% 
-  mutate(fac_regr = residuals(lm_ccfe_rt_fac))
-ccfe_rt
-```
-
-
-Facilitation (isolated)
-```{r}
-lm_ccfe_rt_fac_iso <- lm(con_ali ~ isolated, ccfe_rt)
-summary(lm_ccfe_rt_fac_iso)
-```
-
-```{r}
-ccfe_rt <- ccfe_rt %>% 
-  mutate(fac_regr_iso = residuals(lm_ccfe_rt_fac_iso))
-ccfe_rt
-```
-
-
-Interference (RT)
-```{r}
-lm_ccfe_rt_int <- lm(inc_ali ~ inc_mis, ccfe_rt)
-summary(lm_ccfe_rt_int)
-```
-
-```{r}
-ccfe_rt <- ccfe_rt %>% 
-  mutate(int_regr = residuals(lm_ccfe_rt_int))
-ccfe_rt
-```
-
-Interference (isolated)
-```{r}
-lm_ccfe_rt_int_iso <- lm(inc_ali ~ isolated, ccfe_rt)
-summary(lm_ccfe_rt_int_iso)
-```
-
-```{r}
-ccfe_rt <- ccfe_rt %>% 
-  mutate(int_regr_iso = residuals(lm_ccfe_rt_int_iso))
-ccfe_rt
-```
 
 ## Reliability of measurement
 
@@ -839,10 +714,10 @@ ccfe_rt
 
 1. The average performance for each `StimGroup` and each participant (for each dependent variable in each task) will be calculated.
 2. Then the data needs to be formatted as following, which will be completed later when calculating the reliability for each condition separately.  
-  - Each matrix is for one condition (and one dependent variable).  
-  - Each row of the matrix is for one participant.  
-  - Each column of the matrix is for one `StimGroup`.
-  
+- Each matrix is for one condition (and one dependent variable).  
+- Each row of the matrix is for one participant.  
+- Each column of the matrix is for one `StimGroup`.
+
 ```{r}
 # a general (custom) function to calculate the reliability for each condition
 rel_each <- function(.data, DV, ...){
