@@ -415,11 +415,11 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_scf_rt_max <- lmer(log(RT) ~ Alignment + (Alignment | Subject),
-                   filter(df_scf, Correct),
-                   control = lmerControl(optimizer = "optimx", 
-                                         optCtrl = list(method = "nlminb", 
-                                                        starttests = FALSE, 
-                                                        kkt = FALSE)))
+                         filter(df_scf, Correct),
+                         control = lmerControl(optimizer = "optimx", 
+                                               optCtrl = list(method = "nlminb", 
+                                                              starttests = FALSE, 
+                                                              kkt = FALSE)))
   saveRDS(lmm_scf_rt_max, thisfile)
 }
 
@@ -463,13 +463,13 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_ccf_d_max <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
-                     (Congruency * Alignment * SD | Subject),
-                   df_ccf,
-                   family = binomial(link = "probit"),
-                   control = glmerControl(optimizer = "optimx", 
-                                          optCtrl = list(method = "nlminb", 
-                                                         starttests = FALSE, 
-                                                         kkt = FALSE)))
+                           (Congruency * Alignment * SD | Subject),
+                         df_ccf,
+                         family = binomial(link = "probit"),
+                         control = glmerControl(optimizer = "optimx", 
+                                                optCtrl = list(method = "nlminb", 
+                                                               starttests = FALSE, 
+                                                               kkt = FALSE)))
   saveRDS(lmm_ccf_d_max, thisfile)
 }
 
@@ -518,11 +518,11 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + (Congruency * Alignment | Subject),
-                   filter(df_ccf, Correct),
-                   control = lmerControl(optimizer = "optimx", 
-                                         optCtrl = list(method = "nlminb", 
-                                                        starttests = FALSE, 
-                                                        kkt = FALSE)))
+                         filter(df_ccf, Correct),
+                         control = lmerControl(optimizer = "optimx", 
+                                               optCtrl = list(method = "nlminb", 
+                                                              starttests = FALSE, 
+                                                              kkt = FALSE)))
   saveRDS(lmm_ccf_rt_max, thisfile)
 }
 
@@ -544,8 +544,8 @@ if (file.exists(thisfile)) {
   
 } else {
   emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response",
-                      lmerTest.limit = 6400,
-                      pbkrtest.limit = 6400)
+                        lmerTest.limit = 6400,
+                        pbkrtest.limit = 6400)
   
   saveRDS(emm_ccf_rt, thisfile)
 }
@@ -757,7 +757,7 @@ rel_sub1 <- function(re_inte, re_base, raw_inte, raw_base){
   # re_base: the reliability of the baseline condition
   # raw_inte: the raw values for each participant in the condition of interest
   # raw_base: the raw values for each participant in the baseline condition
-
+  
   return(((re_inte + re_base)/2 - cor(raw_inte, raw_base))/(1-cor(raw_inte, raw_base)))
 }
 
@@ -774,7 +774,7 @@ rel_reg <- function(re_inte, re_base, raw_inte, raw_base){
   # raw_base: the raw values for each participant in the baseline condition
   
   tmp1 <- cor(raw_inte, raw_base)^2
-    
+  
   top <- re_inte + re_base * tmp1 - 2 * tmp1
   bot <- 1 - tmp1
   
@@ -792,7 +792,7 @@ df_pw_rel_acc <- df_pw %>%
   group_by(Subject, PW, StimGroup) %>% 
   summarize(acc = mean(Correct),
             .groups = "drop") 
-  
+
 df_pw_rel_rt <- df_pw %>%
   filter(Correct) %>% # only keep correct trials
   group_by(Subject, PW, StimGroup) %>% 
@@ -1184,6 +1184,27 @@ rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
 ## Correlations among holistic processing effects
 
 ```{r}
+# custom function to print the correlation results via library(psych)
+psych_cor <- function(.data, ...) {
+  
+  # .data: data frame only includes columns for correlation (no subject code column)
+  # Usage: psych_cor(hpe_acc_subt)
+  
+  # run correlations
+  cor_tmp <- corr.test(.data, ...)
+  
+  cor_tmp$ci %>% 
+    mutate(N = cor_tmp$n,
+           p.adj = cor_tmp$p.adj,
+           adjust = cor_tmp$adjust) %>% 
+    bind_cols(cor_tmp$ci.adj %>% mutate(r=1) %>% select(-r)) %>% 
+    return()
+}
+```
+
+### Equivalence tests
+
+```{r}
 # equivalence interval
 delta_null_hp <- .15  # the equivalent interval will be [-delta_null_hp, delta_null_hp]
 
@@ -1208,6 +1229,68 @@ plot_equi_hp <- ggplot(df_equi_hp, aes(xmin = CI_low, xmax = CI_upp, y = Scenari
 # ggsave("equivalence_test_hp.png", plot_equi_hp, width = 8, height = 5)
 
 plot_equi_hp
+```
+
+
+### Subtraction
+
+```{r}
+hpe_acc_subt <- pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject") %>% 
+  transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt) 
+
+hpe_rt_subt <- pwe_rt %>% 
+  inner_join(scfe_rt, by="Subject") %>% 
+  inner_join(ccfe_rt, by="Subject") %>% 
+  transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt)
+```
+
+```{r}
+corPlot(hpe_acc_subt)
+```
+
+```{r}
+psych_cor(hpe_acc_subt)
+```
+
+```{r}
+corPlot(hpe_rt_subt)
+```
+
+```{r}
+psych_cor(hpe_rt_subt)
+```
+
+### Regression
+
+```{r}
+hpe_acc_regr <- pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject") %>% 
+  transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
+
+hpe_rt_regr <- pwe_rt %>% 
+  inner_join(scfe_rt, by="Subject") %>% 
+  inner_join(ccfe_rt, by="Subject") %>% 
+  transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
+```
+
+
+```{r}
+corPlot(hpe_acc_regr)
+```
+
+```{r}
+psych_cor(hpe_acc_regr)
+```
+
+```{r}
+corPlot(hpe_rt_regr)
+```
+
+```{r}
+psych_cor(hpe_rt_regr)
 ```
 
 
@@ -1246,41 +1329,41 @@ plot_equi
 #### Subtraction
 
 ```{r}
-cor.test(pwe_acc$pwe_subt, ccfe_d$fac_subt)
+psych_cor(pwe_acc$pwe_subt, ccfe_d$fac_subt)
 ```
 
 
 ```{r}
-cor.test(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
+psych_cor(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
 ```
 
 ```{r}
-cor.test(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
+psych_cor(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
 ```
 
 
 ```{r}
-cor.test(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
+psych_cor(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
 ```
 
 #### Regressions
 
 ```{r}
-cor.test(pwe_acc$pwe_regr, ccfe_d$fac_regr)
+psych_cor(pwe_acc$pwe_regr, ccfe_d$fac_regr)
 ```
 
 
 ```{r}
-cor.test(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
+psych_cor(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
 ```
 
 ```{r}
-cor.test(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
+psych_cor(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
 ```
 
 
 ```{r}
-cor.test(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
+psych_cor(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
 ```
 
 ### SCF and Interference in CCF
@@ -1288,68 +1371,76 @@ cor.test(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
 #### Subtraction
 
 ```{r}
-cor.test(scfe_acc$scfe_subt, ccfe_d$int_subt)
+psych_cor(scfe_acc$scfe_subt, ccfe_d$int_subt)
 ```
 
 ```{r}
-cor.test(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
+psych_cor(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
 ```
 
 ```{r}
-cor.test(scfe_rt$scfe_subt, ccfe_rt$int_subt)
+psych_cor(scfe_rt$scfe_subt, ccfe_rt$int_subt)
 ```
 
 ```{r}
-cor.test(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
+psych_cor(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
 ```
 
 #### Regressions
 
 ```{r}
-cor.test(scfe_acc$scfe_regr, ccfe_d$int_regr)
+psych_cor(scfe_acc$scfe_regr, ccfe_d$int_regr)
 ```
 
 ```{r}
-cor.test(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
+psych_cor(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
 ```
 
 ```{r}
-cor.test(scfe_rt$scfe_regr, ccfe_rt$int_regr)
+psych_cor(scfe_rt$scfe_regr, ccfe_rt$int_regr)
 ```
 
 ```{r}
-cor.test(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
+psych_cor(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
 ```
 
 ### Pairwise correlations
 
-```{r}
-library(corrplot)
-```
-
 #### Performance
 
-```{r}
-left_join(pwe_acc, scfe_acc, by="Subject") %>% 
-  left_join(ccfe_d, by="Subject") %>% 
-  select(-Subject) %>% 
-  cor() %>% 
-  corrplot(type = "upper", order = "hclust", 
-          tl.col = "black", tl.srt = 45)
+```{r fig.width=8, fig.asp=1}
+pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject") %>% 
+  select(-Subject, -contains("regr")) %>% 
+  cor.plot()
 ```
 
+```{r fig.width=8, fig.asp=1}
+pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject") %>% 
+  select(-Subject, -contains("subt"), ccfe_subt_regr) %>% 
+  cor.plot()
+```
 
 #### Response times
 
-```{r}
-left_join(pwe_rt, scfe_rt, by="Subject") %>% 
+```{r fig.width=8, fig.asp=1}
+pwe_rt %>% 
+  left_join(scfe_rt, by="Subject") %>% 
   left_join(ccfe_rt, by="Subject") %>% 
-  select(-Subject) %>% 
-  cor() %>% 
-  corrplot(type = "upper", order = "hclust", 
-          tl.col = "black", tl.srt = 45)
+  select(-Subject, -contains("regr")) %>% 
+  cor.plot()
 ```
 
+```{r fig.width=8, fig.asp=1}
+pwe_rt %>% 
+  left_join(scfe_rt, by="Subject") %>% 
+  left_join(ccfe_rt, by="Subject") %>% 
+  select(-Subject, -contains("subt"), ccfe_subt_regr) %>% 
+  cor.plot()
+```
 
 # Session information {.unlisted .unnumbered}
 ```{r}
