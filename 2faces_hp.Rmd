@@ -818,11 +818,8 @@ cal_reg <- function(.data, formula, outvar){
 pwe_acc <- df_pw %>% 
   group_by(Subject, PW) %>% 
   summarize(acc = mean(Correct),
-            count = n(),
-            acc_cor = if_else(acc==1, (2*count-1)/(2*count), acc),
-            logit = qlogis(acc_cor),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = PW, values_from = logit) %>% 
+  pivot_wider(Subject, names_from = PW, values_from = acc) %>% 
   mutate(pwe_subt = whole - part) %>% # subtraction
   cal_reg(whole ~ part, pwe_regr) # regression
 
@@ -835,9 +832,8 @@ pwe_rt <- df_pw %>%
   filter(Correct) %>% 
   group_by(Subject, PW) %>% 
   summarize(rt = mean(RT),
-            logrt = log(rt),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = PW, values_from = logrt) %>% 
+  pivot_wider(Subject, names_from = PW, values_from = rt) %>% 
   mutate(pwe_subt = whole - part) %>% # subtraction
   cal_reg(whole ~ part, pwe_regr) # regression
 
@@ -850,11 +846,8 @@ pwe_rt
 scfe_acc <- df_scf %>% 
   group_by(Subject, Alignment) %>% 
   summarize(acc = mean(Correct),
-            count = n(),
-            acc_cor = if_else(acc==1, (2*count-1)/(2*count), acc),
-            logit = qlogis(acc_cor),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = Alignment, values_from = logit) %>% 
+  pivot_wider(Subject, names_from = Alignment, values_from = acc) %>% 
   mutate(scfe_subt = ali - mis) %>% # subtraction
   cal_reg(ali ~ mis, scfe_regr) # regression
 
@@ -866,9 +859,9 @@ scfe_acc
 scfe_rt <- df_scf %>% 
   filter(Correct) %>% 
   group_by(Subject, Alignment) %>% 
-  summarize(logrt = log(mean(RT)),
+  summarize(rt = mean(RT),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = Alignment, values_from = logrt) %>% 
+  pivot_wider(Subject, names_from = Alignment, values_from = rt) %>% 
   mutate(scfe_subt = ali - mis) %>% # subtraction
   cal_reg(ali ~ mis, scfe_regr) # regression
   
@@ -913,9 +906,9 @@ ccfe_d
 ccfe_rt <- df_ccf_iso %>% 
   filter(Correct) %>% 
   group_by(Subject, Congruency, Alignment) %>% 
-  summarize(logrt = log(mean(RT)),
+  summarize(rt = mean(RT),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = logrt) %>% 
+  pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = rt) %>% 
   rename(isolated = iso_iso) %>% 
   mutate(fac_subt = con_ali - con_mis, # subtraction
          int_subt = inc_ali - inc_mis, # subtraction
@@ -1019,15 +1012,12 @@ rel_reg <- function(re_inte, re_base, raw_inte, raw_base){
 df_pw_rel_acc <- df_pw %>%
   group_by(Subject, PW, StimGroup) %>% 
   summarize(acc = mean(Correct),
-            count = n(),
-            acc_cor = if_else(acc==1, (2*count-1)/(2*count), acc),
-            logit = qlogis(acc_cor),
             .groups = "drop") 
 
 df_pw_rel_rt <- df_pw %>%
   filter(Correct) %>% # only keep correct trials
   group_by(Subject, PW, StimGroup) %>% 
-  summarize(logrt = log(mean(RT)),
+  summarize(rt = mean(RT),
             .groups = "drop") 
 ```
 
@@ -1043,19 +1033,19 @@ rel_pw_acc_w
 Accuracy for part:
 ```{r}
 # accuracy on logit scale
-rel_pw_acc_p <- rel_each(df_pw_rel_acc, "logit", PW=="part")
+rel_pw_acc_p <- rel_each(df_pw_rel_acc, "acc", PW=="part")
 rel_pw_acc_p
 ```
 
 RT for whole:
 ```{r}
-rel_pw_rt_w <- rel_each(df_pw_rel_rt, "logrt", PW=="whole")
+rel_pw_rt_w <- rel_each(df_pw_rel_rt, "rt", PW=="whole")
 rel_pw_rt_w
 ```
 
 RT for part:
 ```{r}
-rel_pw_rt_p <- rel_each(df_pw_rel_rt, "logrt", PW=="part")
+rel_pw_rt_p <- rel_each(df_pw_rel_rt, "rt", PW=="part")
 rel_pw_rt_p
 ```
 
@@ -1090,15 +1080,12 @@ rel_reg(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part)
 df_scf_rel_acc <- df_scf %>% 
   group_by(Subject, Alignment, StimGroup) %>% 
   summarize(acc = mean(Correct),
-            count = n(),
-            acc_cor = if_else(acc==1, (2*count-1)/(2*count), acc),
-            logit = qlogis(acc_cor),
             .groups = "drop")
 
 df_scf_rel_rt <- df_scf %>% 
   filter(Correct) %>% # only keep correct trials
   group_by(Subject, Alignment, StimGroup) %>% 
-  summarize(logrt = log(mean(RT)),
+  summarize(rt = mean(RT),
             .groups = "drop")
 ```
 
@@ -1119,13 +1106,13 @@ rel_scf_acc_m
 
 RT for aligned
 ```{r}
-rel_scf_rt_a <- rel_each(df_scf_rel_rt, "logrt", Alignment=="ali")
+rel_scf_rt_a <- rel_each(df_scf_rel_rt, "rt", Alignment=="ali")
 rel_scf_rt_a
 ```
 
 RT for misaligned
 ```{r}
-rel_scf_rt_m <- rel_each(df_scf_rel_rt, "logrt", Alignment=="mis")
+rel_scf_rt_m <- rel_each(df_scf_rel_rt, "rt", Alignment=="mis")
 rel_scf_rt_m
 ```
 
@@ -1171,7 +1158,7 @@ df_ccf_rel_d <- df_ccf_iso %>% # need to include the isolated condition
 df_ccf_rel_rt <- df_ccf_iso %>% 
   filter(Correct) %>% 
   group_by(Subject, StimGroup, Congruency, Alignment) %>% 
-  summarize(logrt = log(mean(RT)),
+  summarize(rt = mean(RT),
             .groups = "drop")
 ```
 
@@ -1212,7 +1199,7 @@ Congruency in RT (aligned)
 ```{r}
 rel_ccf_rt_cong_a <- df_ccf_rel_rt %>%
   filter(Alignment == "ali") %>% # to filter out conditions
-  pivot_wider(c(Subject, StimGroup), values_from = logrt, names_from = Congruency) %>% 
+  pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
   mutate(rt_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
@@ -1227,7 +1214,7 @@ Congruency in RT (misaligned)
 ```{r}
 rel_ccf_rt_cong_m <- df_ccf_rel_rt %>%
   filter(Alignment == "mis") %>% # to filter out conditions
-  pivot_wider(c(Subject, StimGroup), values_from = logrt, names_from = Congruency) %>% 
+  pivot_wider(c(Subject, StimGroup), values_from = rt, names_from = Congruency) %>% 
   mutate(rt_cong = con - inc) %>% 
   pivot_wider(Subject, values_from = rt_cong, names_from = StimGroup) %>% 
   select(-Subject) %>% 
@@ -1299,35 +1286,35 @@ rel_ccf_d_iso
 
 RT for congruent aligned:
 ```{r}
-rel_ccf_rt_ca <- rel_each(df_ccf_rel_rt, "logrt", 
+rel_ccf_rt_ca <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="con", Alignment=="ali")
 rel_ccf_rt_ca
 ```
 
 RT for incongruent aligned:
 ```{r}
-rel_ccf_rt_ia <- rel_each(df_ccf_rel_rt, "logrt", 
+rel_ccf_rt_ia <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="inc", Alignment=="ali")
 rel_ccf_rt_ia
 ```
 
 RT for congruent misaligned:
 ```{r}
-rel_ccf_rt_cm <- rel_each(df_ccf_rel_rt, "logrt", 
+rel_ccf_rt_cm <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="con", Alignment=="mis")
 rel_ccf_rt_cm
 ```
 
 RT for incongruent misaligned:
 ```{r}
-rel_ccf_rt_im <- rel_each(df_ccf_rel_rt, "logrt", 
+rel_ccf_rt_im <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="inc", Alignment=="mis")
 rel_ccf_rt_im
 ```
 
 RT for isolated:
 ```{r}
-rel_ccf_rt_iso <- rel_each(df_ccf_rel_rt, "logrt", 
+rel_ccf_rt_iso <- rel_each(df_ccf_rel_rt, "rt", 
                            Congruency=="iso", Alignment=="iso")
 rel_ccf_rt_iso
 ```
