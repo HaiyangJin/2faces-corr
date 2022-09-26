@@ -105,6 +105,19 @@ df_tidy <- df_raw
 ```
 
 
+```{r}
+# custom function to set contrasts for factors
+set_sdif <- function(.data, colstr, n=2){
+  # .data dataframe
+  # colstr the string of the column name
+  
+  contrasts(.data[[colstr]]) <- MASS::contr.sdif(n)
+  
+  return(.data)
+}
+```
+
+
 ### Part-whole task
 
 ```{r}
@@ -112,14 +125,18 @@ df_pw <- df_tidy %>%
   filter(Task_name == "PW",
          Feature != "nose") %>% # do not include Nose trials in GLMM
   select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
-  mutate(PW_C = if_else(PW=="part", -.5, if_else(PW=="whole", .5, NaN)),
+  mutate(PW = fct_relevel(PW, "whole", "part"),
+         Feature = fct_drop(Feature),
+         PW_C = if_else(PW=="whole", -.5, if_else(PW=="part", .5, NaN)),
          Feature_C = if_else(Feature=="mouth", -.5, 
                              if_else(Feature=="eyes", .5, NaN)),
-         PW_Feature = PW_C * Feature_C) 
+         PW_Feature = PW_C * Feature_C) %>% 
+  set_sdif("PW") %>% 
+  set_sdif("Feature")
 
 # saveRDS(df_pw, file=file.path("jubail", "df_pw.rds"))
 
-head(df_pw)
+str(df_pw)
 ```
 
 ### Standard composite face task
@@ -129,9 +146,14 @@ df_scf <- df_tidy %>%
   filter(Task_name == "SCF",
          SD == "sam") %>% # only use trials when the top is the same
   select(Subject, Alignment, Correct, RT, StimGroup) %>% 
-  mutate(Alignment = fct_drop(Alignment))
+  mutate(Alignment = fct_drop(Alignment),
+         Ali_C = if_else(Alignment=="ali", -.5, 
+                         if_else(Alignment=="mis", .5, NaN))) %>% 
+  set_sdif("Alignment")
 
-head(df_scf)
+# saveRDS(df_scf, file=file.path("jubail", "df_scf.rds"))
+
+str(df_scf)
 ```
 
 ### Complete composite face task
@@ -148,11 +170,16 @@ df_ccf_iso <- df_tidy %>%
 df_ccf <- df_ccf_iso %>% 
   filter(Alignment != "iso") %>% 
   mutate(Alignment = fct_drop(Alignment),
-         Congruency = fct_drop(Congruency))
+         Congruency = fct_drop(Congruency)) %>% 
+  set_sdif("Cue") %>% 
+  set_sdif("Congruency") %>% 
+  set_sdif("Alignment") %>% 
+  set_sdif("SD")
 
-head(df_ccf)
+# saveRDS(df_ccf, file=file.path("jubail", "df_ccf.rds"))
+
+str(df_ccf)
 ```
-
 
 # Holistic processing effects
 
@@ -182,7 +209,9 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_pw_acc_max <- 
-    glmer(Correct ~ PW * Feature + (PW * Feature | Subject),
+    glmer(Correct ~ PW * Feature + 
+            (PW * Feature | Subject) +
+            (PW * Feature | StimGroup),
           df_pw,
           family = binomial(link = "logit"),
           control = glmerControl(optimizer = "optimx", 
@@ -207,7 +236,8 @@ if (file.exists(thisfile)) {
 } else {
   lmm_pw_acc_zcp <- 
     glmer(Correct ~ PW * Feature + 
-            (PW_C + Feature_C + PW_Feature || Subject),
+            (PW_C + Feature_C + PW_Feature || Subject) +
+            (PW_C + Feature_C + PW_Feature || StimGroup),
           df_pw,
           family = binomial(link = "logit"),
           control = glmerControl(optimizer = "optimx", 
@@ -227,7 +257,7 @@ summary(rePCA(lmm_pw_acc_zcp))
 #### Reduced model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_rdc.rds")
+thisfile <- file.path("jubail", "lmm_pw_acc_.rds")
 
 if (file.exists(thisfile)) {
   
@@ -236,7 +266,8 @@ if (file.exists(thisfile)) {
 } else {
   lmm_pw_acc_rdc <- 
     glmer(Correct ~ PW * Feature + 
-            (PW_C + Feature_C || Subject),
+            (PW_C + Feature_C || Subject) +
+            (PW_C + Feature_C + PW_Feature || StimGroup),
           df_pw,
           family = binomial(link = "logit"),
           control = glmerControl(optimizer = "optimx", 
@@ -261,7 +292,8 @@ if (file.exists(thisfile)) {
 } else {
   lmm_pw_acc_etd <- 
     glmer(Correct ~ PW * Feature + 
-            (PW_C + Feature_C | Subject),
+            (PW_C + Feature_C | Subject) +
+            (PW_C + Feature_C + PW_Feature | StimGroup),
           df_pw,
           family = binomial(link = "logit"),
           control = glmerControl(optimizer = "optimx", 
@@ -274,10 +306,38 @@ if (file.exists(thisfile)) {
 summary(lmm_pw_acc_etd)
 ```
 
+```{r}
+summary(rePCA(lmm_pw_acc_etd))
+```
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_acc_etd2.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_acc_etd2 <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_acc_etd2 <- 
+    glmer(Correct ~ PW * Feature + 
+            (PW_C | Subject) +
+            (0 + Feature_C + PW_Feature | StimGroup),
+          df_pw,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_pw_acc_etd2, thisfile)
+}
+
+summary(lmm_pw_acc_etd2)
+```
+
 #### Optimal model
 
 ```{r}
-anova(lmm_pw_acc_rdc, lmm_pw_acc_etd)
+anova(lmm_pw_acc_rdc, lmm_pw_acc_etd2)
 ```
 
 ```{r}
@@ -310,6 +370,8 @@ emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 
 ### Correct response times
 
+#### Maximal model
+
 ```{r}
 thisfile <- file.path("jubail", "lmm_pw_rt_max.rds")
 
@@ -319,21 +381,142 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_pw_rt_max <- 
-    lmer(log(RT) ~ PW * Feature + (PW * Feature | Subject),
+    lmer(log(RT) ~ PW * Feature + 
+           (PW * Feature | Subject) +
+           (PW * Feature | StimGroup),
          filter(df_pw, Correct),
          control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", starttests = FALSE, kkt = FALSE)))
+                               optCtrl = list(method = "nlminb", 
+                                              starttests = FALSE, 
+                                              kkt = FALSE)))
   saveRDS(lmm_pw_rt_max, thisfile)
 }
 
 summary(lmm_pw_rt_max)
 ```
 
+#### Zero-correlation-parameter model
+
 ```{r}
-lmm_pw_rt_opt <- lmm_pw_rt_max
+thisfile <- file.path("jubail", "lmm_pw_rt_zcp.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_rt_zcp <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_rt_zcp <- 
+    lmer(log(RT) ~ PW * Feature + 
+           (PW_C + Feature_C + PW_Feature || Subject) +
+           (PW_C + Feature_C + PW_Feature || StimGroup),
+         filter(df_pw, Correct),
+         control = lmerControl(optimizer = "optimx", 
+                               optCtrl = list(method = "nlminb", 
+                                              starttests = FALSE, 
+                                              kkt = FALSE)))
+  saveRDS(lmm_pw_rt_zcp, thisfile)
+}
+
+summary(lmm_pw_rt_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_pw_rt_zcp))
+```
+
+#### Reduced model
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_rt_rdc.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_rt_rdc <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_rt_rdc <- 
+    lmer(log(RT) ~ PW * Feature + 
+           (PW_C + Feature_C || Subject) +
+           (PW_C + Feature_C || StimGroup),
+         filter(df_pw, Correct),
+         control = lmerControl(optimizer = "optimx", 
+                               optCtrl = list(method = "nlminb", 
+                                              starttests = FALSE, 
+                                              kkt = FALSE)))
+  saveRDS(lmm_pw_rt_rdc, thisfile)
+}
+
+summary(lmm_pw_rt_rdc)
+```
+
+#### Extended model
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_rt_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_rt_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_rt_etd <- 
+    lmer(log(RT) ~ PW * Feature + 
+           (PW_C + Feature_C | Subject) +
+           (PW_C + Feature_C | StimGroup),
+         filter(df_pw, Correct),
+         control = lmerControl(optimizer = "optimx", 
+                               optCtrl = list(method = "nlminb", 
+                                              starttests = FALSE, 
+                                              kkt = FALSE)))
+  saveRDS(lmm_pw_rt_etd, thisfile)
+}
+
+summary(lmm_pw_rt_etd)
+```
+
+```{r}
+summary(rePCA(lmm_pw_rt_etd))
+```
+
+```{r}
+thisfile <- file.path("jubail", "lmm_pw_rt_etd2.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_pw_rt_etd2 <- readRDS(thisfile)
+  
+} else {
+  lmm_pw_rt_etd2 <- 
+    lmer(log(RT) ~ PW * Feature + 
+           (PW_C | Subject) +
+           (0 + PW_C + Feature_C | StimGroup),
+         filter(df_pw, Correct),
+         control = lmerControl(optimizer = "optimx", 
+                               optCtrl = list(method = "nlminb", 
+                                              starttests = FALSE, 
+                                              kkt = FALSE)))
+  saveRDS(lmm_pw_rt_etd2, thisfile)
+}
+
+summary(lmm_pw_rt_etd2)
+```
+
+#### Optimal model
+
+```{r}
+anova(lmm_pw_rt_rdc, lmm_pw_rt_etd2)
+```
+
+```{r}
+anova(lmm_pw_rt_rdc, lmm_pw_rt_etd2, refit=FALSE)
+```
+
+```{r}
+lmm_pw_rt_opt <- lmm_pw_rt_etd2
 ```
 
 
+#### Effects of interest
 ```{r}
 emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature)
 emm_pw_rt
@@ -361,6 +544,8 @@ emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 
 ### Accuracy 
 
+
+#### Maximal model
 ```{r}
 thisfile <- file.path("jubail", "lmm_scf_acc_max.rds")
 
@@ -369,7 +554,9 @@ if (file.exists(thisfile)) {
   lmm_scf_acc_max <- readRDS(thisfile)
   
 } else {
-  lmm_scf_acc_max <- glmer(Correct ~ Alignment + (Alignment | Subject),
+  lmm_scf_acc_max <- glmer(Correct ~ Alignment + 
+                             (Alignment | Subject) +
+                             (Alignment | StimGroup),
                            df_scf,
                            family = binomial(link = "logit"),
                            control = glmerControl(optimizer = "optimx", 
@@ -382,12 +569,38 @@ if (file.exists(thisfile)) {
 summary(lmm_scf_acc_max)
 ```
 
+#### Zero-correlation-parameter model
+
+```{r}
+thisfile <- file.path("jubail", "lmm_scf_acc_zcp.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_scf_acc_zcp <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_acc_zcp <- glmer(Correct ~ Alignment + 
+                             (Ali_C | Subject) +
+                             (Ali_C | StimGroup),
+                           df_scf,
+                           family = binomial(link = "logit"),
+                           control = glmerControl(optimizer = "optimx", 
+                                                  optCtrl = list(method = "nlminb", 
+                                                                 starttests = FALSE, 
+                                                                 kkt = FALSE)))
+  saveRDS(lmm_scf_acc_zcp, thisfile)
+}
+
+summary(lmm_scf_acc_zcp)
+```
+
+#### Optimal model
 
 ```{r}
 lmm_scf_acc_opt <- lmm_scf_acc_max
 ```
 
-
+#### Effects of interest
 ```{r}
 emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment, type="response")
 emm_scf_acc
@@ -406,6 +619,7 @@ emmip(lmm_scf_acc_opt, ~ Alignment, CIs = TRUE, type = "response")
 
 ### Correct response times
 
+#### Maximal model
 ```{r}
 thisfile <- file.path("jubail", "lmm_scf_rt_max.rds")
 
@@ -414,7 +628,9 @@ if (file.exists(thisfile)) {
   lmm_scf_rt_max <- readRDS(thisfile)
   
 } else {
-  lmm_scf_rt_max <- lmer(log(RT) ~ Alignment + (Alignment | Subject),
+  lmm_scf_rt_max <- lmer(log(RT) ~ Alignment + 
+                           (Alignment | Subject) +
+                           (Alignment | StimGroup),
                          filter(df_scf, Correct),
                          control = lmerControl(optimizer = "optimx", 
                                                optCtrl = list(method = "nlminb", 
@@ -426,11 +642,13 @@ if (file.exists(thisfile)) {
 summary(lmm_scf_rt_max)
 ```
 
+#### Optimal model
 ```{r}
 lmm_scf_rt_opt <- lmm_scf_rt_max
 ```
 
 
+#### Effects of interest
 ```{r}
 emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type = "response")
 emm_scf_rt
@@ -454,6 +672,7 @@ emmip(lmm_scf_rt_opt, ~ Alignment, CIs = TRUE, type = "response")
 
 ### Sensitivity d'
 
+#### Maximal model
 ```{r}
 thisfile <- file.path("jubail", "lmm_ccf_d_max.rds")
 
@@ -463,7 +682,8 @@ if (file.exists(thisfile)) {
   
 } else {
   lmm_ccf_d_max <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
-                           (Congruency * Alignment * SD | Subject),
+                           (Congruency * Alignment * SD | Subject) +
+                           (Congruency * Alignment * SD | StimGroup),
                          df_ccf,
                          family = binomial(link = "probit"),
                          control = glmerControl(optimizer = "optimx", 
@@ -476,11 +696,12 @@ if (file.exists(thisfile)) {
 summary(lmm_ccf_d_max)
 ```
 
+#### Optimal model
 ```{r}
 lmm_ccf_d_opt <- lmm_ccf_d_max
 ```
 
-
+#### Effects of interest
 ```{r}
 (emm_ccf_probit <- emmeans(lmm_ccf_d_opt, ~ Congruency + Alignment + SD, type = "response"))
 ```
@@ -506,9 +727,9 @@ emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
 ```
 
 
-
 ### Correct response times
 
+#### Maximal model
 ```{r}
 thisfile <- file.path("jubail", "lmm_ccf_rt_max.rds")
 
@@ -517,7 +738,9 @@ if (file.exists(thisfile)) {
   lmm_ccf_rt_max <- readRDS(thisfile)
   
 } else {
-  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + (Congruency * Alignment | Subject),
+  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + 
+                           (Congruency * Alignment | Subject) +
+                           (Congruency * Alignment | StimGroup),
                          filter(df_ccf, Correct),
                          control = lmerControl(optimizer = "optimx", 
                                                optCtrl = list(method = "nlminb", 
@@ -529,12 +752,12 @@ if (file.exists(thisfile)) {
 summary(lmm_ccf_rt_max)
 ```
 
-
+#### Optimal model
 ```{r}
 lmm_ccf_rt_opt <- lmm_ccf_rt_max
 ```
 
-
+#### Effects of interest
 ```{r}
 thisfile <- file.path("jubail", "emm_ccf_rt.rds")
 
@@ -568,7 +791,6 @@ emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response")
 
 
 # Relationships among effects
-
 
 ## Calculate holistic processing effects
 
