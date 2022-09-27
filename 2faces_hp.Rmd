@@ -45,6 +45,7 @@ library(ggpubr)
 
 ```{r}
 two_colors <- c("#D55E00", "#56B4E9")
+equi_boundary <- .15
 
 # APA theme for figures
 theme_set(papaja::theme_apa(base_size = 12, base_family = "Helvetica", box = FALSE))
@@ -864,7 +865,7 @@ scfe_rt <- df_scf %>%
   pivot_wider(Subject, names_from = Alignment, values_from = rt) %>% 
   mutate(scfe_subt = ali - mis) %>% # subtraction
   cal_reg(ali ~ mis, scfe_regr) # regression
-  
+
 scfe_rt
 ```
 
@@ -897,7 +898,7 @@ ccfe_d <- df_ccf_iso %>%
   cal_reg(con_mis ~ inc_mis, cong_mis_regr) %>% # regression
   cal_reg(cong_ali_subt ~ cong_mis_subt, ccfe_subt_regr) %>% # regression
   cal_reg(cong_ali_regr ~ cong_mis_regr, ccfe_regr_regr) # regression
-  
+
 ccfe_d 
 ```
 
@@ -1409,19 +1410,22 @@ rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
 ## Correlations among holistic processing effects
 
 ```{r}
-# custom function to print the correlation results via library(psych)
-psych_cor <- function(.data, ...) {
+# custom function to print the two-sided correlation results via library(psych)
+psych_cor2 <- function(.data, ...) {
   
   # .data: data frame only includes columns for correlation (no subject code column)
-  # Usage: psych_cor(hpe_acc_subt)
+  # Usage: psych_cor2(hpe_acc_subt)
   
   # run correlations
-  cor_tmp <- corr.test(.data, ...)
+  cor_tmp <- psych::corr.test(.data, ...)
   
   cor_tmp$ci %>% 
+    rename(`lower95`=lower,
+           `upper95`=upper) %>% 
     mutate(N = cor_tmp$n,
            p.adj = cor_tmp$p.adj,
-           adjust = cor_tmp$adjust) %>% 
+           adjust = cor_tmp$adjust,
+           alt = "two.sided") %>% 
     bind_cols(cor_tmp$ci.adj %>% mutate(r=1) %>% select(-r)) %>% 
     return()
 }
@@ -1456,6 +1460,47 @@ plot_equi_hp <- ggplot(df_equi_hp, aes(xmin = CI_low, xmax = CI_upp, y = Scenari
 plot_equi_hp
 ```
 
+```{r}
+# custom function to employ TOSTr
+equi_r2 <- function(.data, low_eqbound_r, high_eqbound_r, ...){
+  
+  # .data (same as that in psych_cor2()); 
+  #       data frame only includes columns for correlation (no subject code column)
+  
+  corr_mat <- psych_cor2(.data)
+  
+  r <- c()
+  tost_pmax <- c()
+  tost_lw <- c()
+  tost_hi <- c()
+  
+  for (irow in 1:nrow(corr_mat)) {
+    
+    thisr <- corr_mat[irow,]
+    
+    tmp <- TOSTr(thisr$N, thisr$r, low_eqbound_r, high_eqbound_r, 
+                 plot = FALSE, verbose = FALSE, ...)
+    
+    r[irow] <- tmp$r
+    tost_pmax[irow] <- max(tmp$TOST_p1, tmp$TOST_p2)
+    tost_lw[irow] <- tmp$LL_CI_TOST
+    tost_hi[irow] <- tmp$UL_CI_TOST
+  }
+  
+  equir_out <- data.frame(r = r,
+                          tost_pmax = tost_pmax,
+                          tost_lw90 = tost_lw,
+                          tost_up90 = tost_hi,
+                          low_eqbound_r = low_eqbound_r,
+                          high_eqbound_r = high_eqbound_r)
+  
+  rownames(equir_out) <- rownames(corr_mat)
+  
+  return(equir_out)
+}
+
+```
+
 
 ### Subtraction
 
@@ -1476,15 +1521,25 @@ corPlot(hpe_acc_subt)
 ```
 
 ```{r}
-psych_cor(hpe_acc_subt)
+psych_cor2(hpe_acc_subt)
 ```
+
+
+```{r}
+equi_r2(hpe_acc_subt, -equi_boundary, equi_boundary)
+```
+
 
 ```{r}
 corPlot(hpe_rt_subt)
 ```
 
 ```{r}
-psych_cor(hpe_rt_subt)
+psych_cor2(hpe_rt_subt)
+```
+
+```{r}
+equi_r2(hpe_rt_subt, -equi_boundary, equi_boundary)
 ```
 
 ### Regression
@@ -1507,7 +1562,11 @@ corPlot(hpe_acc_regr)
 ```
 
 ```{r}
-psych_cor(hpe_acc_regr)
+psych_cor2(hpe_acc_regr)
+```
+
+```{r}
+equi_r2(hpe_acc_regr, -equi_boundary, equi_boundary)
 ```
 
 ```{r}
@@ -1515,11 +1574,39 @@ corPlot(hpe_rt_regr)
 ```
 
 ```{r}
-psych_cor(hpe_rt_regr)
+psych_cor2(hpe_rt_regr)
 ```
 
+```{r}
+equi_r2(hpe_rt_regr, -equi_boundary, equi_boundary)
+```
 
 ## Correlations for facilitation and interference
+
+```{r}
+# custom function to print the two-sided correlation results via library(psych)
+psych_cor1 <- function(x, y, ...) {
+  
+  # .data: data frame only includes columns for correlation (no subject code column)
+  # Usage: psych_cor1(hpe_acc_subt)
+  
+  # run correlations
+  cor_tmp <- psych::corr.test(x, y, alpha=.1, ...) # one-sided test
+  
+  rownames(cor_tmp) <- NULL
+  
+  cor_tmp$ci %>% 
+    rename(`lower90`=lower,
+           `upper90`=upper) %>% 
+    mutate(N = cor_tmp$n,
+           p = p/2,
+           alt = "greater") %>% 
+    # bind_cols(cor_tmp$ci.adj %>% mutate(r=1) %>% select(-r)) %>% 
+    return()
+}
+```
+
+### Equivalence tests (one-sided)
 
 ```{r}
 # equivalence interval
@@ -1548,47 +1635,97 @@ plot_equi <- ggplot(df_equi, aes(xmin = CI_low, xmax = CI_upp, y = Scenarios)) +
 plot_equi
 ```
 
+```{r}
+# custom function to employ TOSTr
+equi_small_r1 <- function(x, y, high_eqbound_r, low_eqbound_r = -1, ...){
+  
+  # .data (same as that in psych_cor2()); 
+  #       data frame only includes columns for correlation (no subject code column)
+  
+  corr_mat <- psych_cor2(x, y)
+  
+  tmp <- TOSTr(corr_mat$N, corr_mat$r, low_eqbound_r, high_eqbound_r, 
+               plot = FALSE, verbose = FALSE, ...)
+  
+  equir_out <- data.frame(r = tmp$r,
+                          tost_pmax = max(tmp$TOST_p1, tmp$TOST_p2),
+                          tost_lw90 = tmp$LL_CI_TOST,
+                          tost_up90 = tmp$UL_CI_TOST,
+                          low_eqbound_r = low_eqbound_r,
+                          high_eqbound_r = high_eqbound_r)
+  
+  return(equir_out)
+}
+```
 
 ### PW and Facilitation in CCF
 
 #### Subtraction
 
 ```{r}
-psych_cor(pwe_acc$pwe_subt, ccfe_d$fac_subt)
-```
-
-
-```{r}
-psych_cor(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
+psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt)
 ```
 
 ```{r}
-psych_cor(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
+equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt, equi_boundary, -equi_boundary)
 ```
 
+```{r}
+psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
+```
 
 ```{r}
-psych_cor(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
+equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
+```
+
+```{r}
+equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
+```
+
+```{r}
+equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Regressions
 
 ```{r}
-psych_cor(pwe_acc$pwe_regr, ccfe_d$fac_regr)
-```
-
-
-```{r}
-psych_cor(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
+psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr)
 ```
 
 ```{r}
-psych_cor(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
+equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr, equi_boundary, -equi_boundary)
 ```
 
+```{r}
+psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
+```
 
 ```{r}
-psych_cor(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
+equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
+```
+
+```{r}
+equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
+```
+
+```{r}
+equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 ### SCF and Interference in CCF
@@ -1596,37 +1733,69 @@ psych_cor(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
 #### Subtraction
 
 ```{r}
-psych_cor(scfe_acc$scfe_subt, ccfe_d$int_subt)
+psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt)
 ```
 
 ```{r}
-psych_cor(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
+equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor(scfe_rt$scfe_subt, ccfe_rt$int_subt)
+psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
 ```
 
 ```{r}
-psych_cor(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
+equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt)
+```
+
+```{r}
+equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
+```
+
+```{r}
+equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Regressions
 
 ```{r}
-psych_cor(scfe_acc$scfe_regr, ccfe_d$int_regr)
+psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr)
 ```
 
 ```{r}
-psych_cor(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
+equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor(scfe_rt$scfe_regr, ccfe_rt$int_regr)
+psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
 ```
 
 ```{r}
-psych_cor(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
+equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr)
+```
+
+```{r}
+equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr, equi_boundary, -equi_boundary)
+```
+
+```{r}
+psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
+```
+
+```{r}
+equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 ### Pairwise correlations
