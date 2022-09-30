@@ -1,0 +1,190 @@
+---
+title: "Two faces of holistic face processing -- analyses and results"
+author: "[Haiyang Jin](https://haiyangjin.github.io/)"
+date: "`r format(Sys.Date(), '%Y %b %d')`"
+output: 
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: true
+    toc_depth: 4
+    toc_float: true
+---
+
+```{=html}
+<style>
+pre {
+overflow-x: auto;
+}
+pre code {
+word-wrap: normal;
+white-space: pre;
+}
+</style>
+```
+
+```{r global_options, echo = FALSE, include = FALSE}
+options(width = 1500)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      include = TRUE, cache = FALSE, tidy = FALSE, 
+                      size = "big", fig.width=8, fig.asp=0.7)
+xaringanExtra::use_clipboard()
+```
+
+# Preparations
+```{r setup}
+## load libraries
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(optimx)
+library(emmeans)
+library(psych)
+library(TOSTER)
+library(ggpubr)
+```
+
+```{r}
+two_colors <- c("#D55E00", "#56B4E9")
+equi_boundary <- .15
+
+# APA theme for figures
+theme_set(papaja::theme_apa(base_size = 12, base_family = "Helvetica", box = FALSE))
+theme_update(strip.placement = "outside")
+```
+
+## Load data 
+```{r read the data file}
+# list filenames
+prolific_list <- list.files(file.path("data", "pilot", "prolific"), 
+                            pattern = "*.csv", full.names = TRUE)
+testable1_list <- list.files(file.path("data", "pilot", "testable1"), 
+                             pattern = "*.csv", full.names = TRUE)
+
+# load data
+df_raw_p <- map_dfr(prolific_list, read_csv, show_col_types = FALSE, .id="id") 
+df_raw_t1 <- map_dfr(testable1_list, read_csv, show_col_types = FALSE, .id="id") 
+
+# combine data from the two experiments
+df_raw_p_tmp <- df_raw_p %>% 
+  filter(trial_frame=="test_face") %>% 
+  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
+         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
+  mutate(platform = "Prolific")
+
+df_raw_t1_tmp <- df_raw_t1 %>% 
+  filter(trial_frame=="test_face") %>% 
+  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
+         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
+  mutate(platform = "Testable1")
+
+df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>% 
+  filter(Section=="main") %>% # exclude practice trials
+  mutate(Exp_name = as_factor(Exp_name),
+         Subject = paste0("subj",as.numeric(as_factor(Subject))),
+         Subject = as_factor(Subject),
+         Task = as_factor(Task_name),
+         PW = as_factor(PW), 
+         Feature = as_factor(Feature),
+         Cue = as_factor(Cue),
+         Congruency = as_factor(str_sub(Congruency, 1, 3)),
+         Alignment = as_factor(str_sub(Alignment, 1, 3)),
+         SD = as_factor(str_sub(SameDifferent, 1, 3)),
+         SD = fct_relevel(SD, "sam", "dif"),
+         Correct_ans_posi = as_factor(Correct_ans_posi),
+         StimGroup = if_else(Task_name=="PW", str_remove(basename(StudyFace),".png"), StimGroup),
+         platform = as_factor(platform)) %>% 
+  select(-c(Section, SameDifferent))
+
+head(df_raw)
+```
+
+## Tidy data
+
+Remove outlier participants and outlier trials. 
+```{r}
+df_tidy <- df_raw 
+```
+
+
+```{r}
+# custom function to set contrasts for factors
+set_sdif <- function(.data, colstr, n=2){
+  # .data dataframe
+  # colstr the string of the column name
+  
+  contrasts(.data[[colstr]]) <- MASS::contr.sdif(n)
+  
+  return(.data)
+}
+```
+
+
+### Part-whole task
+
+```{r}
+df_pw <- df_tidy %>% 
+  filter(Task_name == "PW",
+         Feature != "nose") %>% # do not include Nose trials in GLMM
+  select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
+  mutate(PW = fct_relevel(PW, "whole", "part"),
+         Feature = fct_drop(Feature),
+         PW_C = if_else(PW=="whole", -.5, if_else(PW=="part", .5, NaN)),
+         Feature_C = if_else(Feature=="mouth", -.5, 
+                             if_else(Feature=="eyes", .5, NaN)),
+         PW_Feature = PW_C * Feature_C) %>% 
+  set_sdif("PW") %>% 
+  set_sdif("Feature")
+
+# saveRDS(df_pw, file=file.path("jubail", "df_pw.rds"))
+
+str(df_pw)
+```
+
+### Standard composite face task
+
+```{r}
+df_scf <- df_tidy %>% 
+  filter(Task_name == "SCF",
+         SD == "sam") %>% # only use trials when the top is the same
+  select(Subject, Alignment, Correct, RT, StimGroup) %>% 
+  mutate(Alignment = fct_drop(Alignment),
+         Ali_C = if_else(Alignment=="ali", -.5, 
+                         if_else(Alignment=="mis", .5, NaN))) %>% 
+  set_sdif("Alignment")
+
+# saveRDS(df_scf, file=file.path("jubail", "df_scf.rds"))
+
+str(df_scf)
+```
+
+### Complete composite face task
+
+```{r}
+# including isolated condition
+df_ccf_iso <- df_tidy %>% 
+  filter(Task_name == "CCF") %>% # only use trials when the top is the same
+  mutate(isSame = if_else( # whether participants responded "same" (signal)
+    ((SD=="sam")&Correct) | ((SD=="dif")&!Correct), 1,
+    if_else(((SD=="sam")&!Correct) | ((SD=="dif")&Correct), 0, NaN))) %>% 
+  select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, StimGroup) 
+
+df_ccf <- df_ccf_iso %>% 
+  filter(Alignment != "iso") %>% 
+  mutate(Alignment = fct_drop(Alignment),
+         Congruency = fct_drop(Congruency)) %>% 
+  set_sdif("Cue") %>% 
+  set_sdif("Congruency") %>% 
+  set_sdif("Alignment") %>% 
+  set_sdif("SD")
+
+# saveRDS(df_ccf, file=file.path("jubail", "df_ccf.rds"))
+
+str(df_ccf)
+```
+
+
+```{r child=c("2faces_1GLMM.Rmd", "2faces_2Corr.Rmd", "2faces_3SessInfo.Rmd")}
+# refer to the child documents
+```
+
