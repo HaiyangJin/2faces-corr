@@ -816,6 +816,7 @@ cal_reg <- function(.data, formula, outvar){
 
 ### Part-whole task
 
+Accuracy
 ```{r}
 pwe_acc <- df_pw %>% 
   group_by(Subject, PW) %>% 
@@ -828,7 +829,7 @@ pwe_acc <- df_pw %>%
 pwe_acc
 ```
 
-
+RT
 ```{r}
 pwe_rt <- df_pw %>% 
   filter(Correct) %>% 
@@ -843,7 +844,7 @@ pwe_rt
 ```
 
 ### Standard composite face task
-
+Accuracy
 ```{r}
 scfe_acc <- df_scf %>% 
   group_by(Subject, Alignment) %>% 
@@ -856,7 +857,7 @@ scfe_acc <- df_scf %>%
 scfe_acc
 ```
 
-
+RT
 ```{r}
 scfe_rt <- df_scf %>% 
   filter(Correct) %>% 
@@ -870,8 +871,8 @@ scfe_rt <- df_scf %>%
 scfe_rt
 ```
 
-### Complete compositie face task
-
+### Complete composite face task
+Sensitivity d'
 ```{r}
 ccfe_d <- df_ccf_iso %>% 
   group_by(Subject, Congruency, Alignment, SD) %>% 
@@ -903,7 +904,7 @@ ccfe_d <- df_ccf_iso %>%
 ccfe_d 
 ```
 
-
+RT
 ```{r}
 ccfe_rt <- df_ccf_iso %>% 
   filter(Correct) %>% 
@@ -975,16 +976,6 @@ rel_sub <- function(re_inte, re_base, raw_inte, raw_base){
   return(top/bot)
 }
 
-rel_sub1 <- function(re_inte, re_base, raw_inte, raw_base){
-  # used in DeGutis et al (2013), but used more assumptions. [to be removed]
-  # re_inte: the reliability of the condition of interest
-  # re_base: the reliability of the baseline condition
-  # raw_inte: the raw values for each participant in the condition of interest
-  # raw_base: the raw values for each participant in the baseline condition
-  
-  return(((re_inte + re_base)/2 - cor(raw_inte, raw_base))/(1-cor(raw_inte, raw_base)))
-}
-
 ```
 
 ```{r}
@@ -1033,27 +1024,25 @@ df_pw_rel_rt <- df_pw %>%
 
 #### Reliability of each condition
 
-Accuracy for whole:
+Accuracy for whole
 ```{r}
-# accuracy on logit scale
 rel_pw_acc_w <- rel_each(df_pw_rel_acc, "acc", PW=="whole")
 rel_pw_acc_w
 ```
 
-Accuracy for part:
+Accuracy for part
 ```{r}
-# accuracy on logit scale
 rel_pw_acc_p <- rel_each(df_pw_rel_acc, "acc", PW=="part")
 rel_pw_acc_p
 ```
 
-RT for whole:
+RT for whole
 ```{r}
 rel_pw_rt_w <- rel_each(df_pw_rel_rt, "rt", PW=="whole")
 rel_pw_rt_w
 ```
 
-RT for part:
+RT for part
 ```{r}
 rel_pw_rt_p <- rel_each(df_pw_rel_rt, "rt", PW=="part")
 rel_pw_rt_p
@@ -1063,24 +1052,36 @@ rel_pw_rt_p
 
 Subtraction of accuracy
 ```{r}
-# accuracy on logit scale
-rel_sub(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part)
+(rel_pwe_acc_subt <- rel_sub(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part))
 ```
 
 Regression of accuracy
 ```{r}
-# accuracy on logit scale
-rel_reg(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part)
+(rel_pwe_acc_regr <- rel_reg(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part))
 ```
 
 Subtraction of RT
 ```{r}
-rel_sub(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part)
+(rel_pwe_rt_subt <- rel_sub(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part))
 ```
 
 Regression of RT
 ```{r}
-rel_reg(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part)
+(rel_pwe_rt_regr <- rel_reg(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part))
+```
+
+#### Interim summary 
+
+```{r}
+rel_sum_pw <- tibble(
+  Task = "PW",
+  DV = rep(c("acc", "acc", "rt", "rt"), times=2),
+  Condition = c(rep(c("whole", "part"), times=2), 
+                rep(c("whole - part", "whole ~ part"), times=2)),
+  Guttman = c(rel_pw_acc_w, rel_pw_acc_p, rel_pw_rt_w, rel_pw_rt_p,
+              rel_pwe_acc_subt, rel_pwe_acc_regr, rel_pwe_rt_subt, rel_pwe_rt_regr))
+
+rel_sum_pw
 ```
 
 ### Standard composite face task
@@ -1100,16 +1101,14 @@ df_scf_rel_rt <- df_scf %>%
 ```
 
 #### Reliability of each condition
-Accuracy for aligned:
+Accuracy for aligned
 ```{r}
-# accuracy on logit scale
 rel_scf_acc_a <- rel_each(df_scf_rel_acc, "acc", Alignment=="ali")
 rel_scf_acc_a
 ```
 
-Accuracy for misgned
+Accuracy for misaligned
 ```{r}
-# accuracy on logit scale
 rel_scf_acc_m <- rel_each(df_scf_rel_acc, "acc", Alignment=="mis")
 rel_scf_acc_m
 ```
@@ -1130,24 +1129,36 @@ rel_scf_rt_m
 
 Subtraction of accuracy
 ```{r}
-# accuracy on logit scale
-rel_sub(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis)
+(rel_scfe_acc_subt <- rel_sub(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis))
 ```
 
 Regression of accuracy
 ```{r}
-# accuracy on logit scale
-rel_reg(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis)
+(rel_scfe_acc_regr <- rel_reg(rel_scf_acc_a, rel_scf_acc_m, scfe_acc$ali, scfe_acc$mis))
 ```
 
 Subtraction of RT
 ```{r}
-rel_sub(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
+(rel_scfe_rt_subt <- rel_sub(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis))
 ```
 
 Regression of RT
 ```{r}
-rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
+(rel_scfe_rt_regr <- rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis))
+```
+
+#### Interim summary 
+
+```{r}
+rel_sum_scf <- tibble(
+  Task = "SCF",
+  DV = rep(c("acc", "acc", "rt", "rt"), times=2),
+  Condition = c(rep(c("aligned", "misaligned"), times=2), 
+                rep(c("aligned - misaligned", "aligned ~ misaligned"), times=2)),
+  Guttman = c(rel_scf_acc_a, rel_scf_acc_m, rel_scf_rt_a, rel_scf_rt_m,
+              rel_scfe_acc_subt, rel_scfe_acc_regr, rel_scfe_rt_subt, rel_scfe_rt_regr))
+
+rel_sum_scf
 ```
 
 ### Complete composite face task
@@ -1239,90 +1250,90 @@ rel_ccf_rt_cong_m
 
 Subtraction of Congruency (composite effect) in d
 ```{r}
-rel_sub(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt)
+(rel_ccfe_d_subt <- rel_sub(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt))
 ```
 
 Regression of Congruency (composite effect) in d
 ```{r}
-rel_reg(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt)
+(rel_ccfe_d_regr <- rel_reg(rel_ccf_d_cong_a, rel_ccf_d_cong_m, ccfe_d$cong_ali_subt, ccfe_d$cong_mis_subt))
 ```
 
 Subtraction of RT
 ```{r}
-rel_sub(rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, ccfe_rt$cong_ali_subt, ccfe_rt$cong_mis_subt)
+(rel_ccfe_rt_subt <- rel_sub(rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, ccfe_rt$cong_ali_subt, ccfe_rt$cong_mis_subt))
 ```
 
 Regression of RT
 ```{r}
-rel_reg(rel_scf_rt_a, rel_scf_rt_m, scfe_rt$ali, scfe_rt$mis)
+(rel_ccfe_rt_regr <- rel_reg(rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, ccfe_rt$cong_ali_subt, ccfe_rt$cong_mis_subt))
 ```
 
 #### Reliability of each condition
 
-d for congruent aligned:
+d for congruent aligned
 ```{r}
 rel_ccf_d_ca <- rel_each(df_ccf_rel_d, "d", 
                          Congruency=="con", Alignment=="ali")
 rel_ccf_d_ca
 ```
 
-d for incongruent aligned:
+d for incongruent aligned
 ```{r}
 rel_ccf_d_ia <- rel_each(df_ccf_rel_d, "d", 
                          Congruency=="inc", Alignment=="ali")
 rel_ccf_d_ia
 ```
 
-d for congruent misaligned:
+d for congruent misaligned
 ```{r}
 rel_ccf_d_cm <- rel_each(df_ccf_rel_d, "d", 
                          Congruency=="con", Alignment=="mis")
 rel_ccf_d_cm
 ```
 
-d for incongruent misaligned:
+d for incongruent misaligned
 ```{r}
 rel_ccf_d_im <- rel_each(df_ccf_rel_d, "d", 
                          Congruency=="inc", Alignment=="mis")
 rel_ccf_d_im
 ```
 
-d for isolated:
+d for isolated
 ```{r}
 rel_ccf_d_iso <- rel_each(df_ccf_rel_d, "d", 
                           Congruency=="iso", Alignment=="iso")
 rel_ccf_d_iso
 ```
 
-RT for congruent aligned:
+RT for congruent aligned
 ```{r}
 rel_ccf_rt_ca <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="con", Alignment=="ali")
 rel_ccf_rt_ca
 ```
 
-RT for incongruent aligned:
+RT for incongruent aligned
 ```{r}
 rel_ccf_rt_ia <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="inc", Alignment=="ali")
 rel_ccf_rt_ia
 ```
 
-RT for congruent misaligned:
+RT for congruent misaligned
 ```{r}
 rel_ccf_rt_cm <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="con", Alignment=="mis")
 rel_ccf_rt_cm
 ```
 
-RT for incongruent misaligned:
+RT for incongruent misaligned
 ```{r}
 rel_ccf_rt_im <- rel_each(df_ccf_rel_rt, "rt", 
                           Congruency=="inc", Alignment=="mis")
 rel_ccf_rt_im
 ```
 
-RT for isolated:
+RT for isolated
 ```{r}
 rel_ccf_rt_iso <- rel_each(df_ccf_rel_rt, "rt", 
                            Congruency=="iso", Alignment=="iso")
@@ -1334,87 +1345,111 @@ rel_ccf_rt_iso
 
 Subtraction of accuracy (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated)
+(rel_fac_d_iso_subt <- rel_sub(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated))
 ```
 
 Regression of accuracy (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated)
+(rel_fac_d_iso_regr <- rel_reg(rel_ccf_d_ca, rel_ccf_d_iso, ccfe_d$con_ali, ccfe_d$isolated))
 ```
 
 Subtraction of RT (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated)
+(rel_fac_rt_iso_subt <- rel_sub(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated))
 ```
 
 Regression of RT (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated)
+(rel_fac_rt_iso_regr <- rel_reg(rel_ccf_rt_ca, rel_ccf_rt_iso, ccfe_rt$con_ali, ccfe_rt$isolated))
 ```
 
 Subtraction of accuracy (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis)
+(rel_fac_d_subt <- rel_sub(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis))
 ```
 
 Regression of accuracy (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis)
+(rel_fac_d_regr <- rel_reg(rel_ccf_d_ca, rel_ccf_d_cm, ccfe_d$con_ali, ccfe_d$con_mis))
 ```
 
 Subtraction of RT (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis)
+(rel_fac_rt_subt <- rel_sub(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis))
 ```
 
 Regression of RT (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis)
+(rel_fac_rt_regr <- rel_reg(rel_ccf_rt_ca, rel_ccf_rt_cm, ccfe_rt$con_ali, ccfe_rt$con_mis))
 ```
 
 
 #### Reliability of interference
 
-Subtraction of accuracy (with isolated baselines)
+Subtraction of d (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated)
+(rel_int_d_iso_subt <- rel_sub(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated))
 ```
 
-Regression of accuracy (with isolated baselines)
+Regression of d (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated)
+(rel_int_d_iso_regr <- rel_reg(rel_ccf_d_ia, rel_ccf_d_iso, ccfe_d$inc_ali, ccfe_d$isolated))
 ```
 
 Subtraction of RT (with isolated baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated)
+(rel_int_rt_iso_subt <- rel_sub(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated))
 ```
 
 Regression of RT (with isolated baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated)
+(rel_int_rt_iso_regr <- rel_reg(rel_ccf_rt_ia, rel_ccf_rt_iso, ccfe_rt$inc_ali, ccfe_rt$isolated))
 ```
 
-Subtraction of accuracy (with misaligned baselines)
+Subtraction of d (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis)
+(rel_int_d_subt <- rel_sub(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis))
 ```
 
-Regression of accuracy (with misaligned baselines)
+Regression of d (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis)
+(rel_int_d_regr <- rel_reg(rel_ccf_d_ia, rel_ccf_d_im, ccfe_d$inc_ali, ccfe_d$inc_mis))
 ```
 
 Subtraction of RT (with misaligned baselines)
 ```{r}
-rel_sub(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
+(rel_int_rt_subt <- rel_sub(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis))
 ```
 
 Regression of RT (with misaligned baselines)
 ```{r}
-rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis)
+(rel_int_rt_regr <- rel_reg(rel_ccf_rt_ia, rel_ccf_rt_im, ccfe_rt$inc_ali, ccfe_rt$inc_mis))
 ```
 
+#### Interim summary 
+
+```{r}
+rel_sum_ccf <- tibble(
+  Task = "CCF",
+  DV = c(rep("d", 5), rep("rt", 5), rep(rep(c("d", "rt"), each=2), times=6)),
+  Condition = c(rep(c("con_ali", "inc_ali", "con_mis", "inc_mis", "isolated"), times=2), # each condition
+                rep(c("con_ali - inc_ali", "con_mis - inc_mis"), times=2), # congruency
+                rep(c("(con_ali - inc_ali) - (con_mis - inc_mis)", "(con_ali - inc_ali) ~ (con_mis - inc_mis)"), times=2), # composite effect
+                rep(c("con_ali - isolated", "con_ali ~ isolated"), times=2), # facilitation with isolated
+                rep(c("con_ali - con_mis", "con_ali ~ con_mis"), times=2), # facilitation with misaligned
+                rep(c("inc_ali - isolated", "inc_ali ~ isolated"), times=2), # interference with isolated
+                rep(c("inc_ali - inc_mis", "inc_ali ~ inc_mis"), times=2)), # interference with misaligned)
+  Guttman = c(rel_ccf_d_ca, rel_ccf_d_ia, rel_ccf_d_cm, rel_ccf_d_im, rel_ccf_d_iso, # d for each condition
+              rel_ccf_rt_ca, rel_ccf_rt_ia, rel_ccf_rt_cm, rel_ccf_rt_im, rel_ccf_rt_iso, # acc for each condition
+              rel_ccf_d_cong_a, rel_ccf_d_cong_m, rel_ccf_rt_cong_a, rel_ccf_rt_cong_m, # congruency
+              rel_ccfe_d_subt, rel_ccfe_d_regr, rel_ccfe_rt_subt, rel_ccfe_rt_regr, # composite effect
+              rel_fac_d_iso_subt, rel_fac_d_iso_regr, rel_fac_rt_iso_subt, rel_fac_rt_iso_regr, # facilitation with isolated
+              rel_fac_d_subt, rel_fac_d_regr, rel_fac_rt_subt, rel_fac_rt_regr, # facilitation with misaligned
+              rel_int_d_iso_subt, rel_int_d_iso_regr, rel_int_rt_iso_subt, rel_int_rt_iso_regr, # interference with isolated
+              rel_int_d_subt, rel_int_d_regr, rel_int_rt_subt, rel_int_rt_regr)) # interference with misaligned)
+              
+rel_sum_ccf
+```
 
 ## Correlations among holistic processing effects
 
@@ -1539,10 +1574,12 @@ hpe_rt_subt <- pwe_rt %>%
   transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt)
 ```
 
+Accuracy
 ```{r}
 corPlot(hpe_acc_subt)
 ```
 
+Correlations among holistic processing effects of accuracy (subtraction)
 ```{r}
 psych_cor2(hpe_acc_subt) %>% 
   mutate(up_bound = c(
@@ -1552,16 +1589,17 @@ psych_cor2(hpe_acc_subt) %>%
   ), .before = 1)
 ```
 
-
+Correlations (equivalence tests) among holistic processing effects of accurac (subtraction)
 ```{r}
 equi_r2(hpe_acc_subt, -equi_boundary, equi_boundary)
 ```
 
-
+RT
 ```{r}
 corPlot(hpe_rt_subt)
 ```
 
+Correlations among holistic processing effects of RT (subtraction)
 ```{r}
 psych_cor2(hpe_rt_subt) %>% 
   mutate(up_bound = c(
@@ -1571,6 +1609,7 @@ psych_cor2(hpe_rt_subt) %>%
   ), .before = 1)
 ```
 
+Correlations (equivalence tests) among holistic processing effects of RT (subtraction)
 ```{r}
 equi_r2(hpe_rt_subt, -equi_boundary, equi_boundary)
 ```
@@ -1589,11 +1628,12 @@ hpe_rt_regr <- pwe_rt %>%
   transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
 ```
 
-
+Accuracy
 ```{r}
 corPlot(hpe_acc_regr)
 ```
 
+Correlations among holistic processing effects of accuracy (regression)
 ```{r}
 psych_cor2(hpe_acc_regr) %>% 
   mutate(up_bound = c(
@@ -1603,14 +1643,17 @@ psych_cor2(hpe_acc_regr) %>%
   ), .before = 1)
 ```
 
+Correlations (equivalence tests) among holistic processing effects of accuracy (regression)
 ```{r}
 equi_r2(hpe_acc_regr, -equi_boundary, equi_boundary)
 ```
 
+RT
 ```{r}
 corPlot(hpe_rt_regr)
 ```
 
+Correlations among holistic processing effects of RT (regression)
 ```{r}
 psych_cor2(hpe_rt_regr) %>% 
   mutate(up_bound = c(
@@ -1620,9 +1663,11 @@ psych_cor2(hpe_rt_regr) %>%
   ), .before = 1)
 ```
 
+Correlations (equivalence tests) among holistic processing effects of RT (regression)
 ```{r}
 equi_r2(hpe_rt_regr, -equi_boundary, equi_boundary)
 ```
+
 
 ## Correlations for facilitation and interference
 
@@ -1705,6 +1750,7 @@ equi_small_r1 <- function(x, y, high_eqbound_r, low_eqbound_r = -1, ...){
 
 #### Subtraction
 
+accuracy 
 ```{r}
 r_pwe_fac_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_subt),
@@ -1716,6 +1762,7 @@ r_pwe_fac_acc_subt
 equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt, equi_boundary, -equi_boundary)
 ```
 
+accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_iso_subt),
@@ -1727,6 +1774,7 @@ r_pwe_fac_iso_acc_subt
 equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso, equi_boundary, -equi_boundary)
 ```
 
+RT 
 ```{r}
 r_pwe_fac_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_subt),
@@ -1738,6 +1786,7 @@ r_pwe_fac_rt_subt
 equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt, equi_boundary, -equi_boundary)
 ```
 
+RT isolated
 ```{r}
 r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_iso_subt),
@@ -1750,7 +1799,7 @@ equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso, equi_boundary, -equi_bounda
 ```
 
 #### Regressions
-
+Accuracy
 ```{r}
 r_pwe_fac_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_regr),
@@ -1762,6 +1811,7 @@ r_pwe_fac_acc_regr
 equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr, equi_boundary, -equi_boundary)
 ```
 
+Accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_iso_regr),
@@ -1773,6 +1823,7 @@ r_pwe_fac_iso_acc_regr
 equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso, equi_boundary, -equi_boundary)
 ```
 
+RT 
 ```{r}
 r_pwe_fac_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_regr),
@@ -1784,6 +1835,7 @@ r_pwe_fac_rt_regr
 equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr, equi_boundary, -equi_boundary)
 ```
 
+RT isolated
 ```{r}
 r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
   mutate(up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_iso_regr),
@@ -1795,10 +1847,20 @@ r_pwe_fac_iso_rt_regr
 equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso, equi_boundary, -equi_boundary)
 ```
 
+#### Interim summary
+
+```{r}
+bind_rows(r_pwe_fac_acc_subt, r_pwe_fac_iso_acc_subt,
+          r_pwe_fac_rt_subt, r_pwe_fac_iso_rt_subt,
+          r_pwe_fac_acc_regr, r_pwe_fac_iso_acc_regr,
+          r_pwe_fac_rt_regr, r_pwe_fac_iso_rt_regr) %>% 
+  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
 ### SCF and Interference in CCF
 
 #### Subtraction
-
+Accuracy
 ```{r}
 r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_subt),
@@ -1810,6 +1872,7 @@ r_scfe_int_acc_subt
 equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt, equi_boundary, -equi_boundary)
 ```
 
+Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_iso_subt),
@@ -1821,6 +1884,7 @@ r_scfe_int_iso_acc_subt
 equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso, equi_boundary, -equi_boundary)
 ```
 
+RT 
 ```{r}
 r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_subt),
@@ -1832,6 +1896,7 @@ r_scfe_int_rt_subt
 equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt, equi_boundary, -equi_boundary)
 ```
 
+RT isolated
 ```{r}
 r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
@@ -1844,7 +1909,7 @@ equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso, equi_boundary, -equi_boun
 ```
 
 #### Regressions
-
+Accuracy
 ```{r}
 r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_regr),
@@ -1856,6 +1921,7 @@ r_scfe_int_acc_regr
 equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr, equi_boundary, -equi_boundary)
 ```
 
+Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_iso_regr),
@@ -1867,6 +1933,7 @@ r_scfe_int_iso_acc_regr
 equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso, equi_boundary, -equi_boundary)
 ```
 
+RT
 ```{r}
 r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_regr),
@@ -1878,6 +1945,7 @@ r_scfe_int_rt_regr
 equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr, equi_boundary, -equi_boundary)
 ```
 
+RT isolated
 ```{r}
 r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
   mutate(up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_iso_regr),
@@ -1889,7 +1957,17 @@ r_scfe_int_iso_rt_regr
 equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso, equi_boundary, -equi_boundary)
 ```
 
-### Pairwise correlations
+#### Interim summary
+
+```{r}
+bind_rows(r_scfe_int_acc_subt, r_scfe_int_iso_acc_subt,
+          r_scfe_int_rt_subt, r_scfe_int_iso_rt_subt,
+          r_scfe_int_acc_regr, r_scfe_int_iso_acc_regr,
+          r_scfe_int_rt_regr, r_scfe_int_iso_rt_regr) %>% 
+  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
+### Pairwise correlations (exploratory)
 
 #### Performance
 
