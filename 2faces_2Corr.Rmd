@@ -1234,10 +1234,24 @@ equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso, equi_boundary, -equi_bounda
 #### Interim summary
 
 ```{r}
-bind_rows(r_pwe_fac_acc_subt, r_pwe_fac_iso_acc_subt,
-          r_pwe_fac_rt_subt, r_pwe_fac_iso_rt_subt,
-          r_pwe_fac_acc_regr, r_pwe_fac_iso_acc_regr,
-          r_pwe_fac_rt_regr, r_pwe_fac_iso_rt_regr) %>% 
+r_sum_pwe_fac <- bind_rows(r_pwe_fac_acc_subt, r_pwe_fac_iso_acc_subt,
+                           r_pwe_fac_rt_subt, r_pwe_fac_iso_rt_subt,
+                           r_pwe_fac_acc_regr, r_pwe_fac_iso_acc_regr,
+                           r_pwe_fac_rt_regr, r_pwe_fac_iso_rt_regr)
+
+```
+
+Corrections for the baseline of isolated:
+```{r}
+r_sum_pwe_fac %>% 
+  filter(endsWith(pair, "_iso")) %>% 
+  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
+Corrections for the baseline of misaligned:
+```{r}
+r_sum_pwe_fac %>% 
+  filter(!endsWith(pair, "_iso")) %>% 
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
@@ -1251,6 +1265,7 @@ r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>%
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_subt),
          .before = 1)
+rownames(r_scfe_int_acc_subt) <- NULL
 r_scfe_int_acc_subt
 ```
 
@@ -1265,6 +1280,7 @@ r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_iso_subt),
          .before = 1)
+rownames(r_scfe_int_iso_acc_subt) <- NULL
 r_scfe_int_iso_acc_subt
 ```
 
@@ -1279,6 +1295,7 @@ r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>%
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_subt),
          .before = 1)
+rownames(r_scfe_int_rt_subt) <- NULL
 r_scfe_int_rt_subt
 ```
 
@@ -1293,6 +1310,7 @@ r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
          .before = 1)
+rownames(r_scfe_int_iso_rt_subt) <- NULL
 r_scfe_int_iso_rt_subt
 ```
 
@@ -1308,6 +1326,7 @@ r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>%
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_regr),
          .before = 1)
+rownames(r_scfe_int_acc_regr) <- NULL
 r_scfe_int_acc_regr
 ```
 
@@ -1322,6 +1341,7 @@ r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_iso_regr),
          .before = 1)
+rownames(r_scfe_int_iso_acc_regr) <- NULL
 r_scfe_int_iso_acc_regr
 ```
 
@@ -1336,6 +1356,7 @@ r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>%
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_regr),
          .before = 1)
+rownames(r_scfe_int_rt_regr) <- NULL
 r_scfe_int_rt_regr
 ```
 
@@ -1350,6 +1371,7 @@ r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_iso_regr),
          .before = 1)
+rownames(r_scfe_int_iso_rt_regr) <- NULL
 r_scfe_int_iso_rt_regr
 ```
 
@@ -1360,10 +1382,23 @@ equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso, equi_boundary, -equi_boun
 #### Interim summary
 
 ```{r}
-bind_rows(r_scfe_int_acc_subt, r_scfe_int_iso_acc_subt,
-          r_scfe_int_rt_subt, r_scfe_int_iso_rt_subt,
-          r_scfe_int_acc_regr, r_scfe_int_iso_acc_regr,
-          r_scfe_int_rt_regr, r_scfe_int_iso_rt_regr) %>% 
+r_sum_scfe_int <- bind_rows(r_scfe_int_acc_subt, r_scfe_int_iso_acc_subt,
+                            r_scfe_int_rt_subt, r_scfe_int_iso_rt_subt,
+                            r_scfe_int_acc_regr, r_scfe_int_iso_acc_regr,
+                            r_scfe_int_rt_regr, r_scfe_int_iso_rt_regr) 
+```
+
+Corrections for the baseline of isolated:
+```{r}
+r_sum_scfe_int %>% 
+  filter(endsWith(pair, "_iso")) %>% 
+  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
+Corrections for the baseline of isolated:
+```{r}
+r_sum_scfe_int %>% 
+  filter(!endsWith(pair, "_iso")) %>% 
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
