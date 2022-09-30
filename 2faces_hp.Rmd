@@ -1026,25 +1026,29 @@ df_pw_rel_rt <- df_pw %>%
 
 Accuracy for whole
 ```{r}
-rel_pw_acc_w <- rel_each(df_pw_rel_acc, "acc", PW=="whole")
+rel_pw_acc_w <- rel_each(df_pw_rel_acc, "acc", PW=="whole") %>% 
+  tibble(DV = "acc", Condition = "whole", Approach = "GuttmanL2",  Reliability = .)
 rel_pw_acc_w
 ```
 
 Accuracy for part
 ```{r}
-rel_pw_acc_p <- rel_each(df_pw_rel_acc, "acc", PW=="part")
+rel_pw_acc_p <- rel_each(df_pw_rel_acc, "acc", PW=="part") %>% 
+  tibble(DV = "acc", Condition = "part", Approach = "GuttmanL2", Reliability = .)
 rel_pw_acc_p
 ```
 
 RT for whole
 ```{r}
-rel_pw_rt_w <- rel_each(df_pw_rel_rt, "rt", PW=="whole")
+rel_pw_rt_w <- rel_each(df_pw_rel_rt, "rt", PW=="whole") %>% 
+  tibble(DV = "rt", Condition = "whole", Approach = "GuttmanL2", Reliability = .)
 rel_pw_rt_w
 ```
 
 RT for part
 ```{r}
-rel_pw_rt_p <- rel_each(df_pw_rel_rt, "rt", PW=="part")
+rel_pw_rt_p <- rel_each(df_pw_rel_rt, "rt", PW=="part") %>% 
+  tibble(DV = "rt", Condition = "part", Approach = "GuttmanL2", Reliability = .)
 rel_pw_rt_p
 ```
 
@@ -1052,36 +1056,46 @@ rel_pw_rt_p
 
 Subtraction of accuracy
 ```{r}
-(rel_pwe_acc_subt <- rel_sub(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part))
+rel_pwe_acc_subt <- rel_sub(rel_pw_acc_w$Reliability, rel_pw_acc_p$Reliability,
+                            pwe_acc$whole, pwe_acc$part) %>% 
+  tibble(DV = "acc", Condition = "whole - part", 
+         Approach = "Subtraction", Reliability = .)
+rel_pwe_acc_subt
 ```
 
 Regression of accuracy
 ```{r}
-(rel_pwe_acc_regr <- rel_reg(rel_pw_acc_w, rel_pw_acc_p, pwe_acc$whole, pwe_acc$part))
+rel_pwe_acc_regr <- rel_reg(rel_pw_acc_w$Reliability, rel_pw_acc_p$Reliability,
+                            pwe_acc$whole, pwe_acc$part) %>% 
+  tibble(DV = "acc", Condition = "whole ~ part", 
+         Approach = "Regression", Reliability = .)
+rel_pwe_acc_regr
 ```
 
 Subtraction of RT
 ```{r}
-(rel_pwe_rt_subt <- rel_sub(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part))
+rel_pwe_rt_subt <- rel_sub(rel_pw_rt_w$Reliability, rel_pw_rt_p$Reliability,
+                           pwe_rt$whole, pwe_rt$part) %>% 
+  tibble(DV = "rt", Condition = "whole - part", 
+         Approach = "Subtraction", Reliability = .)
+rel_pwe_rt_subt
 ```
 
 Regression of RT
 ```{r}
-(rel_pwe_rt_regr <- rel_reg(rel_pw_rt_w, rel_pw_rt_p, pwe_rt$whole, pwe_rt$part))
+rel_pwe_rt_regr <- rel_reg(rel_pw_rt_w$Reliability, rel_pw_rt_p$Reliability,
+                           pwe_rt$whole, pwe_rt$part) %>% 
+  tibble(DV = "rt", Condition = "whole ~ part", 
+         Approach = "Regression", Reliability = .)
+rel_pwe_rt_regr
 ```
 
 #### Interim summary 
 
 ```{r}
-rel_sum_pw <- tibble(
-  Task = "PW",
-  DV = rep(c("acc", "acc", "rt", "rt"), times=2),
-  Condition = c(rep(c("whole", "part"), times=2), 
-                rep(c("whole - part", "whole ~ part"), times=2)),
-  Guttman = c(rel_pw_acc_w, rel_pw_acc_p, rel_pw_rt_w, rel_pw_rt_p,
-              rel_pwe_acc_subt, rel_pwe_acc_regr, rel_pwe_rt_subt, rel_pwe_rt_regr))
-
-rel_sum_pw
+bind_rows(rel_pw_acc_w, rel_pw_acc_p, rel_pw_rt_w, rel_pw_rt_p,
+          rel_pwe_acc_subt, rel_pwe_acc_regr, rel_pwe_rt_subt, rel_pwe_rt_regr) %>% 
+  mutate(Task="PW", .before=1)
 ```
 
 ### Standard composite face task
