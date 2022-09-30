@@ -40,6 +40,7 @@ library(lmerTest)
 library(optimx)
 library(emmeans)
 library(psych)
+library(TOSTER)
 library(ggpubr)
 ```
 
@@ -1005,6 +1006,14 @@ rel_reg <- function(re_inte, re_base, raw_inte, raw_base){
 
 ```
 
+```{r}
+# function to calculate the upper boundary of the correlation
+upper_boundary <- function(re1, re2){
+  # reliability will be set to 0 if it is negative
+  return(sqrt(max(re1,0) * max(re2,0)))
+}
+```
+
 
 ### Part-whole task
 
@@ -1431,6 +1440,20 @@ psych_cor2 <- function(.data, ...) {
 }
 ```
 
+```{r}
+# custom function to calculate CI with r and n
+r2ci <- function(r, n){
+  cormatrix <- matrix(c(r), nrow=1)
+  rownames(cormatrix) <- c("var1")
+  colnames(cormatrix) <- c("var1")
+  
+  out <- psych::corr.p(cormatrix, n, "none") 
+  
+  return(out$ci)
+}
+```
+
+
 ### Equivalence tests
 
 ```{r}
@@ -1521,7 +1544,12 @@ corPlot(hpe_acc_subt)
 ```
 
 ```{r}
-psych_cor2(hpe_acc_subt)
+psych_cor2(hpe_acc_subt) %>% 
+  mutate(up_bound = c(
+    upper_boundary(rel_pwe_acc_subt, rel_scfe_acc_subt),
+    upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt),
+    upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt)
+  ), .before = 1)
 ```
 
 
@@ -1535,7 +1563,12 @@ corPlot(hpe_rt_subt)
 ```
 
 ```{r}
-psych_cor2(hpe_rt_subt)
+psych_cor2(hpe_rt_subt) %>% 
+  mutate(up_bound = c(
+    upper_boundary(rel_pwe_rt_subt, rel_scfe_rt_subt),
+    upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt),
+    upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt)
+  ), .before = 1)
 ```
 
 ```{r}
@@ -1562,7 +1595,12 @@ corPlot(hpe_acc_regr)
 ```
 
 ```{r}
-psych_cor2(hpe_acc_regr)
+psych_cor2(hpe_acc_regr) %>% 
+  mutate(up_bound = c(
+    upper_boundary(rel_pwe_acc_regr, rel_scfe_acc_regr),
+    upper_boundary(rel_pwe_acc_regr, rel_ccfe_d_regr),
+    upper_boundary(rel_scfe_acc_regr, rel_ccfe_d_regr)
+  ), .before = 1)
 ```
 
 ```{r}
@@ -1574,7 +1612,12 @@ corPlot(hpe_rt_regr)
 ```
 
 ```{r}
-psych_cor2(hpe_rt_regr)
+psych_cor2(hpe_rt_regr) %>% 
+  mutate(up_bound = c(
+    upper_boundary(rel_pwe_rt_regr, rel_scfe_rt_regr),
+    upper_boundary(rel_pwe_rt_regr, rel_ccfe_rt_regr),
+    upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_regr)
+  ), .before = 1)
 ```
 
 ```{r}
@@ -1663,7 +1706,10 @@ equi_small_r1 <- function(x, y, high_eqbound_r, low_eqbound_r = -1, ...){
 #### Subtraction
 
 ```{r}
-psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt)
+r_pwe_fac_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_subt),
+         .before = 1)
+r_pwe_fac_acc_subt
 ```
 
 ```{r}
@@ -1671,7 +1717,10 @@ equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso)
+r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_iso_subt),
+         .before = 1)
+r_pwe_fac_iso_acc_subt
 ```
 
 ```{r}
@@ -1679,7 +1728,10 @@ equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso, equi_boundary, -equi_bounda
 ```
 
 ```{r}
-psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt)
+r_pwe_fac_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_subt),
+         .before = 1)
+r_pwe_fac_rt_subt
 ```
 
 ```{r}
@@ -1687,7 +1739,10 @@ equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso)
+r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_iso_subt),
+         .before = 1)
+r_pwe_fac_iso_rt_subt
 ```
 
 ```{r}
@@ -1697,7 +1752,10 @@ equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso, equi_boundary, -equi_bounda
 #### Regressions
 
 ```{r}
-psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr)
+r_pwe_fac_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_regr),
+         .before = 1)
+r_pwe_fac_acc_regr
 ```
 
 ```{r}
@@ -1705,7 +1763,10 @@ equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso)
+r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_iso_regr),
+         .before = 1)
+r_pwe_fac_iso_acc_regr
 ```
 
 ```{r}
@@ -1713,7 +1774,10 @@ equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso, equi_boundary, -equi_bounda
 ```
 
 ```{r}
-psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr)
+r_pwe_fac_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_regr),
+         .before = 1)
+r_pwe_fac_rt_regr
 ```
 
 ```{r}
@@ -1721,7 +1785,10 @@ equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr, equi_boundary, -equi_boundary)
 ```
 
 ```{r}
-psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso)
+r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_iso_regr),
+         .before = 1)
+r_pwe_fac_iso_rt_regr
 ```
 
 ```{r}
@@ -1733,7 +1800,10 @@ equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso, equi_boundary, -equi_bounda
 #### Subtraction
 
 ```{r}
-psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt)
+r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_subt),
+         .before = 1)
+r_scfe_int_acc_subt
 ```
 
 ```{r}
@@ -1741,7 +1811,10 @@ equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt, equi_boundary, -equi_boundary
 ```
 
 ```{r}
-psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso)
+r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_iso_subt),
+         .before = 1)
+r_scfe_int_iso_acc_subt
 ```
 
 ```{r}
@@ -1749,7 +1822,10 @@ equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso, equi_boundary, -equi_boun
 ```
 
 ```{r}
-psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt)
+r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_subt),
+         .before = 1)
+r_scfe_int_rt_subt
 ```
 
 ```{r}
@@ -1757,7 +1833,10 @@ equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt, equi_boundary, -equi_boundary
 ```
 
 ```{r}
-psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso)
+r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
+         .before = 1)
+r_scfe_int_iso_rt_subt
 ```
 
 ```{r}
@@ -1767,7 +1846,10 @@ equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso, equi_boundary, -equi_boun
 #### Regressions
 
 ```{r}
-psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr)
+r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_regr),
+         .before = 1)
+r_scfe_int_acc_regr
 ```
 
 ```{r}
@@ -1775,7 +1857,10 @@ equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr, equi_boundary, -equi_boundary
 ```
 
 ```{r}
-psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso)
+r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_iso_regr),
+         .before = 1)
+r_scfe_int_iso_acc_regr
 ```
 
 ```{r}
@@ -1783,7 +1868,10 @@ equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso, equi_boundary, -equi_boun
 ```
 
 ```{r}
-psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr)
+r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_regr),
+         .before = 1)
+r_scfe_int_rt_regr
 ```
 
 ```{r}
@@ -1791,7 +1879,10 @@ equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr, equi_boundary, -equi_boundary
 ```
 
 ```{r}
-psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso)
+r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
+  mutate(up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_iso_regr),
+         .before = 1)
+r_scfe_int_iso_rt_regr
 ```
 
 ```{r}
