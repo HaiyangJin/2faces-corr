@@ -1,5 +1,5 @@
 
-# Session information {.unlisted .unnumbered}
+# Session information {.unnumbered}
 ```{r}
 sessionInfo()
 ```

@@ -185,6 +185,5 @@ str(df_ccf)
 
 
 ```{r child=c("2faces_1GLMM.Rmd", "2faces_2Corr.Rmd", "2faces_3SessInfo.Rmd")}
-# refer to the child documents
 ```
 
