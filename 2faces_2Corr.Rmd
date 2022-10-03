@@ -154,13 +154,15 @@ ccfe_rt
 # a general (custom) function to calculate the reliability for each condition
 rel_each <- function(.data, DV, ...){
   
-  out <- 
+  tmp <- 
     .data %>%
     filter(...) %>% # to filter out conditions
-    pivot_wider(Subject, values_from = all_of(DV), names_from = StimGroup) %>% 
+    pivot_wider(Subject, values_from = all_of(DV), names_from = test_item) %>%
     select(-Subject) %>%
     data.matrix() %>%
-    splitHalf(check.keys=FALSE)
+    tetrachoric() 
+  
+  out <- splitHalf(tmp$rho, check.keys=FALSE)
   
   return(out$lambda2) # only output lambda2
 }
@@ -217,9 +219,9 @@ upper_boundary <- function(re1, re2){
 
 ```{r}
 # PW
-df_pw_rel_acc <- df_pw %>%
-  group_by(Subject, PW, StimGroup) %>% 
-  summarize(acc = mean(Correct),
+df_pw_rel <- df_pw %>%
+  mutate(test_item = paste(str_remove(basename(StudyFace), ".png"), 
+                           str_remove(basename(TestFace), ".png"), sep="_"))
             .groups = "drop") 
 
 df_pw_rel_rt <- df_pw %>%
@@ -233,7 +235,7 @@ df_pw_rel_rt <- df_pw %>%
 
 Accuracy for whole
 ```{r}
-rel_pw_acc_w <- rel_each(df_pw_rel_acc, "acc", PW=="whole") %>% 
+rel_pw_acc_w <- rel_each(df_pw_rel, "Correct", PW=="whole") %>% 
   tibble(DV = "acc", Condition = "whole", Approach = "GuttmanL2",  Reliability = .)
 rel_pw_acc_w
 ```
