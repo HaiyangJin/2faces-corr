@@ -126,7 +126,7 @@ set_sdif <- function(.data, colstr, n=2){
 df_pw <- df_tidy %>% 
   filter(Task_name == "PW",
          Feature != "nose") %>% # do not include Nose trials in GLMM
-  select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
+  select(Subject, PW, Feature, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
   mutate(PW = fct_relevel(PW, "whole", "part"),
          Feature = fct_drop(Feature),
          PW_C = if_else(PW=="whole", -.5, if_else(PW=="part", .5, NaN)),
@@ -147,7 +147,7 @@ str(df_pw)
 df_scf <- df_tidy %>% 
   filter(Task_name == "SCF",
          SD == "sam") %>% # only use trials when the top is the same
-  select(Subject, Alignment, Correct, RT, StimGroup) %>% 
+  select(Subject, Alignment, Correct, RT, Trial_num, StimGroup) %>% 
   mutate(Alignment = fct_drop(Alignment),
          Ali_C = if_else(Alignment=="ali", -.5, 
                          if_else(Alignment=="mis", .5, NaN))) %>% 
@@ -167,7 +167,7 @@ df_ccf_iso <- df_tidy %>%
   mutate(isSame = if_else( # whether participants responded "same" (signal)
     ((SD=="sam")&Correct) | ((SD=="dif")&!Correct), 1,
     if_else(((SD=="sam")&!Correct) | ((SD=="dif")&Correct), 0, NaN))) %>% 
-  select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, StimGroup) 
+  select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, Trial_num, StimGroup) 
 
 df_ccf <- df_ccf_iso %>% 
   filter(Alignment != "iso") %>% 
