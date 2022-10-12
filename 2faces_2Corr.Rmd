@@ -868,89 +868,6 @@ psych_cor2 <- function(.data, ...) {
 }
 ```
 
-```{r}
-# custom function to calculate CI with r and n
-r2ci <- function(r, n){
-  cormatrix <- matrix(c(r), nrow=1)
-  rownames(cormatrix) <- c("var1")
-  colnames(cormatrix) <- c("var1")
-  
-  out <- psych::corr.p(cormatrix, n, "none") 
-  
-  return(out$ci)
-}
-```
-
-
-### Equivalence tests
-
-```{r}
-# equivalence interval
-delta_null_hp <- .15  # the equivalent interval will be [-delta_null_hp, delta_null_hp]
-
-df_equi_hp <- tibble(
-  Scenarios = paste("Scenario", 1:6),
-  CI_low = c(delta_null_hp-.05, -delta_null_hp-.08, -delta_null_hp+.02, -.04, -delta_null_hp-.04, -delta_null_hp-.02),
-  CI_upp = CI_low + c(rep(0.2, 5), 0.34)
-) %>% 
-  mutate(Scenarios = factor(Scenarios),
-         Scenarios = factor(Scenarios, levels = rev(levels(Scenarios))))
-
-plot_equi_hp <- ggplot(df_equi_hp, aes(xmin = CI_low, xmax = CI_upp, y = Scenarios)) +
-  geom_errorbarh(height = .4, color = c("#D55E00", "#D55E00", "#56B4E9",
-                                        "gray30", "gray30", "gray30"), size = 1) +  # , "gray30"
-  geom_vline(xintercept = 0, linetype = "longdash") +
-  geom_vline(xintercept = c(-delta_null_hp,delta_null_hp), linetype = "dashed", color = "gray30") +
-  scale_x_continuous(limits = c(-.3, .3), breaks = c(-delta_null_hp, 0, delta_null_hp)) +
-  xlab("Correlation coefficient") +
-  papaja::theme_apa() +
-  NULL
-
-# ggsave("equivalence_test_hp.png", plot_equi_hp, width = 8, height = 5)
-
-plot_equi_hp
-```
-
-```{r}
-# custom function to employ TOSTr
-equi_r2 <- function(.data, low_eqbound_r, high_eqbound_r, ...){
-  
-  # .data (same as that in psych_cor2()); 
-  #       data frame only includes columns for correlation (no subject code column)
-  
-  corr_mat <- psych_cor2(.data)
-  
-  r <- c()
-  tost_pmax <- c()
-  tost_lw <- c()
-  tost_hi <- c()
-  
-  for (irow in 1:nrow(corr_mat)) {
-    
-    thisr <- corr_mat[irow,]
-    
-    tmp <- TOSTr(thisr$N, thisr$r, low_eqbound_r, high_eqbound_r, 
-                 plot = FALSE, verbose = FALSE, ...)
-    
-    r[irow] <- tmp$r
-    tost_pmax[irow] <- max(tmp$TOST_p1, tmp$TOST_p2)
-    tost_lw[irow] <- tmp$LL_CI_TOST
-    tost_hi[irow] <- tmp$UL_CI_TOST
-  }
-  
-  equir_out <- data.frame(r = r,
-                          tost_pmax = tost_pmax,
-                          tost_lw90 = tost_lw,
-                          tost_up90 = tost_hi,
-                          low_eqbound_r = low_eqbound_r,
-                          high_eqbound_r = high_eqbound_r)
-  
-  rownames(equir_out) <- rownames(corr_mat)
-  
-  return(equir_out)
-}
-```
-
 
 ### Subtraction
 
@@ -981,11 +898,6 @@ psych_cor2(hpe_acc_subt) %>%
   ), .before = 1)
 ```
 
-Correlations (equivalence tests) among holistic processing effects of accurac (subtraction)
-```{r}
-equi_r2(hpe_acc_subt, -equi_boundary, equi_boundary)
-```
-
 RT
 ```{r}
 corPlot(hpe_rt_subt)
@@ -999,11 +911,6 @@ psych_cor2(hpe_rt_subt) %>%
     upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt_subt),
     upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt_subt)
   ), .before = 1)
-```
-
-Correlations (equivalence tests) among holistic processing effects of RT (subtraction)
-```{r}
-equi_r2(hpe_rt_subt, -equi_boundary, equi_boundary)
 ```
 
 ### Regression
@@ -1035,11 +942,6 @@ psych_cor2(hpe_acc_regr) %>%
   ), .before = 1)
 ```
 
-Correlations (equivalence tests) among holistic processing effects of accuracy (regression)
-```{r}
-equi_r2(hpe_acc_regr, -equi_boundary, equi_boundary)
-```
-
 RT
 ```{r}
 corPlot(hpe_rt_regr)
@@ -1054,12 +956,6 @@ psych_cor2(hpe_rt_regr) %>%
     upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_subt_regr)
   ), .before = 1)
 ```
-
-Correlations (equivalence tests) among holistic processing effects of RT (regression)
-```{r}
-equi_r2(hpe_rt_regr, -equi_boundary, equi_boundary)
-```
-
 
 ## Correlations for facilitation and interference
 
@@ -1085,59 +981,6 @@ psych_cor1 <- function(x, y, ...) {
     return()
 }
 ```
-
-### Equivalence tests (one-sided)
-
-```{r}
-# equivalence interval
-delta_null <- .15  # the equivalent interval will be [-delta_null, delta_null]
-
-df_equi <- tibble(
-  Scenarios = paste("Scenario", 1:7),
-  CI_low = c(delta_null+.02, delta_null-.1, .03, -delta_null+.05, -.14, -delta_null-.03, -.05),
-  CI_upp = CI_low + c(.2, .2, 0.1, .2, 0.1, .3, .3)
-) %>% 
-  mutate(Scenarios = factor(Scenarios),
-         Scenarios = factor(Scenarios, levels = rev(levels(Scenarios))))
-
-plot_equi <- ggplot(df_equi, aes(xmin = CI_low, xmax = CI_upp, y = Scenarios)) +
-  geom_errorbarh(height = .4, color = c("#D55E00", "#D55E00", "#D55E00",
-                                        "#56B4E9", "#56B4E9", "#56B4E9", "gray30"), size = 1) + 
-  geom_vline(xintercept = 0, linetype = "longdash") +
-  geom_vline(xintercept = delta_null, linetype = "dashed", color = "gray30") +
-  scale_x_continuous(limits = c(-.25, .4), breaks = c(-delta_null, 0, delta_null)) +
-  xlab("Correlation coefficient") +
-  papaja::theme_apa() +
-  NULL
-
-# ggsave("equivalence_test.png", plot_equi, width = 8, height = 5)
-
-plot_equi
-```
-
-```{r}
-# custom function to employ TOSTr
-equi_small_r1 <- function(x, y, high_eqbound_r, low_eqbound_r = -1, ...){
-  
-  # .data (same as that in psych_cor2()); 
-  #       data frame only includes columns for correlation (no subject code column)
-  
-  corr_mat <- psych_cor2(x, y)
-  
-  tmp <- TOSTr(corr_mat$N, corr_mat$r, low_eqbound_r, high_eqbound_r, 
-               plot = FALSE, verbose = FALSE, ...)
-  
-  equir_out <- data.frame(r = tmp$r,
-                          tost_pmax = max(tmp$TOST_p1, tmp$TOST_p2),
-                          tost_lw90 = tmp$LL_CI_TOST,
-                          tost_up90 = tmp$UL_CI_TOST,
-                          low_eqbound_r = low_eqbound_r,
-                          high_eqbound_r = high_eqbound_r)
-  
-  return(equir_out)
-}
-```
-
 ### PW and Facilitation in CCF
 
 #### Subtraction
@@ -1153,10 +996,6 @@ rownames(r_pwe_fac_acc_subt) <- NULL
 r_pwe_fac_acc_subt
 ```
 
-```{r}
-equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt, equi_boundary, -equi_boundary)
-```
-
 accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
@@ -1166,10 +1005,6 @@ r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_acc_subt) <- NULL
 r_pwe_fac_iso_acc_subt
-```
-
-```{r}
-equi_small_r1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 RT 
@@ -1183,9 +1018,6 @@ rownames(r_pwe_fac_rt_subt) <- NULL
 r_pwe_fac_rt_subt
 ```
 
-```{r}
-equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt, equi_boundary, -equi_boundary)
-```
 
 RT isolated
 ```{r}
@@ -1196,10 +1028,6 @@ r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_rt_subt) <- NULL
 r_pwe_fac_iso_rt_subt
-```
-
-```{r}
-equi_small_r1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Regressions
@@ -1214,10 +1042,6 @@ rownames(r_pwe_fac_acc_regr) <- NULL
 r_pwe_fac_acc_regr
 ```
 
-```{r}
-equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr, equi_boundary, -equi_boundary)
-```
-
 Accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
@@ -1227,10 +1051,6 @@ r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_acc_regr) <- NULL
 r_pwe_fac_iso_acc_regr
-```
-
-```{r}
-equi_small_r1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 RT 
@@ -1244,10 +1064,6 @@ rownames(r_pwe_fac_rt_regr) <- NULL
 r_pwe_fac_rt_regr
 ```
 
-```{r}
-equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr, equi_boundary, -equi_boundary)
-```
-
 RT isolated
 ```{r}
 r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
@@ -1257,10 +1073,6 @@ r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_rt_regr) <- NULL
 r_pwe_fac_iso_rt_regr
-```
-
-```{r}
-equi_small_r1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Interim summary
@@ -1301,10 +1113,6 @@ rownames(r_scfe_int_acc_subt) <- NULL
 r_scfe_int_acc_subt
 ```
 
-```{r}
-equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt, equi_boundary, -equi_boundary)
-```
-
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
@@ -1314,10 +1122,6 @@ r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %
          .before = 1)
 rownames(r_scfe_int_iso_acc_subt) <- NULL
 r_scfe_int_iso_acc_subt
-```
-
-```{r}
-equi_small_r1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 RT 
@@ -1331,10 +1135,6 @@ rownames(r_scfe_int_rt_subt) <- NULL
 r_scfe_int_rt_subt
 ```
 
-```{r}
-equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt, equi_boundary, -equi_boundary)
-```
-
 RT isolated
 ```{r}
 r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>% 
@@ -1344,10 +1144,6 @@ r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>
          .before = 1)
 rownames(r_scfe_int_iso_rt_subt) <- NULL
 r_scfe_int_iso_rt_subt
-```
-
-```{r}
-equi_small_r1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Regressions
@@ -1362,10 +1158,6 @@ rownames(r_scfe_int_acc_regr) <- NULL
 r_scfe_int_acc_regr
 ```
 
-```{r}
-equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr, equi_boundary, -equi_boundary)
-```
-
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
@@ -1375,10 +1167,6 @@ r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %
          .before = 1)
 rownames(r_scfe_int_iso_acc_regr) <- NULL
 r_scfe_int_iso_acc_regr
-```
-
-```{r}
-equi_small_r1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 RT
@@ -1392,10 +1180,6 @@ rownames(r_scfe_int_rt_regr) <- NULL
 r_scfe_int_rt_regr
 ```
 
-```{r}
-equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr, equi_boundary, -equi_boundary)
-```
-
 RT isolated
 ```{r}
 r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
@@ -1405,10 +1189,6 @@ r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>
          .before = 1)
 rownames(r_scfe_int_iso_rt_regr) <- NULL
 r_scfe_int_iso_rt_regr
-```
-
-```{r}
-equi_small_r1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso, equi_boundary, -equi_boundary)
 ```
 
 #### Interim summary
