@@ -556,7 +556,7 @@ if (file.exists(thisfile)) {
   lmm_ccf_rt_max <- readRDS(thisfile)
   
 } else {
-  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + 
+  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
                            (Congruency * Alignment | Subject) +
                            (Congruency * Alignment | StimGroup),
                          filter(df_ccf, Correct),
@@ -605,5 +605,124 @@ contrast(emm_ccf_rt, interaction="pairwise", type = "response")
 
 ```{r}
 emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
+```
+
+
+
+## Facilitation and interference in the complete composite face task
+
+### Sensitivity d'
+
+#### Maximal model
+```{r}
+thisfile <- file.path("jubail", "lmm_fi_d_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_fi_d_max <- readRDS(thisfile)
+  
+} else {
+  lmm_fi_d_max <- glmer(isSame ~ Congruency * SD + Cue +
+                           (Congruency * SD | Subject) +
+                           (Congruency * SD | StimGroup),
+                         df_fi,
+                         family = binomial(link = "probit"),
+                         control = glmerControl(optimizer = "optimx", 
+                                                optCtrl = list(method = "nlminb", 
+                                                               starttests = FALSE, 
+                                                               kkt = FALSE)))
+  saveRDS(lmm_fi_d_max, thisfile)
+}
+
+summary(lmm_fi_d_max)
+```
+
+#### Optimal model
+```{r}
+lmm_fi_d_opt <- lmm_fi_d_max
+```
+
+#### Effects of interest
+```{r}
+(emm_fi_probit <- emmeans(lmm_fi_d_opt, ~ Congruency + SD, type = "response"))
+```
+
+
+```{r}
+emm_fi_d <- contrast(emm_fi_probit, "pairwise", simple="SD")
+emm_fi_d[1:3]
+```
+
+```{r}
+cong_emm <- contrast(emm_fi_probit, interaction="pairwise")
+cong_emm[2:3]
+```
+
+
+```{r}
+emmip(emm_fi_d, ~ Congruency, CIs = TRUE)
+```
+
+
+### Correct response times
+
+#### Maximal model
+```{r}
+thisfile <- file.path("jubail", "lmm_fi_rt_max.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_fi_rt_max <- readRDS(thisfile)
+  
+} else {
+  lmm_fi_rt_max <- lmer(log(RT) ~ Congruency + SD + Cue +
+                           (Congruency | Subject) +
+                           (Congruency | StimGroup),
+                         filter(df_fi, Correct),
+                         control = lmerControl(optimizer = "optimx", 
+                                               optCtrl = list(method = "nlminb", 
+                                                              starttests = FALSE, 
+                                                              kkt = FALSE)))
+  saveRDS(lmm_fi_rt_max, thisfile)
+}
+
+summary(lmm_fi_rt_max)
+```
+
+#### Optimal model
+```{r}
+lmm_fi_rt_opt <- lmm_fi_rt_max
+```
+
+#### Effects of interest
+```{r}
+thisfile <- file.path("jubail", "emm_fi_rt.rds")
+
+if (file.exists(thisfile)) {
+  
+  emm_fi_rt <- readRDS(thisfile)
+  
+} else {
+  emm_fi_rt <- emmeans(lmm_fi_rt_opt, ~ Congruency, type = "response",
+                        lmerTest.limit = 6400,
+                        pbkrtest.limit = 6400)
+  
+  saveRDS(emm_fi_rt, thisfile)
+}
+
+emm_fi_rt
+```
+
+```{r}
+contrast(emm_fi_rt, "pairwise")[c(2,3)]
+```
+
+```{r}
+contrast(emm_fi_rt, "pairwise", type = "response")
+```
+
+
+```{r}
+emmip(emm_fi_rt,  ~ Congruency, CIs = TRUE, type = "response") 
 ```
 

@@ -169,6 +169,7 @@ df_ccf_iso <- df_tidy %>%
     if_else(((SD=="sam")&!Correct) | ((SD=="dif")&Correct), 0, NaN))) %>% 
   select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, Trial_num, StimGroup) 
 
+# df_ccf for composite effect
 df_ccf <- df_ccf_iso %>% 
   filter(Alignment != "iso") %>% 
   mutate(Alignment = fct_drop(Alignment),
@@ -177,6 +178,11 @@ df_ccf <- df_ccf_iso %>%
   set_sdif("Congruency") %>% 
   set_sdif("Alignment") %>% 
   set_sdif("SD")
+
+# df for facilitation and interference
+df_fi <- df_ccf_iso %>% 
+  filter(Alignment != "mis") %>% 
+  select(-Alignment)
 
 # saveRDS(df_ccf, file=file.path("jubail", "df_ccf.rds"))
 
