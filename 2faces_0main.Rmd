@@ -40,8 +40,8 @@ library(lmerTest)
 library(optimx)
 library(emmeans)
 library(psych)
-library(TOSTER)
 library(ggpubr)
+library(here)
 ```
 
 ```{r}
@@ -54,56 +54,103 @@ theme_update(strip.placement = "outside")
 ```
 
 ## Load data 
-```{r read the data file}
-# list filenames
-prolific_list <- list.files(file.path("data", "pilot", "prolific"), 
-                            pattern = "*.csv", full.names = TRUE)
-testable1_list <- list.files(file.path("data", "pilot", "testable1"), 
-                             pattern = "*.csv", full.names = TRUE)
+```{r}
+# # read all raw data, remove subjid and re-save as a new file
+# df_raw_tmp <- list.files("data", pattern = "*.csv", full.names = TRUE) %>%
+#   map_dfr(read_csv, show_col_types = FALSE, .id="Subject") %>% # overwrite Subject ID from Prolific
+#   mutate(Subject = sprintf("subj%03d", as.integer(Subject))) # add new Subject
+# 
+# write_rds(df_raw_tmp, here("data", "2faces_pro_raw480.rds"))
+# write_csv(df_raw_tmp, here("data", "2faces_pro_raw480.csv"))
+```
 
+```{r}
 # load data
-df_raw_p <- map_dfr(prolific_list, read_csv, show_col_types = FALSE, .id="id") 
-df_raw_t1 <- map_dfr(testable1_list, read_csv, show_col_types = FALSE, .id="id") 
+df_raw <- readRDS(here("data", "2faces_pro_raw480.rds")) %>% 
+  filter(trial_frame=="test_face",
+         Section=="main") %>% # exclude practice trials
+  select(Subject, CBcode, Task_name:SameDifferent, 
+         Correct_ans_posi, Correct_response, response, 
+         Correct, RT, StimGroup, StudyFace, TestFace) %>% 
+  transmute(Subject = as_factor(Subject),
+            Task = as_factor(Task_name), # Task_order
+            Trial_num,
+            PW = as_factor(PW), 
+            Feature = as_factor(Feature),
+            Cue = as_factor(Cue),
+            Congruency = as_factor(str_sub(Congruency, 1, 3)),
+            Alignment = as_factor(str_sub(Alignment, 1, 3)),
+            SD = as_factor(str_sub(SameDifferent, 1, 4)),
+            SD = fct_relevel(SD, "same", "diff"),
+            CorrectAnswer = Correct_response, 
+            Response = response,
+            Correct,
+            RT,
+            StimGroup = if_else(Task_name=="PW", 
+                                str_remove(basename(StudyFace),".png"), 
+                                StimGroup)) 
 
-# combine data from the two experiments
-df_raw_p_tmp <- df_raw_p %>% 
-  filter(trial_frame=="test_face") %>% 
-  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
-         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
-  mutate(platform = "Prolific")
-
-df_raw_t1_tmp <- df_raw_t1 %>% 
-  filter(trial_frame=="test_face") %>% 
-  select(Exp_name, Subject, CBcode, isPavlovia, Task_name:SameDifferent, 
-         Correct_ans_posi, Correct_response, response, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
-  mutate(platform = "Testable1")
-
-df_raw <- bind_rows(df_raw_p_tmp, df_raw_t1_tmp) %>% 
-  filter(Section=="main") %>% # exclude practice trials
-  mutate(Exp_name = as_factor(Exp_name),
-         Subject = paste0("subj",as.numeric(as_factor(Subject))),
-         Subject = as_factor(Subject),
-         Task = as_factor(Task_name),
-         PW = as_factor(PW), 
-         Feature = as_factor(Feature),
-         Cue = as_factor(Cue),
-         Congruency = as_factor(str_sub(Congruency, 1, 3)),
-         Alignment = as_factor(str_sub(Alignment, 1, 3)),
-         SD = as_factor(str_sub(SameDifferent, 1, 3)),
-         SD = fct_relevel(SD, "sam", "dif"),
-         Correct_ans_posi = as_factor(Correct_ans_posi),
-         StimGroup = if_else(Task_name=="PW", str_remove(basename(StudyFace),".png"), StimGroup),
-         platform = as_factor(platform)) %>% 
-  select(-c(Section, SameDifferent))
-
-head(df_raw)
+str(df_raw)
 ```
 
 ## Tidy data
 
-Remove outlier participants and outlier trials. 
+The information on inclusion and exclusion criteria can be found in [the online pre-registration](https://osf.io/5sjxa){target="_blank"}.
+
+### Exclude participants
+
+We will first exclude participants who had 10% or more trials in any of the three tasks with either very fast or very slow responses (<200ms or >5000ms). 
+
 ```{r}
-df_tidy <- df_raw 
+df_ex_subj <- df_raw %>% 
+  mutate(isout = RT < 200 | RT > 5000) %>%  # identify outlier trials
+  group_by(Subject, Task) %>% 
+  summarize(count_all = n(),
+            count_out = sum(isout),
+            .groups = "drop") %>% 
+  mutate(ratio = count_out/count_all) %>% 
+  filter(ratio >= .1) # who had 10% or more trials 
+
+(subjlist_ex <- unique(df_ex_subj$Subject))
+```
+
+`r length(subjlist_ex)` participants were excluded.
+
+### Exclude trials
+
+Second, we exclude outlier trials in the remaining participants. We calculate the standard deviations (SDs) of response times (RTs) for each condition and each participant in each task separately (e.g., for part-whole task, such a condition would be a whole-face condition with a specific target feature such as the eyes. For the standard composite task, such a condition would be same-aligned trials). Trials with responses made <200ms or > 3SDs of the condition will be excluded. 
+
+
+On average, the percentages of trials removed for each task:
+```{r}
+df_raw <- df_raw %>% 
+  filter(!Subject %in% subjlist_ex) %>% # exclude outlier subjects
+  group_by(Subject, Task, PW, Feature, Cue, Congruency, Alignment, SD) %>% 
+  summarize(Trial_num, CorrectAnswer, Response, Correct, RT, StimGroup,
+            Z_rt = scale(RT), # calculate Z value
+            .groups = "drop") %>% 
+  mutate(isout = Z_rt < -3 | Z_rt > 3 | RT < 200) 
+
+df_raw %>% 
+  group_by(Subject, Task) %>% 
+  summarize(count = n(),
+            count_out = sum(isout),
+            .groups = "drop") %>% 
+  mutate(ratio = count_out/count) %>% 
+  group_by(Task) %>% 
+  summarize(count = mean(count),
+            avg_outlier_N = mean(count_out),
+            avg_outlier_ratio = mean(ratio))
+```
+
+## Save data for each task separately
+
+```{r}
+df_tidy <- df_raw %>% 
+  filter(!isout) %>% 
+  select(-c(Z_rt, isout))
+
+str(df_tidy)
 ```
 
 
@@ -119,14 +166,13 @@ set_sdif <- function(.data, colstr, n=2){
 }
 ```
 
-
 ### Part-whole task
 
 ```{r}
 df_pw <- df_tidy %>% 
-  filter(Task_name == "PW",
+  filter(Task == "PW",
          Feature != "nose") %>% # do not include Nose trials in GLMM
-  select(Subject, PW, Feature, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
+  select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
   mutate(PW = fct_relevel(PW, "whole", "part"),
          Feature = fct_drop(Feature),
          PW_C = if_else(PW=="whole", -.5, if_else(PW=="part", .5, NaN)),
@@ -136,7 +182,7 @@ df_pw <- df_tidy %>%
   set_sdif("PW") %>% 
   set_sdif("Feature")
 
-# saveRDS(df_pw, file=file.path("jubail", "df_pw.rds"))
+# saveRDS(df_pw, file=here("jubail", "df_pw.rds"))
 
 str(df_pw)
 ```
@@ -145,15 +191,15 @@ str(df_pw)
 
 ```{r}
 df_scf <- df_tidy %>% 
-  filter(Task_name == "SCF",
-         SD == "sam") %>% # only use trials when the top is the same
+  filter(Task == "SCF",
+         SD == "same") %>% # only use trials when the top is the same
   select(Subject, Alignment, Correct, RT, Trial_num, StimGroup) %>% 
   mutate(Alignment = fct_drop(Alignment),
          Ali_C = if_else(Alignment=="ali", -.5, 
                          if_else(Alignment=="mis", .5, NaN))) %>% 
   set_sdif("Alignment")
 
-# saveRDS(df_scf, file=file.path("jubail", "df_scf.rds"))
+# saveRDS(df_scf, file=here("jubail", "df_scf.rds"))
 
 str(df_scf)
 ```
@@ -163,10 +209,10 @@ str(df_scf)
 ```{r}
 # including isolated condition
 df_ccf_iso <- df_tidy %>% 
-  filter(Task_name == "CCF") %>% # only use trials when the top is the same
+  filter(Task == "CCF") %>% # only use trials when the top is the same
   mutate(isSame = if_else( # whether participants responded "same" (signal)
-    ((SD=="sam")&Correct) | ((SD=="dif")&!Correct), 1,
-    if_else(((SD=="sam")&!Correct) | ((SD=="dif")&Correct), 0, NaN))) %>% 
+    ((SD=="same")&Correct) | ((SD=="diff")&!Correct), 1,
+    if_else(((SD=="same")&!Correct) | ((SD=="diff")&Correct), 0, NaN))) %>% 
   select(Subject, Cue, Congruency, Alignment, SD, Correct, isSame, RT, Trial_num, StimGroup) 
 
 # df_ccf for composite effect
@@ -184,7 +230,7 @@ df_fi <- df_ccf_iso %>%
   filter(Alignment != "mis") %>% 
   select(-Alignment)
 
-# saveRDS(df_ccf, file=file.path("jubail", "df_ccf.rds"))
+# saveRDS(df_ccf, file=here("jubail", "df_ccf.rds"))
 
 str(df_ccf)
 ```
