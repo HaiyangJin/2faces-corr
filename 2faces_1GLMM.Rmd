@@ -19,33 +19,33 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 #### Maximal model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_max.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_pw_acc_max <- readRDS(thisfile)
-  
-} else {
-  lmm_pw_acc_max <- 
-    glmer(Correct ~ PW * Feature + 
-            (PW * Feature | Subject) +
-            (PW * Feature | StimGroup),
-          df_pw,
-          family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
-  saveRDS(lmm_pw_acc_max, thisfile)
-}
-
-summary(lmm_pw_acc_max)
+# thisfile <- here("jubail", "lmm_pw_acc_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_pw_acc_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_pw_acc_max <- 
+#     glmer(Correct ~ PW * Feature + 
+#             (PW * Feature | Subject) +
+#             (PW * Feature | StimGroup),
+#           df_pw,
+#           family = binomial(link = "logit"),
+#           control = glmerControl(optimizer = "optimx", 
+#                                  optCtrl = list(method = "nlminb", 
+#                                                 starttests = FALSE, 
+#                                                 kkt = FALSE)))
+#   saveRDS(lmm_pw_acc_max, thisfile)
+# }
+# 
+# summary(lmm_pw_acc_max)
 ```
 
 #### Zero-correlation-parameter model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_zcp.rds")
+thisfile <- here("jubail", "lmm_pw_acc_zcp.rds")
 
 if (file.exists(thisfile)) {
   
@@ -71,11 +71,12 @@ summary(lmm_pw_acc_zcp)
 ```{r}
 summary(rePCA(lmm_pw_acc_zcp))
 ```
+`(PW_Feature | Subject)` will be removed.
 
 #### Reduced model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_.rds")
+thisfile <- here("jubail", "lmm_pw_acc_rdc.rds")
 
 if (file.exists(thisfile)) {
   
@@ -101,7 +102,7 @@ summary(lmm_pw_acc_rdc)
 #### Extended model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_etd.rds")
+thisfile <- here("jubail", "lmm_pw_acc_etd.rds")
 
 if (file.exists(thisfile)) {
   
@@ -124,40 +125,13 @@ if (file.exists(thisfile)) {
 summary(lmm_pw_acc_etd)
 ```
 
-```{r}
-summary(rePCA(lmm_pw_acc_etd))
-```
-
-```{r}
-thisfile <- file.path("jubail", "lmm_pw_acc_etd2.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_pw_acc_etd2 <- readRDS(thisfile)
-  
-} else {
-  lmm_pw_acc_etd2 <- 
-    glmer(Correct ~ PW * Feature + 
-            (PW_C | Subject) +
-            (0 + Feature_C + PW_Feature | StimGroup),
-          df_pw,
-          family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
-  saveRDS(lmm_pw_acc_etd2, thisfile)
-}
-
-summary(lmm_pw_acc_etd2)
-```
-
 #### Optimal model
 
 ```{r}
-anova(lmm_pw_acc_rdc, lmm_pw_acc_etd2)
+anova(lmm_pw_acc_rdc, lmm_pw_acc_etd)
 ```
 
+`lmm_pw_acc_etd` will be used as the optimal model.
 ```{r}
 lmm_pw_acc_opt <- lmm_pw_acc_etd
 ```
@@ -169,11 +143,15 @@ emm_pw_acc
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_acc_opt, ~ PW), "revpairwise")
+contrast(emmeans(lmm_pw_acc_opt, ~ PW), "pairwise")
 ```
 
 ```{r}
-contrast(emmeans(lmm_pw_acc_opt, ~ PW), "revpairwise", type="response")
+contrast(emmeans(lmm_pw_acc_opt, ~ PW), "pairwise", type="response")
+```
+
+```{r message=FALSE}
+emmip(lmm_pw_acc_opt, ~ PW, CIs = TRUE, type = "response") 
 ```
 
 ```{r}
@@ -185,38 +163,37 @@ contrast(emmeans(lmm_pw_acc_opt, ~ PW | Feature), "pairwise")
 emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response") 
 ```
 
-
 ### Correct response times
 
 #### Maximal model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_rt_max.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_pw_rt_max <- readRDS(thisfile)
-  
-} else {
-  lmm_pw_rt_max <- 
-    lmer(log(RT) ~ PW * Feature + 
-           (PW * Feature | Subject) +
-           (PW * Feature | StimGroup),
-         filter(df_pw, Correct),
-         control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", 
-                                              starttests = FALSE, 
-                                              kkt = FALSE)))
-  saveRDS(lmm_pw_rt_max, thisfile)
-}
-
-summary(lmm_pw_rt_max)
+# thisfile <- here("jubail", "lmm_pw_rt_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_pw_rt_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_pw_rt_max <- 
+#     lmer(log(RT) ~ PW * Feature + 
+#            (PW * Feature | Subject) +
+#            (PW * Feature | StimGroup),
+#          filter(df_pw, Correct),
+#          control = lmerControl(optimizer = "optimx", 
+#                                optCtrl = list(method = "nlminb", 
+#                                               starttests = FALSE, 
+#                                               kkt = FALSE)))
+#   saveRDS(lmm_pw_rt_max, thisfile)
+# }
+# 
+# summary(lmm_pw_rt_max)
 ```
 
 #### Zero-correlation-parameter model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_rt_zcp.rds")
+thisfile <- here("jubail", "lmm_pw_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
   
@@ -241,36 +218,12 @@ summary(lmm_pw_rt_zcp)
 ```{r}
 summary(rePCA(lmm_pw_rt_zcp))
 ```
-
-#### Reduced model
-
-```{r}
-thisfile <- file.path("jubail", "lmm_pw_rt_rdc.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_pw_rt_rdc <- readRDS(thisfile)
-  
-} else {
-  lmm_pw_rt_rdc <- 
-    lmer(log(RT) ~ PW * Feature + 
-           (PW_C + Feature_C || Subject) +
-           (PW_C + Feature_C || StimGroup),
-         filter(df_pw, Correct),
-         control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", 
-                                              starttests = FALSE, 
-                                              kkt = FALSE)))
-  saveRDS(lmm_pw_rt_rdc, thisfile)
-}
-
-summary(lmm_pw_rt_rdc)
-```
+No random effects need to be removed. Therefore, we apply the extended model (i.e., the maximal model in this case) directly.
 
 #### Extended model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_pw_rt_etd.rds")
+thisfile <- here("jubail", "lmm_pw_rt_etd.rds")
 
 if (file.exists(thisfile)) {
   
@@ -279,8 +232,8 @@ if (file.exists(thisfile)) {
 } else {
   lmm_pw_rt_etd <- 
     lmer(log(RT) ~ PW * Feature + 
-           (PW_C + Feature_C | Subject) +
-           (PW_C + Feature_C | StimGroup),
+           (PW_C + Feature_C + PW_Feature | Subject) +
+           (PW_C + Feature_C + PW_Feature | StimGroup),
          filter(df_pw, Correct),
          control = lmerControl(optimizer = "optimx", 
                                optCtrl = list(method = "nlminb", 
@@ -296,48 +249,20 @@ summary(lmm_pw_rt_etd)
 summary(rePCA(lmm_pw_rt_etd))
 ```
 
-```{r}
-thisfile <- file.path("jubail", "lmm_pw_rt_etd2.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_pw_rt_etd2 <- readRDS(thisfile)
-  
-} else {
-  lmm_pw_rt_etd2 <- 
-    lmer(log(RT) ~ PW * Feature + 
-           (PW_C | Subject) +
-           (0 + PW_C + Feature_C | StimGroup),
-         filter(df_pw, Correct),
-         control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", 
-                                              starttests = FALSE, 
-                                              kkt = FALSE)))
-  saveRDS(lmm_pw_rt_etd2, thisfile)
-}
-
-summary(lmm_pw_rt_etd2)
-```
-
 #### Optimal model
 
 ```{r}
-anova(lmm_pw_rt_rdc, lmm_pw_rt_etd2)
+anova(lmm_pw_rt_zcp, lmm_pw_rt_etd, refit=FALSE)
 ```
 
+Use `lmm_pw_rt_etd` as the optimal model.
 ```{r}
-anova(lmm_pw_rt_rdc, lmm_pw_rt_etd2, refit=FALSE)
+lmm_pw_rt_opt <- lmm_pw_rt_etd
 ```
-
-```{r}
-lmm_pw_rt_opt <- lmm_pw_rt_etd2
-```
-
 
 #### Effects of interest
 ```{r}
-emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature)
-emm_pw_rt
+(emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature))
 ```
 
 ```{r}
