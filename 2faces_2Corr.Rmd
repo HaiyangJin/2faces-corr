@@ -87,9 +87,9 @@ ccfe_d <- df_ccf_iso %>%
             same_adjust = (sum(isSame)+0.5)/(count+1), # Snodgrass & Corwin (1988)
             .groups = "drop") %>% 
   mutate(z = qnorm(same_adjust)) %>% 
-  select(-same_adjust) %>% 
+  select(-c(same_adjust, count)) %>% 
   pivot_wider(names_from = "SD", values_from = z) %>% 
-  mutate(d = sam - dif) %>% 
+  mutate(d = same - diff) %>% 
   pivot_wider(Subject, names_from = c(Congruency, Alignment), values_from = d) %>% 
   rename(isolated = iso_iso) %>% 
   mutate(fac_subt = con_ali - con_mis, # subtraction
@@ -212,7 +212,6 @@ upper_boundary <- function(re1, re2){
 }
 ```
 
-
 ### Part-whole task
 
 ```{r}
@@ -226,7 +225,7 @@ df_pw_rel <- df_pw %>%
 
 Accuracy for whole
 ```{r}
-rel_pw_acc_w <- .8888 %>%  # rel_each(df_pw_rel, "Correct", PW=="whole") %>%  
+rel_pw_acc_w <- rel_each(df_pw_rel, "Correct", PW=="whole") %>%  
   tibble(DV = "acc", Condition = "whole", Approach = "GuttmanL2",  Reliability = .)
 rel_pw_acc_w
 ```
@@ -322,7 +321,7 @@ rel_scf_acc_a
 
 Accuracy for misaligned
 ```{r}
-rel_scf_acc_m <- .8888 %>% # rel_each(df_scf_rel, "Correct", Alignment=="mis") %>% 
+rel_scf_acc_m <- rel_each(df_scf_rel, "Correct", Alignment=="mis") %>% 
   tibble(DV = "acc", Condition = "misaligned", Approach = "GuttmanL2",  Reliability = .)
 rel_scf_acc_m
 ```
@@ -407,8 +406,8 @@ str(df_ccf_rel)
 
 Behavioral choices for congruent aligned
 ```{r}
-rel_ccf_beha_ca <- .8888 %>% # rel_each(df_ccf_rel, "Correct", 
-  #Congruency=="con", Alignment=="ali") %>% 
+rel_ccf_beha_ca <- rel_each(df_ccf_rel, "Correct", 
+                            Congruency=="con", Alignment=="ali") %>%
   tibble(DV = "behav", Condition = "con_ali", 
          Approach = "GuttmanL2",  Reliability = .)
 
@@ -426,8 +425,8 @@ rel_ccf_beha_ia
 
 Behavioral choices for congruent misaligned
 ```{r}
-rel_ccf_beha_cm <- .8888 %>% # rel_each(df_ccf_rel, "Correct", 
-  # Congruency=="con", Alignment=="mis") %>% 
+rel_ccf_beha_cm <- rel_each(df_ccf_rel, "Correct", 
+                            Congruency=="con", Alignment=="mis") %>%
   tibble(DV = "behav", Condition = "con_mis", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_cm
@@ -444,8 +443,8 @@ rel_ccf_beha_im
 
 Behavioral choices for isolated
 ```{r}
-rel_ccf_beha_iso <- .8888 %>%  # rel_each(df_ccf_rel, "Correct", 
-  # Congruency=="iso", Alignment=="iso") %>% 
+rel_ccf_beha_iso <- rel_each(df_ccf_rel, "Correct", 
+                             Congruency=="iso", Alignment=="iso") %>%
   tibble(DV = "behav", Condition = "isolated", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_iso
@@ -499,7 +498,6 @@ rel_ccf_rt_iso
 #### Reliability of each condition (d')
 
 ```{r}
-
 rel_each_d <- function(.data, iter=100, startseed=12, cores=4){
   
   seeds <- startseed+1:iter
@@ -534,8 +532,8 @@ rel_each_d_one <- function(df_each, seed){
            saysame = qnorm(saysame)) %>% 
     select(-count) %>% 
     pivot_wider(names_from = SD, values_from = saysame) %>% 
-    mutate(d = sam - dif) %>% 
-    select(-c(sam, dif)) %>% 
+    mutate(d = same - diff) %>% 
+    select(-c(same, diff)) %>% 
     pivot_wider(names_from = half, values_from = d) %>% 
     select(-Subject) %>% 
     psych::splitHalf(check.keys=FALSE)
@@ -543,7 +541,8 @@ rel_each_d_one <- function(df_each, seed){
   return(data.frame(lambda2 = rel_value$lambda2))
 }
 
-niter <- 100
+# parameters for calculating d'
+niter <- 10000
 ncore <- 16
 ```
 
@@ -1363,7 +1362,7 @@ r_sum_scfe_int %>%
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
-Corrections for the baseline of isolated:
+Corrections for the baseline of misaligned:
 ```{r}
 r_sum_scfe_int %>% 
   filter(!endsWith(pair, "_iso")) %>% 
