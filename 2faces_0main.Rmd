@@ -102,7 +102,9 @@ df_raw <- readRDS(here("data", "2faces_pro_raw480.rds")) %>%
             RT,
             StimGroup = if_else(Task_name=="PW", 
                                 str_remove(basename(StudyFace),".png"), 
-                                StimGroup)) 
+                                StimGroup),
+            StudyFace, 
+            TestFace) 
 
 str(df_raw)
 ```
@@ -140,7 +142,8 @@ On average, the percentages of trials removed for each task:
 df_raw <- df_raw %>% 
   filter(!Subject %in% subjlist_ex) %>% # exclude outlier subjects
   group_by(Subject, Task, PW, Feature, Cue, Congruency, Alignment, SD) %>% 
-  summarize(Trial_num, CorrectAnswer, Response, Correct, RT, StimGroup,
+  summarize(Trial_num, CorrectAnswer, Response, Correct, RT, 
+            StimGroup, StudyFace, TestFace,
             Z_rt = scale(RT), # calculate Z value
             .groups = "drop") %>% 
   mutate(isout = Z_rt < -3 | Z_rt > 3 | RT < 200) 
@@ -186,7 +189,7 @@ set_sdif <- function(.data, colstr, n=2){
 df_pw <- df_tidy %>% 
   filter(Task == "PW",
          Feature != "nose") %>% # do not include Nose trials in GLMM
-  select(Subject, PW, Feature, Correct, RT, StimGroup) %>% 
+  select(Subject, PW, Feature, Correct, RT, StimGroup, StudyFace, TestFace) %>% 
   mutate(PW = fct_relevel(PW, "whole", "part"),
          Feature = fct_drop(Feature),
          PW_C = if_else(PW=="whole", -.5, if_else(PW=="part", .5, NaN)),
