@@ -249,14 +249,32 @@ df_ccf <- df_ccf_iso %>%
          Ali_SD = Ali_C * SD_C,
          Con_Ali_SD = Con_Ali * SD_C)
 
-# df for facilitation and interference
-df_fi <- df_ccf_iso %>% 
-  filter(Alignment != "mis") %>% 
-  select(-Alignment)
-
 # saveRDS(df_ccf, file=here("jubail", "df_ccf.rds"))
 
 str(df_ccf)
+```
+
+```{r}
+# facilitation and interference
+
+# df for facilitation and interference
+df_fi <- df_ccf_iso %>% 
+  filter(Alignment != "mis") %>% 
+  select(-Alignment) %>% 
+  set_sdif("Cue") %>% 
+  set_sdif("Congruency", 3) %>% 
+  set_sdif("SD") %>% 
+  mutate(ConInc = if_else(Congruency=="con", -2/3,
+                         if_else(Congruency %in% c("inc", "iso"), 1/3, NaN)),
+         IncIso = if_else(Congruency=="iso", 2/3,
+                         if_else(Congruency %in% c("inc", "con"), -1/3, NaN)),
+         SD_C = if_else(SD=="same", -.5, if_else(SD=="diff", .5, NaN)),
+         ConInc_SD = ConInc * SD_C,
+         IncIso_SD = IncIso * SD_C)
+
+# saveRDS(df_fi, file=here("jubail", "df_fi.rds"))
+
+str(df_fi)
 ```
 
 
