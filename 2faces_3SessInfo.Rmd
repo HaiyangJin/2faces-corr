@@ -1,4 +1,40 @@
 
+# Demographic information
+```{r}
+# To run the code in this chunk, you need to put all demographic data files into data/.
+
+# read demographic files
+# df_demo <- list.files("data", pattern = "*.csv", full.names = TRUE) %>%
+#   map_dfr(read_csv, col_types="cccccccccdidfcffffffff", .id="id") %>% 
+#   select(ProlificID=`Participant id`, Age, Sex) %>% 
+#   right_join(df_subjects, by="ProlificID") %>% 
+#   select(Subject, Age, Sex)
+# 
+# saveRDS(df_demo, here("data", "df_demo.rds"))
+```
+
+Sex
+```{r}
+df_demo <- readRDS(here("data", "df_demo.rds")) %>% 
+  filter(!Subject %in% subjlist_ex) # exclude outlier subjects
+
+df_demo %>% 
+  mutate(isFemale = Sex=="Female",
+         isMale = Sex=="Male") %>% 
+  summarize(count_female = sum(isFemale),
+            count_male = sum(isMale),
+            count_all = n())
+```
+
+Age
+```{r}
+df_demo %>% 
+  summarize(Age_mean = mean(as.integer(Age)),
+            Age_SD = sd(Age),
+            Age_min = min(Age),
+            Age_max = max(Age))
+```
+
 # Session information {.unnumbered}
 ```{r}
 sessionInfo()
