@@ -262,7 +262,7 @@ lmm_pw_rt_opt <- lmm_pw_rt_etd
 
 #### Effects of interest
 ```{r}
-(emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature))
+(emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature, type="response"))
 ```
 
 ```{r}
@@ -286,67 +286,131 @@ emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 ## Standard composite face task
 
 ### Accuracy 
-
-
 #### Maximal model
 ```{r}
-thisfile <- file.path("jubail", "lmm_scf_acc_max.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_scf_acc_max <- readRDS(thisfile)
-  
-} else {
-  lmm_scf_acc_max <- glmer(Correct ~ Alignment + 
-                             (Alignment | Subject) +
-                             (Alignment | StimGroup),
-                           df_scf,
-                           family = binomial(link = "logit"),
-                           control = glmerControl(optimizer = "optimx", 
-                                                  optCtrl = list(method = "nlminb", 
-                                                                 starttests = FALSE, 
-                                                                 kkt = FALSE)))
-  saveRDS(lmm_scf_acc_max, thisfile)
-}
-
-summary(lmm_scf_acc_max)
+# thisfile <- here("jubail", "lmm_scf_acc_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_scf_acc_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_scf_acc_max <- 
+#     glmer(Correct ~ Alignment + 
+#             (Alignment | Subject) +
+#             (Alignment | StimGroup),
+#           df_scf,
+#           family = binomial(link = "logit"),
+#           control = glmerControl(optimizer = "optimx", 
+#                                  optCtrl = list(method = "nlminb", 
+#                                                 starttests = FALSE, 
+#                                                 kkt = FALSE)))
+#   saveRDS(lmm_scf_acc_max, thisfile)
+# }
+# 
+# summary(lmm_scf_acc_max)
 ```
 
 #### Zero-correlation-parameter model
 
 ```{r}
-thisfile <- file.path("jubail", "lmm_scf_acc_zcp.rds")
+thisfile <- here("jubail", "lmm_scf_acc_zcp.rds")
 
 if (file.exists(thisfile)) {
   
   lmm_scf_acc_zcp <- readRDS(thisfile)
   
 } else {
-  lmm_scf_acc_zcp <- glmer(Correct ~ Alignment + 
-                             (Ali_C | Subject) +
-                             (Ali_C | StimGroup),
-                           df_scf,
-                           family = binomial(link = "logit"),
-                           control = glmerControl(optimizer = "optimx", 
-                                                  optCtrl = list(method = "nlminb", 
-                                                                 starttests = FALSE, 
-                                                                 kkt = FALSE)))
+  lmm_scf_acc_zcp <- 
+    glmer(Correct ~ Alignment + 
+            (Ali_C || Subject) +
+            (Ali_C || StimGroup),
+          df_scf,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
   saveRDS(lmm_scf_acc_zcp, thisfile)
 }
 
 summary(lmm_scf_acc_zcp)
 ```
 
+```{r}
+summary(rePCA(lmm_scf_acc_zcp))
+```
+No random effects need to be removed. Therefore, we apply the extended model (i.e., the maximal model in this case) directly.
+
+#### Extended model
+
+```{r}
+thisfile <- here("jubail", "lmm_scf_acc_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_scf_acc_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_acc_etd <- 
+    glmer(Correct ~ Alignment + 
+            (Ali_C | Subject) +
+            (Ali_C | StimGroup),
+          df_scf,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_scf_acc_etd, thisfile)
+}
+
+summary(lmm_scf_acc_etd)
+```
+
+```{r}
+summary(rePCA(lmm_scf_acc_etd))
+```
+By-item `(Intercept)` will be removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_scf_acc_etd2.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_scf_acc_etd2 <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_acc_etd2 <- 
+    glmer(Correct ~ Alignment + 
+            (Ali_C | Subject) +
+            (0 + Ali_C | StimGroup),
+          df_scf,
+          family = binomial(link = "logit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_scf_acc_etd2, thisfile)
+}
+
+summary(lmm_scf_acc_etd2)
+```
+
 #### Optimal model
 
 ```{r}
-lmm_scf_acc_opt <- lmm_scf_acc_max
+anova(lmm_scf_acc_zcp, lmm_scf_acc_etd2, refit=FALSE)
+```
+`lmm_scf_acc_zcp` will be used as the optimal model.
+
+```{r}
+lmm_scf_acc_opt <- lmm_scf_acc_zcp
 ```
 
 #### Effects of interest
 ```{r}
-emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment, type="response")
-emm_scf_acc
+(emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment, type="response"))
 ```
 
 ```{r}
@@ -358,43 +422,120 @@ contrast(emmeans(lmm_scf_acc_opt, ~ Alignment), "pairwise")
 emmip(lmm_scf_acc_opt, ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
-
-
 ### Correct response times
 
 #### Maximal model
 ```{r}
-thisfile <- file.path("jubail", "lmm_scf_rt_max.rds")
+# thisfile <- here("jubail", "lmm_scf_rt_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_scf_rt_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_scf_rt_max <- 
+#     lmer(log(RT) ~ Alignment + 
+#            (Alignment | Subject) +
+#            (Alignment | StimGroup),
+#          filter(df_scf, Correct),
+#          control = lmerControl(optimizer = "optimx", 
+#                                optCtrl = list(method = "nlminb", 
+#                                               starttests = FALSE, 
+#                                               kkt = FALSE)))
+#   saveRDS(lmm_scf_rt_max, thisfile)
+# }
+# 
+# summary(lmm_scf_rt_max)
+```
+
+
+#### Zero-correlation-parameter model
+
+```{r}
+thisfile <- here("jubail", "lmm_scf_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
   
-  lmm_scf_rt_max <- readRDS(thisfile)
+  lmm_scf_rt_zcp <- readRDS(thisfile)
   
 } else {
-  lmm_scf_rt_max <- lmer(log(RT) ~ Alignment + 
-                           (Alignment | Subject) +
-                           (Alignment | StimGroup),
-                         filter(df_scf, Correct),
-                         control = lmerControl(optimizer = "optimx", 
-                                               optCtrl = list(method = "nlminb", 
-                                                              starttests = FALSE, 
-                                                              kkt = FALSE)))
-  saveRDS(lmm_scf_rt_max, thisfile)
+  # lmm_scf_rt_zcp <- 
+  #   lmer(log(RT) ~ Alignment + 
+  #          (Ali_C || Subject) +
+  #          (Ali_C || StimGroup),
+  #        filter(df_scf, Correct),
+  #        control = lmerControl(optimizer = "optimx", 
+  #                              optCtrl = list(method = "nlminb", 
+  #                                             starttests = FALSE, 
+  #                                             kkt = FALSE)))
+  # somehow the optimx optimizer does not work for the model, the default optimizer is used then.
+  
+  lmm_scf_rt_zcp <- 
+    lmer(log(RT) ~ Alignment + 
+           (Ali_C || Subject) +
+           (Ali_C || StimGroup),
+         filter(df_scf, Correct))
+  
+  saveRDS(lmm_scf_rt_zcp, thisfile)
 }
 
-summary(lmm_scf_rt_max)
+summary(lmm_scf_rt_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_scf_rt_zcp))
+```
+No random effects need to be removed. Therefore, we apply the extended model (i.e., the maximal model in this case) directly.
+
+#### Extended model
+```{r}
+thisfile <- here("jubail", "lmm_scf_rt_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_scf_rt_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_rt_etd <-
+    lmer(log(RT) ~ Alignment +
+           (Ali_C | Subject) +
+           (Ali_C | StimGroup),
+         filter(df_scf, Correct),
+         control = lmerControl(optimizer = "optimx",
+                               optCtrl = list(method = "nlminb",
+                                              starttests = FALSE,
+                                              kkt = FALSE)))
+  saveRDS(lmm_scf_rt_etd, thisfile)
+}
+
+summary(lmm_scf_rt_etd)
 ```
 
 #### Optimal model
 ```{r}
-lmm_scf_rt_opt <- lmm_scf_rt_max
+anova(lmm_scf_rt_zcp, lmm_scf_rt_etd, refit=FALSE)
+```
+`lmm_scf_rt_zcp` (with smaller BIC) will be used as the optimal model.
+
+```{r}
+lmm_scf_rt_opt <- lmm_scf_rt_zcp
 ```
 
-
 #### Effects of interest
+
 ```{r}
-emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type = "response")
-emm_scf_rt
+thisfile <- here("jubail", "emm_scf_rt.rds")
+
+if (file.exists(thisfile)) {
+  
+  emm_scf_rt <- readRDS(thisfile)
+  
+} else {
+  emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response")
+  saveRDS(emm_scf_rt, thisfile)
+}
+
+summary(emm_scf_rt)
 ```
 
 ```{r}
