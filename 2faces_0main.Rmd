@@ -5,6 +5,7 @@ date: "`r format(Sys.Date(), '%Y %b %d')`"
 output: 
   html_document:
     code_folding: hide
+    df_print: paged
     number_sections: true
     toc: true
     toc_depth: 4
@@ -32,6 +33,7 @@ xaringanExtra::use_clipboard()
 ```
 
 # Preparations
+Load libraries and general settings:
 ```{r setup}
 ## load libraries
 library(tidyverse)
@@ -78,6 +80,7 @@ theme_update(strip.placement = "outside")
 # write_csv(df_subjects, here("data", "2faces_pro_subjectID.csv"))
 ```
 
+The structure of the raw data `df_raw`:
 ```{r}
 # load data
 df_raw <- readRDS(here("data", "2faces_pro_raw480.rds")) %>% 
@@ -130,7 +133,7 @@ df_ex_subj <- df_raw %>%
 (subjlist_ex <- unique(df_ex_subj$Subject))
 ```
 
-`r length(subjlist_ex)` participants were excluded.
+In summary, `r length(subjlist_ex)` participants were excluded, and therefore, there are `r nlevels(df_ex_subj$Subject)-length(subjlist_ex)` remaining (valid) participants.
 
 ### Exclude trials
 
@@ -157,11 +160,12 @@ df_raw %>%
   group_by(Task) %>% 
   summarize(count = mean(count),
             avg_outlier_N = mean(count_out),
-            avg_outlier_ratio = mean(ratio))
+            `avg_outlier_ratio (%)` = mean(ratio)*100) 
 ```
 
 ## Save data for each task separately
 
+The structure of the clean data (`df_tidy`):
 ```{r}
 df_tidy <- df_raw %>% 
   filter(!isout) %>% 
@@ -184,7 +188,7 @@ set_sdif <- function(.data, colstr, n=2){
 ```
 
 ### Part-whole task
-
+The structure of the clean data for part-whole task (`df_pw`):
 ```{r}
 df_pw <- df_tidy %>% 
   filter(Task == "PW",
@@ -205,7 +209,7 @@ str(df_pw)
 ```
 
 ### Standard composite face task
-
+The structure of the clean data for standard composite face task (`df_scf`):
 ```{r}
 df_scf <- df_tidy %>% 
   filter(Task == "SCF",
@@ -222,7 +226,7 @@ str(df_scf)
 ```
 
 ### Complete composite face task
-
+The structure of the clean data for complete composite face task (`df_ccf`):
 ```{r}
 # including isolated condition
 df_ccf_iso <- df_tidy %>% 
@@ -257,6 +261,7 @@ df_ccf <- df_ccf_iso %>%
 str(df_ccf)
 ```
 
+The structure of the clean data for analysis involving isolated conditions for calculating facilitation and interference (`df_fi`):
 ```{r}
 # facilitation and interference
 
