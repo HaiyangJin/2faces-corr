@@ -1318,13 +1318,12 @@ emmip(emm_fi_d, ~ Congruency, CIs = TRUE)
 Facilitation in d':
 ```{r}
 emm_fie_d <- contrast(emm_fi_probit, interaction="pairwise")
-summary(cong_emm[2], side=">", infer=TRUE)
+summary(emm_fie_d[2], side=">", infer=TRUE)
 ```
 
 Interference in d':
 ```{r}
-emm_fie_d <- contrast(emm_fi_probit, interaction="pairwise")
-summary(cong_emm[3], side="<", infer=TRUE)
+summary(emm_fie_d[3], side="<", infer=TRUE)
 ```
 
 
