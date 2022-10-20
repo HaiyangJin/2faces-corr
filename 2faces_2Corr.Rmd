@@ -23,7 +23,7 @@ cal_reg <- function(.data, formula, outvar){
 
 ### Part-whole task
 
-Accuracy
+Condition means and part-whole effect in accuracy:
 ```{r}
 pwe_acc <- df_pw %>% 
   group_by(Subject, PW) %>% 
@@ -36,7 +36,7 @@ pwe_acc <- df_pw %>%
 pwe_acc
 ```
 
-RT
+Condition means and part-whole effect in RT:
 ```{r}
 pwe_rt <- df_pw %>% 
   filter(Correct) %>% 
@@ -51,7 +51,7 @@ pwe_rt
 ```
 
 ### Standard composite face task
-Accuracy
+Condition means and composite effect in accuracy:
 ```{r}
 scfe_acc <- df_scf %>% 
   group_by(Subject, Alignment) %>% 
@@ -64,7 +64,7 @@ scfe_acc <- df_scf %>%
 scfe_acc
 ```
 
-RT
+Condition means and composite effect in RT:
 ```{r}
 scfe_rt <- df_scf %>% 
   filter(Correct) %>% 
@@ -79,7 +79,7 @@ scfe_rt
 ```
 
 ### Complete composite face task
-Sensitivity d'
+Condition means and composite effect in sensitivity d':
 ```{r}
 ccfe_d <- df_ccf_iso %>% 
   group_by(Subject, Congruency, Alignment, SD) %>% 
@@ -111,7 +111,7 @@ ccfe_d <- df_ccf_iso %>%
 ccfe_d 
 ```
 
-RT
+Condition means and composite effect in RT:
 ```{r}
 ccfe_rt <- df_ccf_iso %>% 
   filter(Correct) %>% 
@@ -139,16 +139,9 @@ ccfe_rt <- df_ccf_iso %>%
 ccfe_rt
 ```
 
-
 ## Reliability of measurement
 
-`psych::splitHalf(..., check.keys=FALSE)` is used to calculate the Guttman's $\lambda_2$ (although it will report results of various methods). Thus, the data have to be prepared to fit the desired structure:
-
-1. The average performance for each `StimGroup` and each participant (for each dependent variable in each task) will be calculated.
-2. Then the data needs to be formatted as following, which will be completed later when calculating the reliability for each condition separately.  
-- Each matrix is for one condition (and one dependent variable).  
-- Each row of the matrix is for one participant.  
-- Each column of the matrix is for one `StimGroup`.
+`psych::splitHalf(..., check.keys=FALSE)` is used to calculate the Guttman's $\lambda_2$ (although it will report results of various methods). 
 
 ```{r}
 # a general (custom) function to calculate the reliability for each condition
@@ -213,12 +206,13 @@ upper_boundary <- function(re1, re2){
 ```
 
 ### Part-whole task
-
+Structure of part-whole task data for calculating reliability:
 ```{r}
 # PW
 df_pw_rel <- df_pw %>%
   mutate(test_item = paste(str_remove(basename(StudyFace), ".png"), 
                            str_remove(basename(TestFace), ".png"), sep="_"))
+str(df_pw_rel)
 ```
 
 #### Reliability of each condition
@@ -299,7 +293,7 @@ rel_sum_pw
 ```
 
 ### Standard composite face task
-
+Structure of standard composite face task data for calculating reliability:
 ```{r}  
 # SCF
 df_scf_rel <- df_scf %>% 
@@ -388,11 +382,7 @@ rel_sum_scf
 ```
 
 ### Complete composite face task
-
-
-
-#### Reliability of each condition (acc & RT)
-
+Structure of complete composite face task data for calculating reliability:
 ```{r}
 # CCF
 df_ccf_rel <- df_ccf_iso %>% # need to include the isolated condition
@@ -403,6 +393,8 @@ df_ccf_rel <- df_ccf_iso %>% # need to include the isolated condition
 
 str(df_ccf_rel)
 ```
+
+#### Reliability of each condition (acc & RT)
 
 Behavioral choices for congruent aligned
 ```{r}
@@ -1038,12 +1030,12 @@ hpe_rt_subt <- pwe_rt %>%
   transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt_subt)
 ```
 
-Accuracy
+Correlations among holsitic effects (accuracy or d' with subtraction):
 ```{r}
 corPlot(hpe_acc_subt)
 ```
 
-Correlations among holistic processing effects of accuracy (subtraction)
+Correlations among holistic processing effects of accuracy (subtraction):
 ```{r}
 psych_cor2(hpe_acc_subt) %>% 
   mutate(up_bound = c(
@@ -1053,7 +1045,7 @@ psych_cor2(hpe_acc_subt) %>%
   ), .before = 1)
 ```
 
-RT
+Correlations among holsitic effects (RT):
 ```{r}
 corPlot(hpe_rt_subt)
 ```
@@ -1082,7 +1074,7 @@ hpe_rt_regr <- pwe_rt %>%
   transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
 ```
 
-Accuracy
+Correlations among holsitic effects (accuracy or d' with regression):
 ```{r}
 corPlot(hpe_acc_regr)
 ```
@@ -1097,7 +1089,7 @@ psych_cor2(hpe_acc_regr) %>%
   ), .before = 1)
 ```
 
-RT
+Correlations among holsitic effects (RT with regression):
 ```{r}
 corPlot(hpe_rt_regr)
 ```
@@ -1130,12 +1122,13 @@ psych_cor1 <- function(x, y, ...) {
     rename(`lower90`=lower,
            `upper90`=upper) %>% 
     mutate(N = cor_tmp$n,
-           p = p/2,
+           p = p/2, # one-sided p-value
            alt = "greater") %>% 
     # bind_cols(cor_tmp$ci.adj %>% mutate(r=1) %>% select(-r)) %>% 
     return()
 }
 ```
+
 ### PW and Facilitation in CCF
 
 #### Subtraction
@@ -1237,7 +1230,6 @@ r_sum_pwe_fac <- bind_rows(r_pwe_fac_acc_subt, r_pwe_fac_iso_acc_subt,
                            r_pwe_fac_rt_subt, r_pwe_fac_iso_rt_subt,
                            r_pwe_fac_acc_regr, r_pwe_fac_iso_acc_regr,
                            r_pwe_fac_rt_regr, r_pwe_fac_iso_rt_regr)
-
 ```
 
 Corrections for the baseline of isolated:
@@ -1369,11 +1361,12 @@ r_sum_scfe_int %>%
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
-## Pairwise correlations (exploratory)
+## All pairwise correlations (just for fun)
 
 ### Behavioral choices
 
-```{r fig.width=7, fig.asp=1}
+Correlations among effects (accuracy or d' with subtraction):
+```{r fig.width=12, fig.asp=1}
 pwe_acc %>% 
   inner_join(scfe_acc, by="Subject") %>% 
   inner_join(ccfe_d, by="Subject") %>% 
@@ -1381,7 +1374,8 @@ pwe_acc %>%
   cor.plot()
 ```
 
-```{r fig.width=7, fig.asp=1}
+Correlations among effects (accuracy or d' with regression):
+```{r fig.width=12, fig.asp=1}
 pwe_acc %>% 
   inner_join(scfe_acc, by="Subject") %>% 
   inner_join(ccfe_d, by="Subject") %>% 
@@ -1391,7 +1385,8 @@ pwe_acc %>%
 
 ### Response times
 
-```{r}
+Correlations among effects (RT with subtraction):
+```{r fig.width=12, fig.asp=1}
 pwe_rt %>% 
   left_join(scfe_rt, by="Subject") %>% 
   left_join(ccfe_rt, by="Subject") %>% 
@@ -1399,7 +1394,8 @@ pwe_rt %>%
   cor.plot()
 ```
 
-```{r}
+Correlations among effects (RT with regression):
+```{r fig.width=12, fig.asp=1}
 pwe_rt %>% 
   left_join(scfe_rt, by="Subject") %>% 
   left_join(ccfe_rt, by="Subject") %>% 
