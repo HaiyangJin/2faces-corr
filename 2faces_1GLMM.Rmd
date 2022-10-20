@@ -137,28 +137,39 @@ lmm_pw_acc_opt <- lmm_pw_acc_etd
 ```
 
 #### Effects of interest
+Accuracy in each condition:
 ```{r}
-emm_pw_acc <- emmeans(lmm_pw_acc_opt, ~ PW + Feature, type = "response")
-emm_pw_acc
+emm_pw_acc <- emmeans(lmm_pw_acc_opt, ~ PW)
+summary(emm_pw_acc, type = "response")
 ```
 
-```{r}
-contrast(emmeans(lmm_pw_acc_opt, ~ PW), "pairwise")
-```
-
-```{r}
-contrast(emmeans(lmm_pw_acc_opt, ~ PW), "pairwise", type="response")
-```
-
+Plot of the part-whole effect in accuracy:
 ```{r message=FALSE}
 emmip(lmm_pw_acc_opt, ~ PW, CIs = TRUE, type = "response") 
 ```
 
+The part-whole effect in accuracy (differences between log odds ratio):
+```{r}
+emm_pwe_acc <- contrast(emm_pw_acc, "pairwise")
+# summary(emm_pwe_acc, side="=", level=.9, infer=TRUE)
+summary(emm_pwe_acc, side=">", infer=TRUE)
+```
+
+The part-whole effect in accuracy (ratio of the odds):
+```{r}
+summary(emm_pwe_acc, side=">", infer=TRUE, type="response") # exp(.872)
+```
+
+```{r}
+emmeans(lmm_pw_acc_opt, ~ PW + Feature, type = "response")
+```
+
+The part-whole effect for each feature:
 ```{r}
 contrast(emmeans(lmm_pw_acc_opt, ~ PW | Feature), "pairwise")
 ```
 
-
+Plot for the part-whole effect for each feature:
 ```{r}
 emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response") 
 ```
@@ -261,31 +272,43 @@ lmm_pw_rt_opt <- lmm_pw_rt_zcp
 ```
 
 #### Effects of interest
+
+Correct RT in each condition:
 ```{r}
-(emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature, type="response"))
+emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW)
+summary(emm_pw_rt, type="response")
 ```
 
+Plot for the each condition (RT):
 ```{r}
 emmip(lmm_pw_rt_opt, ~ PW, CIs = TRUE, type = "response") 
 ```
 
+The part-whole effect in RT (differences between log RT):
 ```{r}
-contrast(emmeans(lmm_pw_rt_opt, ~ PW), "pairwise")
+emm_pwe_rt <- contrast(emm_pw_rt, "pairwise")
+summary(emm_pwe_rt, side="<", infer=TRUE)
 ```
 
+The part-whole effect in RT (ratio of the RT):
 ```{r}
-contrast(emmeans(lmm_pw_rt_opt, ~ PW), "pairwise", type = "response")
+summary(emm_pwe_rt, side="<", infer=TRUE, type = "response") # exp(-0.032)
 ```
 
+Correct RT in each condition including features:
+```{r}
+emmeans(lmm_pw_rt_opt, ~ PW + Feature, type="response")
+```
+
+The part-whole effect for each feature:
 ```{r}
 contrast(emmeans(lmm_pw_rt_opt, ~ PW | Feature), "pairwise")
 ```
 
-
+Plot for the conditions of each feature:
 ```{r}
 emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response") 
 ```
-
 
 ## Standard composite face task
 
@@ -413,17 +436,26 @@ lmm_scf_acc_opt <- lmm_scf_acc_zcp
 ```
 
 #### Effects of interest
+Accuracy in each condition:
 ```{r}
-(emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment, type="response"))
+emm_scf_acc <- emmeans(lmm_scf_acc_opt, ~ Alignment)
+summary(emm_scf_acc, type="response")
 ```
 
-```{r}
-contrast(emmeans(lmm_scf_acc_opt, ~ Alignment), "pairwise")
-```
-
-
+Plot of accuracy:
 ```{r}
 emmip(lmm_scf_acc_opt, ~ Alignment, CIs = TRUE, type = "response") 
+```
+
+The composite effect in accuracy (differences between log odds):
+```{r}
+emm_scfe_acc <- contrast(emm_scf_acc, "pairwise")
+summary(emm_scfe_acc, side="<", infer=TRUE)
+```
+
+The composite effect in accuracy (differences between log odds):
+```{r}
+summary(emm_scfe_acc, side="<", infer=TRUE, type="response")
 ```
 
 ### Correct response times
@@ -526,42 +558,43 @@ lmm_scf_rt_opt <- lmm_scf_rt_zcp
 ```
 
 #### Effects of interest
-
+Correct RT in each condition:
 ```{r}
-emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response")
-emm_scf_rt
+emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment)
+summary(emm_scf_rt, type="response")
 ```
-
 
 ```{r}
 thisfile <- here("jubail", "emm_scf_rt.rds")
 
 if (file.exists(thisfile)) {
   
-  emm_scf_rt <- readRDS(thisfile)
+  emm_scf_rt_tmp <- readRDS(thisfile)
   
 } else {
-  emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response",
+  emm_scf_rt_tmp <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response",
                         lmer.df = "kenward-roger", pbkrtest.limit = 32000)
-  saveRDS(emm_scf_rt, thisfile)
+  saveRDS(emm_scf_rt_tmp, thisfile)
 }
 
-summary(emm_scf_rt)
+summary(emm_scf_rt_tmp)
 ```
 
-```{r}
-contrast(emmeans(lmm_scf_rt_opt, ~ Alignment), "pairwise")
-```
-
-```{r}
-contrast(emmeans(lmm_scf_rt_opt, ~ Alignment), "pairwise", type = "response")
-```
-
-
+Plot of RT:
 ```{r}
 emmip(lmm_scf_rt_opt, ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
+The composite effect in RT (differences between log RT):
+```{r}
+emm_scfe_rt <- contrast(emm_scf_rt, "pairwise")
+summary(emm_scfe_rt, side=">", infer=TRUE)
+```
+
+The composite effect in RT (ratio of the RT):
+```{r}
+summary(emm_scfe_rt, side=">", infer=TRUE, type = "response") # exp(0.0805)
+```
 
 ## Complete composite face task
 
@@ -817,30 +850,32 @@ lmm_ccf_d_opt <- lmm_ccf_d_rdc
 ```
 
 #### Effects of interest
+Hit and false alarm rates:
 ```{r}
 (emm_ccf_probit <- emmeans(lmm_ccf_d_opt, ~ Congruency + Alignment + SD, type = "response"))
 ```
 
-
+Sensitivity d' in each condition:
 ```{r}
 emm_ccf_d <- contrast(emm_ccf_probit, "pairwise", simple="SD")
 emm_ccf_d[1:4]
 ```
 
-```{r}
-cong_emm <- contrast(emm_ccf_probit, interaction="pairwise", by="Alignment")
-cong_emm[2]
-```
-
-```{r}
-contrast(emm_ccf_probit, interaction="pairwise")
-```
-
-
+Plot of d' in each condition:
 ```{r}
 emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
 ```
+Congruency effect of d' for the aligned condition:
+```{r}
+emm_con_d <- contrast(emm_ccf_probit, interaction="pairwise", by="Alignment")
+summary(emm_con_d[1], side=">", infer=TRUE)
+```
 
+Composite effect of d':
+```{r}
+emm_ccfe_d <- contrast(emm_ccf_probit, interaction="pairwise")
+summary(emm_ccfe_d, side=">", infer=TRUE)
+```
 
 ### Correct response times
 
@@ -1034,26 +1069,38 @@ lmm_ccf_rt_opt <- lmm_ccf_rt_rdc
 ```
 
 #### Effects of interest
+RT in each condition:
 ```{r}
-(emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response"))
+emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment)
+summary(emm_ccf_rt, type = "response")
 ```
 
+Plot of RT:
 ```{r}
 emmip(lmm_ccf_rt_opt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
+Congruency effect of RT in the aligned condition (differences of log RT):
 ```{r}
-contrast(emm_ccf_rt, interaction="pairwise")
+emm_con_rt <- contrast(emm_ccf_rt, "pairwise", by = "Alignment")
+summary(emm_con_rt[1], side="<", infer=TRUE)
 ```
 
+Congruency effect of RT in the aligned condition (ratio of RT):
 ```{r}
-contrast(emm_ccf_rt, interaction="pairwise", type = "response")
+summary(emm_con_rt[1], side="<", infer=TRUE, type="response") # exp(-0.0599)
 ```
 
+Composite effect of RT (differences of log RT):
 ```{r}
-emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
+emm_ccfe_rt <- contrast(emm_ccf_rt, interaction="pairwise")
+summary(emm_ccfe_rt, side="<", infer=TRUE)
 ```
 
+Composite effect of RT (ratio of RT):
+```{r}
+summary(emm_ccfe_rt, side="<", infer=TRUE, type = "response") # exp(-0.0405)
+```
 
 ## Facilitation and interference in the complete composite face task
 
@@ -1252,24 +1299,32 @@ lmm_fi_d_opt <- lmm_fi_d_zcp
 ```
 
 #### Effects of interest
+Hit and false alarm in each condition:
 ```{r}
 (emm_fi_probit <- emmeans(lmm_fi_d_opt, ~ Congruency + SD, type = "response"))
 ```
 
-
+Sensitivity d' in each condition:
 ```{r}
 emm_fi_d <- contrast(emm_fi_probit, "pairwise", simple="SD")
-emm_fi_d[1:3]
+summary(emm_fi_d[1:3], infer=TRUE)
 ```
 
-```{r}
-cong_emm <- contrast(emm_fi_probit, interaction="pairwise")
-cong_emm[2:3]
-```
-
-
+Plot of d':
 ```{r}
 emmip(emm_fi_d, ~ Congruency, CIs = TRUE)
+```
+
+Facilitation in d':
+```{r}
+emm_fie_d <- contrast(emm_fi_probit, interaction="pairwise")
+summary(cong_emm[2], side=">", infer=TRUE)
+```
+
+Interference in d':
+```{r}
+emm_fie_d <- contrast(emm_fi_probit, interaction="pairwise")
+summary(cong_emm[3], side="<", infer=TRUE)
 ```
 
 
@@ -1407,8 +1462,10 @@ lmm_fi_rt_opt <- lmm_fi_rt_etd3
 ```
 
 #### Effects of interest
+Correct RT for each condition:
 ```{r}
-(emm_fi_rt <- emmeans(lmm_fi_rt_opt, ~ Congruency, type = "response"))
+emm_fi_rt <- emmeans(lmm_fi_rt_opt, ~ Congruency)
+summary(emm_fi_rt, type = "response")
 ```
 
 ```{r}
@@ -1427,16 +1484,29 @@ if (file.exists(thisfile)) {
 summary(emm_fi_rt_tmp)
 ```
 
-```{r}
-contrast(emm_fi_rt, "pairwise")[c(2,3)]
-```
-
-```{r}
-contrast(emm_fi_rt, "pairwise", type = "response")[c(2,3)]
-```
-
-
+Plot of each condition:
 ```{r}
 emmip(emm_fi_rt,  ~ Congruency, CIs = TRUE, type = "response") 
+```
+
+Facilitation in RT (differences of log RT):
+```{r}
+emm_fie_rt <- contrast(emm_fi_rt, "pairwise")
+summary(emm_fie_rt[2], side="<", infer=TRUE)
+```
+
+Facilitation in RT (ratio of RT):
+```{r}
+summary(emm_fie_rt[2], side="<", infer=TRUE, type="response") # exp(0.038)
+```
+
+Interference in RT (differences of log RT):
+```{r}
+summary(emm_fie_rt[3], side=">", infer=TRUE) 
+```
+
+Interference in RT (ratio of RT):
+```{r}
+summary(emm_fie_rt[3], side=">", infer=TRUE, type="response") # exp(0.0976)
 ```
 
