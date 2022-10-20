@@ -5,36 +5,31 @@
 library(dplyr)
 library(lme4)
 library(lmerTest)
-library(optimx)
 
 df_pw <- readRDS("df_pw.rds")
 
 # Part-whole effect ####
 
 ## Zero-correlation-parameter model ####
+# message("Fitting the zcp model...\noutput: lmm_pw_rt_zcp")
 # lmm_pw_rt_zcp <- 
 #   lmer(log(RT) ~ PW * Feature + 
 #          (PW_C + Feature_C + PW_Feature || Subject) +
 #          (PW_C + Feature_C + PW_Feature || StimGroup),
 #        filter(df_pw, Correct),
-#        control = lmerControl(optimizer = "optimx", 
-#                              optCtrl = list(method = "nlminb", 
-#                                             starttests = FALSE, 
-#                                             kkt = FALSE)))
+#        control = lmerControl(optCtrl = list(maxfun = 1e7)))
 # saveRDS(lmm_pw_rt_zcp, "lmm_pw_rt_zcp.rds")
 
 
 ## Extended model ####
-# (This is also the maximal model.)
+# message("Fitting the etd model...\noutput: lmm_pw_rt_etd")
+# # (This is also the maximal model.)
 # lmm_pw_rt_etd <- 
 #   lmer(log(RT) ~ PW * Feature + 
 #          (PW_C + Feature_C + PW_Feature | Subject) +
 #          (PW_C + Feature_C + PW_Feature | StimGroup),
 #        filter(df_pw, Correct),
-#        control = lmerControl(optimizer = "optimx", 
-#                              optCtrl = list(method = "nlminb", 
-#                                             starttests = FALSE, 
-#                                             kkt = FALSE)))
+#        control = lmerControl(optCtrl = list(maxfun = 1e7)))
 # saveRDS(lmm_pw_rt_etd, "lmm_pw_rt_etd.rds")
 
 ## session information
