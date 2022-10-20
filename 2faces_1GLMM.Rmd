@@ -255,14 +255,30 @@ summary(rePCA(lmm_pw_rt_etd))
 anova(lmm_pw_rt_zcp, lmm_pw_rt_etd, refit=FALSE)
 ```
 
-Use `lmm_pw_rt_etd` as the optimal model.
+Use `lmm_pw_rt_zcp` as the optimal model.
 ```{r}
-lmm_pw_rt_opt <- lmm_pw_rt_etd
+lmm_pw_rt_opt <- lmm_pw_rt_zcp
 ```
 
 #### Effects of interest
 ```{r}
 (emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature, type="response"))
+```
+
+```{r}
+# thisfile <- here("jubail", "emm_pw_rt.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   emm_pw_rt <- readRDS(thisfile)
+#   
+# } else {
+#   emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature, type = "response",
+#         lmer.df = "kenward-roger", pbkrtest.limit = 36000)
+#   saveRDS(emm_pw_rt, thisfile)
+# }
+# 
+# summary(emm_pw_rt)
 ```
 
 ```{r}
@@ -402,8 +418,8 @@ summary(lmm_scf_acc_etd2)
 ```{r}
 anova(lmm_scf_acc_zcp, lmm_scf_acc_etd2, refit=FALSE)
 ```
-`lmm_scf_acc_zcp` will be used as the optimal model.
 
+`lmm_scf_acc_zcp` will be used as the optimal model.
 ```{r}
 lmm_scf_acc_opt <- lmm_scf_acc_zcp
 ```
@@ -524,6 +540,12 @@ lmm_scf_rt_opt <- lmm_scf_rt_zcp
 #### Effects of interest
 
 ```{r}
+emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response")
+emm_scf_rt
+```
+
+
+```{r}
 thisfile <- here("jubail", "emm_scf_rt.rds")
 
 if (file.exists(thisfile)) {
@@ -531,7 +553,8 @@ if (file.exists(thisfile)) {
   emm_scf_rt <- readRDS(thisfile)
   
 } else {
-  emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response")
+  emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response",
+                        lmer.df = "kenward-roger", pbkrtest.limit = 32000)
   saveRDS(emm_scf_rt, thisfile)
 }
 
