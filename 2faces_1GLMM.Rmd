@@ -564,22 +564,6 @@ emm_scf_rt <- emmeans(lmm_scf_rt_opt, ~ Alignment)
 summary(emm_scf_rt, type="response")
 ```
 
-```{r}
-thisfile <- here("jubail", "emm_scf_rt.rds")
-
-if (file.exists(thisfile)) {
-  
-  emm_scf_rt_tmp <- readRDS(thisfile)
-  
-} else {
-  emm_scf_rt_tmp <- emmeans(lmm_scf_rt_opt, ~ Alignment, type="response",
-                        lmer.df = "kenward-roger", pbkrtest.limit = 32000)
-  saveRDS(emm_scf_rt_tmp, thisfile)
-}
-
-summary(emm_scf_rt_tmp)
-```
-
 Plot of RT:
 ```{r}
 emmip(lmm_scf_rt_opt, ~ Alignment, CIs = TRUE, type = "response") 
@@ -1465,22 +1449,6 @@ Correct RT for each condition:
 ```{r}
 emm_fi_rt <- emmeans(lmm_fi_rt_opt, ~ Congruency)
 summary(emm_fi_rt, type = "response")
-```
-
-```{r}
-thisfile <- here("jubail", "emm_fi_rt.rds")
-
-if (file.exists(thisfile)) {
-
-  emm_fi_rt_tmp <- readRDS(thisfile)
-
-} else {
-  emm_fi_rt_tmp <- emmeans(lmm_fi_rt_opt, ~ Congruency, type = "response",
-                        lmer.df = "kenward-roger", pbkrtest.limit = 83000)
-  saveRDS(emm_fi_rt_tmp, thisfile)
-}
-
-summary(emm_fi_rt_tmp)
 ```
 
 Plot of each condition:
