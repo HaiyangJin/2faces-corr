@@ -558,31 +558,251 @@ emmip(lmm_scf_rt_opt, ~ Alignment, CIs = TRUE, type = "response")
 
 #### Maximal model
 ```{r}
-thisfile <- file.path("jubail", "lmm_ccf_d_max.rds")
+# thisfile <- here("jubail", "lmm_ccf_d_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_ccf_d_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_ccf_d_max <- 
+#     glmer(isSame ~ Congruency * Alignment * SD + Cue +
+#             (Congruency * Alignment * SD | Subject) +
+#             (Congruency * Alignment * SD | StimGroup),
+#           df_ccf,
+#           family = binomial(link = "probit"),
+#           control = glmerControl(optimizer = "optimx", 
+#                                  optCtrl = list(method = "nlminb", 
+#                                                 starttests = FALSE, 
+#                                                 kkt = FALSE)))
+#   saveRDS(lmm_ccf_d_max, thisfile)
+# }
+# 
+# summary(lmm_ccf_d_max)
+```
+
+#### Zero-correlation-parameter model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_zcp.rds")
 
 if (file.exists(thisfile)) {
   
-  lmm_ccf_d_max <- readRDS(thisfile)
+  lmm_ccf_d_zcp <- readRDS(thisfile)
   
 } else {
-  lmm_ccf_d_max <- glmer(isSame ~ Congruency * Alignment * SD + Cue +
-                           (Congruency * Alignment * SD | Subject) +
-                           (Congruency * Alignment * SD | StimGroup),
-                         df_ccf,
-                         family = binomial(link = "probit"),
-                         control = glmerControl(optimizer = "optimx", 
-                                                optCtrl = list(method = "nlminb", 
-                                                               starttests = FALSE, 
-                                                               kkt = FALSE)))
-  saveRDS(lmm_ccf_d_max, thisfile)
+  # lmm_ccf_d_zcp <- 
+  #   glmer(isSame ~ Congruency * Alignment * SD + Cue +
+  #           (Con_C + Ali_C + SD_C + 
+  #              Con_Ali + Con_SD + Ali_SD + 
+  #              Con_Ali_SD || Subject) +
+  #           (Con_C + Ali_C + SD_C + 
+  #              Con_Ali + Con_SD + Ali_SD + 
+  #              Con_Ali_SD || StimGroup),
+  #         df_ccf,
+  #         family = binomial(link = "probit"),
+  #         control = glmerControl(optimizer = "optimx", 
+  #                                optCtrl = list(method = "nlminb", 
+  #                                               starttests = FALSE, 
+  #                                               kkt = FALSE)))
+  
+  lmm_ccf_d_zcp <- 
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (Con_C + Ali_C + SD_C + 
+               Con_Ali + Con_SD + Ali_SD + 
+               Con_Ali_SD || Subject) +
+            (Con_C + Ali_C + SD_C + 
+               Con_Ali + Con_SD + Ali_SD + 
+               Con_Ali_SD || StimGroup),
+          df_ccf,
+          family = binomial(link = "probit"))
+  saveRDS(lmm_ccf_d_zcp, thisfile)
 }
 
-summary(lmm_ccf_d_max)
+summary(lmm_ccf_d_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_zcp))
+```
+
+By-subject `Con_Ali`, `Con_C`, `Ali_SD`, and by-item `Con_Ali_SD` were removed.
+
+#### Reduced model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_rdc.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_rdc <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_rdc <- 
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (Ali_C + SD_C + # Con_C + 
+               Con_SD +  # Con_Ali + Ali_SD +
+               Con_Ali_SD || Subject) +
+            (Con_C + Ali_C + SD_C + 
+               Con_Ali + Con_SD + Ali_SD # + 
+             || StimGroup), # Con_Ali_SD
+          df_ccf,
+          family = binomial(link = "probit"),
+          control = glmerControl(optimizer = "optimx", 
+                                 optCtrl = list(method = "nlminb", 
+                                                starttests = FALSE, 
+                                                kkt = FALSE)))
+  saveRDS(lmm_ccf_d_rdc, thisfile)
+}
+
+summary(lmm_ccf_d_rdc)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_rdc))
+```
+
+#### Extended model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_etd <-
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (Ali_C + SD_C + # Con_C +
+               Con_SD +  # Con_Ali + Ali_SD +
+               Con_Ali_SD | Subject) +
+            (Con_C + Ali_C + SD_C +
+               Con_Ali + Con_SD + Ali_SD # +
+             | StimGroup), # Con_Ali_SD
+          df_ccf,
+          family = binomial(link = "probit"),
+          control = glmerControl(optimizer = "optimx",
+                                 optCtrl = list(method = "nlminb",
+                                                starttests = FALSE,
+                                                kkt = FALSE)))
+  saveRDS(lmm_ccf_d_etd, thisfile)
+}
+
+summary(lmm_ccf_d_etd)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_etd))
+```
+
+By-subject `Ali_C`, by-item `Ali_C`, `Con_C`, `Ali_SD`, and `Con_Ali` were removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_etd2.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_etd2 <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_etd2 <-
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (SD_C + # Con_C + Ali_C + 
+               Con_SD +  # Con_Ali + Ali_SD +
+               Con_Ali_SD | Subject) +
+            (SD_C + # Con_C + Ali_C + 
+               Con_SD  # + + Ali_SD Con_Ali + 
+             | StimGroup), # Con_Ali_SD
+          df_ccf,
+          family = binomial(link = "probit"),
+          control = glmerControl(optimizer = "optimx",
+                                 optCtrl = list(method = "nlminb",
+                                                starttests = FALSE,
+                                                kkt = FALSE)))
+  saveRDS(lmm_ccf_d_etd2, thisfile)
+}
+
+summary(lmm_ccf_d_etd2)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_etd2))
+```
+
+By-subject `(Intercept)` and by-item `Con_SD` were removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_etd3.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_etd3 <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_etd3 <-
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (0 + SD_C + # Con_C + Ali_C + 
+               Con_SD +  # Con_Ali + Ali_SD +
+               Con_Ali_SD | Subject) +
+            (SD_C # +  Con_C + Ali_C + 
+             # + Con_SD + Ali_SD Con_Ali + 
+             | StimGroup), # Con_Ali_SD
+          df_ccf,
+          family = binomial(link = "probit"),
+          control = glmerControl(optimizer = "optimx",
+                                 optCtrl = list(method = "nlminb",
+                                                starttests = FALSE,
+                                                kkt = FALSE)))
+  saveRDS(lmm_ccf_d_etd3, thisfile)
+}
+
+summary(lmm_ccf_d_etd3)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_etd3))
+```
+
+By-subject `Con_Ali_SD` was removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_ccf_d_etd4.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_d_etd4 <- readRDS(thisfile)
+  
+} else {
+  lmm_ccf_d_etd4 <-
+    glmer(isSame ~ Congruency * Alignment * SD + Cue +
+            (0 + SD_C + # Con_C + Ali_C + 
+               Con_SD  # Con_Ali + Ali_SD + + 
+             | Subject) + # Con_Ali_SD
+            (SD_C # +  Con_C + Ali_C + 
+             # + Con_SD + Ali_SD Con_Ali + 
+             | StimGroup), # Con_Ali_SD
+          df_ccf,
+          family = binomial(link = "probit"),
+          control = glmerControl(optimizer = "optimx",
+                                 optCtrl = list(method = "nlminb",
+                                                starttests = FALSE,
+                                                kkt = FALSE)))
+  saveRDS(lmm_ccf_d_etd4, thisfile)
+}
+
+summary(lmm_ccf_d_etd4)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_d_etd4))
 ```
 
 #### Optimal model
 ```{r}
-lmm_ccf_d_opt <- lmm_ccf_d_max
+anova(lmm_ccf_d_rdc, lmm_ccf_d_etd4, refit=FALSE)
+```
+
+`lmm_ccf_d_rdc` is used as the optimal model.
+```{r}
+lmm_ccf_d_opt <- lmm_ccf_d_rdc
 ```
 
 #### Effects of interest
@@ -615,49 +835,212 @@ emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
 
 #### Maximal model
 ```{r}
-thisfile <- file.path("jubail", "lmm_ccf_rt_max.rds")
+# thisfile <- here("jubail", "lmm_ccf_rt_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   lmm_ccf_rt_max <- readRDS(thisfile)
+#   
+# } else {
+#   lmm_ccf_rt_max <- 
+#     lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
+#            (Congruency * Alignment | Subject) +
+#            (Congruency * Alignment | StimGroup),
+#          filter(df_ccf, Correct),
+#          control = lmerControl(optimizer = "optimx",
+#                                optCtrl = list(method = "nlminb",
+#                                               starttests = FALSE,
+#                                               kkt = FALSE)))
+#   saveRDS(lmm_ccf_rt_max, thisfile)
+# }
+# 
+# summary(lmm_ccf_rt_max)
+```
+
+#### Zero-correlation-parameter model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
   
-  lmm_ccf_rt_max <- readRDS(thisfile)
+  lmm_ccf_rt_zcp <- readRDS(thisfile)
   
 } else {
-  lmm_ccf_rt_max <- lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
-                           (Congruency * Alignment | Subject) +
-                           (Congruency * Alignment | StimGroup),
-                         filter(df_ccf, Correct),
-                         control = lmerControl(optimizer = "optimx", 
-                                               optCtrl = list(method = "nlminb", 
-                                                              starttests = FALSE, 
-                                                              kkt = FALSE)))
-  saveRDS(lmm_ccf_rt_max, thisfile)
+  # lmm_ccf_rt_zcp <-
+  #   lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
+  #          (Con_C + Ali_C + Con_Ali || Subject) +
+  #          (Con_C + Ali_C + Con_Ali || StimGroup),
+  #        filter(df_ccf, Correct),
+  #        control = lmerControl(optimizer = "optimx",
+  #                              optCtrl = list(method = "nlminb",
+  #                                             starttests = FALSE,
+  #                                             kkt = FALSE)))
+  
+  # try the default optimizer
+  lmm_ccf_rt_zcp <- 
+    lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
+           (Con_C + Ali_C + Con_Ali || Subject) +
+           (Con_C + Ali_C + Con_Ali || StimGroup),
+         filter(df_ccf, Correct),
+         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+  saveRDS(lmm_ccf_rt_zcp, thisfile)
 }
 
-summary(lmm_ccf_rt_max)
+summary(lmm_ccf_rt_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_rt_zcp))
+```
+
+By-item `Con_Ali` was removed.
+
+#### Reduced model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_rt_rdc.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_rt_rdc <- readRDS(thisfile)
+  
+} else {
+  # lmm_ccf_rt_rdc <- 
+  #   lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
+  #          (Con_C + Ali_C + Con_Ali || Subject) +  
+  #          (Con_C + Ali_C || StimGroup), # + Con_Ali
+  #        filter(df_ccf, Correct),
+  #        control = lmerControl(optimizer = "optimx",
+  #                              optCtrl = list(method = "nlminb",
+  #                                             starttests = FALSE,
+  #                                             kkt = FALSE)))
+  
+  # try the default optimizer
+  lmm_ccf_rt_rdc <- 
+    lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
+           (Con_C + Ali_C + Con_Ali || Subject) +
+           (Con_C + Ali_C || StimGroup), # + Con_Ali
+         filter(df_ccf, Correct),
+         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+  saveRDS(lmm_ccf_rt_rdc, thisfile)
+}
+
+summary(lmm_ccf_rt_rdc)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_rt_rdc))
+```
+
+#### Extended model
+```{r}
+thisfile <- here("jubail", "lmm_ccf_rt_etd.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_rt_etd <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_ccf_rt_etd <- 
+    lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
+           (Con_C + Ali_C + Con_Ali | Subject) +
+           (Con_C + Ali_C | StimGroup), # + Con_Ali
+         filter(df_ccf, Correct),
+         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+  
+  saveRDS(lmm_ccf_rt_etd, thisfile)
+}
+
+summary(lmm_ccf_rt_etd)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_rt_etd))
+```
+By-subject `Con_C` was removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_ccf_rt_etd2.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_rt_etd2 <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_ccf_rt_etd2 <- 
+    lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
+           (Ali_C + Con_Ali | Subject) + # Con_C + 
+           (Con_C + Ali_C | StimGroup), # + Con_Ali
+         filter(df_ccf, Correct),
+         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+  
+  saveRDS(lmm_ccf_rt_etd2, thisfile)
+}
+
+summary(lmm_ccf_rt_etd2)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_rt_etd2))
+```
+By-item `Con_C` was removed.
+
+```{r}
+thisfile <- here("jubail", "lmm_ccf_rt_etd3.rds")
+
+if (file.exists(thisfile)) {
+  
+  lmm_ccf_rt_etd3 <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_ccf_rt_etd3 <- 
+    lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
+           (Ali_C + Con_Ali | Subject) + # Con_C + 
+           (Ali_C | StimGroup), # + Con_Ali + Con_C + 
+         filter(df_ccf, Correct),
+         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+  
+  saveRDS(lmm_ccf_rt_etd3, thisfile)
+}
+
+summary(lmm_ccf_rt_etd3)
+```
+
+```{r}
+summary(rePCA(lmm_ccf_rt_etd3))
 ```
 
 #### Optimal model
 ```{r}
-lmm_ccf_rt_opt <- lmm_ccf_rt_max
+anova(lmm_ccf_rt_rdc, lmm_ccf_rt_etd3, refit=FALSE)
+```
+
+`lmm_ccf_rt_rdc` is used as the optimal model.
+```{r}
+lmm_ccf_rt_opt <- lmm_ccf_rt_rdc
 ```
 
 #### Effects of interest
 ```{r}
-thisfile <- file.path("jubail", "emm_ccf_rt.rds")
+(emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response"))
+```
 
-if (file.exists(thisfile)) {
-  
-  emm_ccf_rt <- readRDS(thisfile)
-  
-} else {
-  emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response",
-                        lmerTest.limit = 6400,
-                        pbkrtest.limit = 6400)
-  
-  saveRDS(emm_ccf_rt, thisfile)
-}
-
-emm_ccf_rt
+```{r}
+# thisfile <- here("jubail", "emm_ccf_rt.rds")
+# 
+# if (file.exists(thisfile)) {
+#   
+#   emm_ccf_rt <- readRDS(thisfile)
+#   
+# } else {
+#   emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response",
+#                         lmer.df = "kenward-roger", pbkrtest.limit = 110000)
+#   saveRDS(emm_ccf_rt, thisfile)
+# }
+# 
+# summary(emm_ccf_rt)
 ```
 
 ```{r}
@@ -668,11 +1051,9 @@ contrast(emm_ccf_rt, interaction="pairwise")
 contrast(emm_ccf_rt, interaction="pairwise", type = "response")
 ```
 
-
 ```{r}
 emmip(emm_ccf_rt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
 ```
-
 
 
 ## Facilitation and interference in the complete composite face task
