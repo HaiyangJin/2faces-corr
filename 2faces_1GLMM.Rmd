@@ -266,19 +266,7 @@ lmm_pw_rt_opt <- lmm_pw_rt_zcp
 ```
 
 ```{r}
-# thisfile <- here("jubail", "emm_pw_rt.rds")
-# 
-# if (file.exists(thisfile)) {
-#   
-#   emm_pw_rt <- readRDS(thisfile)
-#   
-# } else {
-#   emm_pw_rt <- emmeans(lmm_pw_rt_opt, ~ PW + Feature, type = "response",
-#         lmer.df = "kenward-roger", pbkrtest.limit = 36000)
-#   saveRDS(emm_pw_rt, thisfile)
-# }
-# 
-# summary(emm_pw_rt)
+emmip(lmm_pw_rt_opt, ~ PW, CIs = TRUE, type = "response") 
 ```
 
 ```{r}
@@ -1051,19 +1039,7 @@ lmm_ccf_rt_opt <- lmm_ccf_rt_rdc
 ```
 
 ```{r}
-# thisfile <- here("jubail", "emm_ccf_rt.rds")
-# 
-# if (file.exists(thisfile)) {
-#   
-#   emm_ccf_rt <- readRDS(thisfile)
-#   
-# } else {
-#   emm_ccf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment, type = "response",
-#                         lmer.df = "kenward-roger", pbkrtest.limit = 110000)
-#   saveRDS(emm_ccf_rt, thisfile)
-# }
-# 
-# summary(emm_ccf_rt)
+emmip(lmm_ccf_rt_opt, Congruency ~ Alignment, CIs = TRUE, type = "response") 
 ```
 
 ```{r}
@@ -1436,19 +1412,19 @@ lmm_fi_rt_opt <- lmm_fi_rt_etd3
 ```
 
 ```{r}
-# thisfile <- here("jubail", "emm_fi_rt.rds")
-# 
-# if (file.exists(thisfile)) {
-#   
-#   emm_fi_rt <- readRDS(thisfile)
-#   
-# } else {
-#   emm_fi_rt <- emmeans(lmm_fi_rt_opt, ~ Congruency, type = "response",
-#                         lmer.df = "kenward-roger", pbkrtest.limit = 83000)
-#   saveRDS(emm_fi_rt, thisfile)
-# }
-# 
-# summary(emm_fi_rt)
+thisfile <- here("jubail", "emm_fi_rt.rds")
+
+if (file.exists(thisfile)) {
+
+  emm_fi_rt_tmp <- readRDS(thisfile)
+
+} else {
+  emm_fi_rt_tmp <- emmeans(lmm_fi_rt_opt, ~ Congruency, type = "response",
+                        lmer.df = "kenward-roger", pbkrtest.limit = 83000)
+  saveRDS(emm_fi_rt_tmp, thisfile)
+}
+
+summary(emm_fi_rt_tmp)
 ```
 
 ```{r}
