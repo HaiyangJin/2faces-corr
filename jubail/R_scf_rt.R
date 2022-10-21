@@ -5,31 +5,30 @@
 library(dplyr)
 library(lme4)
 library(lmerTest)
-library(optimx)
 
 df_scf <- readRDS("df_scf.rds")
 
-# Part-whole effect ####
+# Standard composite effect ####
 
 ## Zero-correlation-parameter model ####
+# message("Fitting the zcp model...\noutput: lmm_scf_rt_zcp")
 # lmm_scf_rt_zcp <- 
 #   lmer(log(RT) ~ Alignment + 
 #          (Ali_C || Subject) +
 #          (Ali_C || StimGroup),
-#        filter(df_scf, Correct))
+#        filter(df_scf, Correct),
+#        control = lmerControl(optCtrl = list(maxfun = 1e7)))
 # saveRDS(lmm_scf_rt_zcp, "lmm_scf_rt_zcp.rds")
 
 ## Extended model ####
-# (This is essentially the maximal model.)
+# message("Fitting the etd model...\noutput: lmm_scf_rt_etd")
+# # (This is essentially the maximal model.)
 # lmm_scf_rt_etd <-
 #   lmer(log(RT) ~ Alignment +
 #          (Ali_C | Subject) +
 #          (Ali_C | StimGroup),
 #        filter(df_scf, Correct),
-#        control = lmerControl(optimizer = "optimx",
-#                              optCtrl = list(method = "nlminb",
-#                                             starttests = FALSE,
-#                                             kkt = FALSE)))
+#        control = lmerControl(optCtrl = list(maxfun = 1e7)))
 # saveRDS(lmm_scf_rt_etd, "lmm_scf_rt_etd.rds")
 
 ## session information

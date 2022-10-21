@@ -22,20 +22,18 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 # thisfile <- here("jubail", "lmm_pw_acc_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_pw_acc_max <- readRDS(thisfile)
-#   
+# 
 # } else {
-#   lmm_pw_acc_max <- 
-#     glmer(Correct ~ PW * Feature + 
+#   
+#   lmm_pw_acc_max <-
+#     glmer(Correct ~ PW * Feature +
 #             (PW * Feature | Subject) +
 #             (PW * Feature | StimGroup),
 #           df_pw,
 #           family = binomial(link = "logit"),
-#           control = glmerControl(optimizer = "optimx", 
-#                                  optCtrl = list(method = "nlminb", 
-#                                                 starttests = FALSE, 
-#                                                 kkt = FALSE)))
+#           control = glmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_pw_acc_max, thisfile)
 # }
 # 
@@ -48,20 +46,18 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 thisfile <- here("jubail", "lmm_pw_acc_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_pw_acc_zcp <- readRDS(thisfile)
   
 } else {
+  
   lmm_pw_acc_zcp <- 
     glmer(Correct ~ PW * Feature + 
             (PW_C + Feature_C + PW_Feature || Subject) +
             (PW_C + Feature_C + PW_Feature || StimGroup),
           df_pw,
           family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_pw_acc_zcp, thisfile)
 }
 
@@ -79,20 +75,17 @@ summary(rePCA(lmm_pw_acc_zcp))
 thisfile <- here("jubail", "lmm_pw_acc_rdc.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_pw_acc_rdc <- readRDS(thisfile)
   
 } else {
+  
   lmm_pw_acc_rdc <- 
     glmer(Correct ~ PW * Feature + 
-            (PW_C + Feature_C || Subject) +
+            (PW_C + Feature_C || Subject) + # + PW_Feature
             (PW_C + Feature_C + PW_Feature || StimGroup),
           df_pw,
           family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
   saveRDS(lmm_pw_acc_rdc, thisfile)
 }
 
@@ -105,13 +98,22 @@ summary(lmm_pw_acc_rdc)
 thisfile <- here("jubail", "lmm_pw_acc_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_pw_acc_etd <- readRDS(thisfile)
   
 } else {
+  # lmm_pw_acc_etd <- 
+  #   glmer(Correct ~ PW * Feature + 
+  #           (PW_C + Feature_C | Subject) + # + PW_Feature
+  #           (PW_C + Feature_C + PW_Feature | StimGroup),
+  #         df_pw,
+  #         family = binomial(link = "logit"),
+  #         control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  # the |grad| is about 0.0110027, so try other optimizer
+  
+  # use optimx instead
   lmm_pw_acc_etd <- 
     glmer(Correct ~ PW * Feature + 
-            (PW_C + Feature_C | Subject) +
+            (PW_C + Feature_C | Subject) + # + PW_Feature
             (PW_C + Feature_C + PW_Feature | StimGroup),
           df_pw,
           family = binomial(link = "logit"),
@@ -119,6 +121,7 @@ if (file.exists(thisfile)) {
                                  optCtrl = list(method = "nlminb", 
                                                 starttests = FALSE, 
                                                 kkt = FALSE)))
+  
   saveRDS(lmm_pw_acc_etd, thisfile)
 }
 
@@ -182,19 +185,16 @@ emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 # thisfile <- here("jubail", "lmm_pw_rt_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_pw_rt_max <- readRDS(thisfile)
-#   
+# 
 # } else {
-#   lmm_pw_rt_max <- 
-#     lmer(log(RT) ~ PW * Feature + 
+#   lmm_pw_rt_max <-
+#     lmer(log(RT) ~ PW * Feature +
 #            (PW * Feature | Subject) +
 #            (PW * Feature | StimGroup),
 #          filter(df_pw, Correct),
-#          control = lmerControl(optimizer = "optimx", 
-#                                optCtrl = list(method = "nlminb", 
-#                                               starttests = FALSE, 
-#                                               kkt = FALSE)))
+#          control = lmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_pw_rt_max, thisfile)
 # }
 # 
@@ -207,19 +207,17 @@ emmip(lmm_pw_acc_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 thisfile <- here("jubail", "lmm_pw_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_pw_rt_zcp <- readRDS(thisfile)
   
 } else {
+  
   lmm_pw_rt_zcp <- 
     lmer(log(RT) ~ PW * Feature + 
            (PW_C + Feature_C + PW_Feature || Subject) +
            (PW_C + Feature_C + PW_Feature || StimGroup),
          filter(df_pw, Correct),
-         control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", 
-                                              starttests = FALSE, 
-                                              kkt = FALSE)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_pw_rt_zcp, thisfile)
 }
 
@@ -237,7 +235,6 @@ No random effects need to be removed. Therefore, we apply the extended model (i.
 thisfile <- here("jubail", "lmm_pw_rt_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_pw_rt_etd <- readRDS(thisfile)
   
 } else {
@@ -246,10 +243,8 @@ if (file.exists(thisfile)) {
            (PW_C + Feature_C + PW_Feature | Subject) +
            (PW_C + Feature_C + PW_Feature | StimGroup),
          filter(df_pw, Correct),
-         control = lmerControl(optimizer = "optimx", 
-                               optCtrl = list(method = "nlminb", 
-                                              starttests = FALSE, 
-                                              kkt = FALSE)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_pw_rt_etd, thisfile)
 }
 
@@ -266,7 +261,7 @@ summary(rePCA(lmm_pw_rt_etd))
 anova(lmm_pw_rt_zcp, lmm_pw_rt_etd, refit=FALSE)
 ```
 
-Use `lmm_pw_rt_zcp` as the optimal model.
+Use `lmm_pw_rt_etd` as the optimal model.
 ```{r}
 lmm_pw_rt_opt <- lmm_pw_rt_zcp
 ```
@@ -318,20 +313,17 @@ emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 # thisfile <- here("jubail", "lmm_scf_acc_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_scf_acc_max <- readRDS(thisfile)
-#   
+# 
 # } else {
-#   lmm_scf_acc_max <- 
-#     glmer(Correct ~ Alignment + 
+#   lmm_scf_acc_max <-
+#     glmer(Correct ~ Alignment +
 #             (Alignment | Subject) +
 #             (Alignment | StimGroup),
 #           df_scf,
 #           family = binomial(link = "logit"),
-#           control = glmerControl(optimizer = "optimx", 
-#                                  optCtrl = list(method = "nlminb", 
-#                                                 starttests = FALSE, 
-#                                                 kkt = FALSE)))
+#           control = glmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_scf_acc_max, thisfile)
 # }
 # 
@@ -344,20 +336,18 @@ emmip(lmm_pw_rt_opt, ~ PW | Feature, CIs = TRUE, type = "response")
 thisfile <- here("jubail", "lmm_scf_acc_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_scf_acc_zcp <- readRDS(thisfile)
   
 } else {
+  
   lmm_scf_acc_zcp <- 
     glmer(Correct ~ Alignment + 
             (Ali_C || Subject) +
             (Ali_C || StimGroup),
           df_scf,
           family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_scf_acc_zcp, thisfile)
 }
 
@@ -375,20 +365,17 @@ No random effects need to be removed. Therefore, we apply the extended model (i.
 thisfile <- here("jubail", "lmm_scf_acc_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_scf_acc_etd <- readRDS(thisfile)
   
 } else {
+  
   lmm_scf_acc_etd <- 
     glmer(Correct ~ Alignment + 
             (Ali_C | Subject) +
             (Ali_C | StimGroup),
           df_scf,
           family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
   saveRDS(lmm_scf_acc_etd, thisfile)
 }
 
@@ -408,16 +395,14 @@ if (file.exists(thisfile)) {
   lmm_scf_acc_etd2 <- readRDS(thisfile)
   
 } else {
+  
   lmm_scf_acc_etd2 <- 
     glmer(Correct ~ Alignment + 
             (Ali_C | Subject) +
             (0 + Ali_C | StimGroup),
           df_scf,
           family = binomial(link = "logit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
   saveRDS(lmm_scf_acc_etd2, thisfile)
 }
 
@@ -465,19 +450,17 @@ summary(emm_scfe_acc, side="<", infer=TRUE, type="response")
 # thisfile <- here("jubail", "lmm_scf_rt_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_scf_rt_max <- readRDS(thisfile)
-#   
+# 
 # } else {
-#   lmm_scf_rt_max <- 
-#     lmer(log(RT) ~ Alignment + 
+#   
+#   lmm_scf_rt_max <-
+#     lmer(log(RT) ~ Alignment +
 #            (Alignment | Subject) +
 #            (Alignment | StimGroup),
 #          filter(df_scf, Correct),
-#          control = lmerControl(optimizer = "optimx", 
-#                                optCtrl = list(method = "nlminb", 
-#                                               starttests = FALSE, 
-#                                               kkt = FALSE)))
+#          control = lmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_scf_rt_max, thisfile)
 # }
 # 
@@ -491,26 +474,16 @@ summary(emm_scfe_acc, side="<", infer=TRUE, type="response")
 thisfile <- here("jubail", "lmm_scf_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_scf_rt_zcp <- readRDS(thisfile)
   
 } else {
-  # lmm_scf_rt_zcp <- 
-  #   lmer(log(RT) ~ Alignment + 
-  #          (Ali_C || Subject) +
-  #          (Ali_C || StimGroup),
-  #        filter(df_scf, Correct),
-  #        control = lmerControl(optimizer = "optimx", 
-  #                              optCtrl = list(method = "nlminb", 
-  #                                             starttests = FALSE, 
-  #                                             kkt = FALSE)))
-  # somehow the optimx optimizer does not work for the model, the default optimizer is used then.
   
   lmm_scf_rt_zcp <- 
     lmer(log(RT) ~ Alignment + 
            (Ali_C || Subject) +
            (Ali_C || StimGroup),
-         filter(df_scf, Correct))
+         filter(df_scf, Correct),
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
   
   saveRDS(lmm_scf_rt_zcp, thisfile)
 }
@@ -528,19 +501,16 @@ No random effects need to be removed. Therefore, we apply the extended model (i.
 thisfile <- here("jubail", "lmm_scf_rt_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_scf_rt_etd <- readRDS(thisfile)
   
 } else {
+  
   lmm_scf_rt_etd <-
     lmer(log(RT) ~ Alignment +
            (Ali_C | Subject) +
            (Ali_C | StimGroup),
          filter(df_scf, Correct),
-         control = lmerControl(optimizer = "optimx",
-                               optCtrl = list(method = "nlminb",
-                                              starttests = FALSE,
-                                              kkt = FALSE)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
   saveRDS(lmm_scf_rt_etd, thisfile)
 }
 
@@ -551,8 +521,8 @@ summary(lmm_scf_rt_etd)
 ```{r}
 anova(lmm_scf_rt_zcp, lmm_scf_rt_etd, refit=FALSE)
 ```
-`lmm_scf_rt_zcp` (with smaller BIC) will be used as the optimal model.
 
+`lmm_scf_rt_etd` will be used as the optimal model.
 ```{r}
 lmm_scf_rt_opt <- lmm_scf_rt_zcp
 ```
@@ -589,20 +559,18 @@ summary(emm_scfe_rt, side=">", infer=TRUE, type = "response") # exp(0.0805)
 # thisfile <- here("jubail", "lmm_ccf_d_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_ccf_d_max <- readRDS(thisfile)
 #   
 # } else {
-#   lmm_ccf_d_max <- 
+#   
+#   lmm_ccf_d_max <-
 #     glmer(isSame ~ Congruency * Alignment * SD + Cue +
 #             (Congruency * Alignment * SD | Subject) +
 #             (Congruency * Alignment * SD | StimGroup),
 #           df_ccf,
 #           family = binomial(link = "probit"),
-#           control = glmerControl(optimizer = "optimx", 
-#                                  optCtrl = list(method = "nlminb", 
-#                                                 starttests = FALSE, 
-#                                                 kkt = FALSE)))
+#           control = glmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_ccf_d_max, thisfile)
 # }
 # 
@@ -614,24 +582,9 @@ summary(emm_scfe_rt, side=">", infer=TRUE, type = "response") # exp(0.0805)
 thisfile <- here("jubail", "lmm_ccf_d_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_zcp <- readRDS(thisfile)
   
 } else {
-  # lmm_ccf_d_zcp <- 
-  #   glmer(isSame ~ Congruency * Alignment * SD + Cue +
-  #           (Con_C + Ali_C + SD_C + 
-  #              Con_Ali + Con_SD + Ali_SD + 
-  #              Con_Ali_SD || Subject) +
-  #           (Con_C + Ali_C + SD_C + 
-  #              Con_Ali + Con_SD + Ali_SD + 
-  #              Con_Ali_SD || StimGroup),
-  #         df_ccf,
-  #         family = binomial(link = "probit"),
-  #         control = glmerControl(optimizer = "optimx", 
-  #                                optCtrl = list(method = "nlminb", 
-  #                                               starttests = FALSE, 
-  #                                               kkt = FALSE)))
   
   lmm_ccf_d_zcp <- 
     glmer(isSame ~ Congruency * Alignment * SD + Cue +
@@ -642,7 +595,9 @@ if (file.exists(thisfile)) {
                Con_Ali + Con_SD + Ali_SD + 
                Con_Ali_SD || StimGroup),
           df_ccf,
-          family = binomial(link = "probit"))
+          family = binomial(link = "probit"),
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_zcp, thisfile)
 }
 
@@ -660,10 +615,10 @@ By-subject `Con_Ali`, `Con_C`, `Ali_SD`, and by-item `Con_Ali_SD` were removed.
 thisfile <- here("jubail", "lmm_ccf_d_rdc.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_rdc <- readRDS(thisfile)
   
 } else {
+  
   lmm_ccf_d_rdc <- 
     glmer(isSame ~ Congruency * Alignment * SD + Cue +
             (Ali_C + SD_C + # Con_C + 
@@ -674,10 +629,8 @@ if (file.exists(thisfile)) {
              || StimGroup), # Con_Ali_SD
           df_ccf,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_rdc, thisfile)
 }
 
@@ -693,24 +646,21 @@ summary(rePCA(lmm_ccf_d_rdc))
 thisfile <- here("jubail", "lmm_ccf_d_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_etd <- readRDS(thisfile)
   
 } else {
   lmm_ccf_d_etd <-
     glmer(isSame ~ Congruency * Alignment * SD + Cue +
-            (Ali_C + SD_C + # Con_C +
+            (Ali_C + SD_C + # Con_C + 
                Con_SD +  # Con_Ali + Ali_SD +
                Con_Ali_SD | Subject) +
-            (Con_C + Ali_C + SD_C +
-               Con_Ali + Con_SD + Ali_SD # +
+            (Con_C + Ali_C + SD_C + 
+               Con_Ali + Con_SD + Ali_SD # + 
              | StimGroup), # Con_Ali_SD
           df_ccf,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_etd, thisfile)
 }
 
@@ -727,10 +677,10 @@ By-subject `Ali_C`, by-item `Ali_C`, `Con_C`, `Ali_SD`, and `Con_Ali` were remov
 thisfile <- here("jubail", "lmm_ccf_d_etd2.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_etd2 <- readRDS(thisfile)
   
 } else {
+  
   lmm_ccf_d_etd2 <-
     glmer(isSame ~ Congruency * Alignment * SD + Cue +
             (SD_C + # Con_C + Ali_C + 
@@ -741,10 +691,8 @@ if (file.exists(thisfile)) {
              | StimGroup), # Con_Ali_SD
           df_ccf,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_etd2, thisfile)
 }
 
@@ -761,10 +709,10 @@ By-subject `(Intercept)` and by-item `Con_SD` were removed.
 thisfile <- here("jubail", "lmm_ccf_d_etd3.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_etd3 <- readRDS(thisfile)
   
 } else {
+  
   lmm_ccf_d_etd3 <-
     glmer(isSame ~ Congruency * Alignment * SD + Cue +
             (0 + SD_C + # Con_C + Ali_C + 
@@ -775,10 +723,8 @@ if (file.exists(thisfile)) {
              | StimGroup), # Con_Ali_SD
           df_ccf,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_etd3, thisfile)
 }
 
@@ -795,7 +741,6 @@ By-subject `Con_Ali_SD` was removed.
 thisfile <- here("jubail", "lmm_ccf_d_etd4.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_d_etd4 <- readRDS(thisfile)
   
 } else {
@@ -809,10 +754,8 @@ if (file.exists(thisfile)) {
              | StimGroup), # Con_Ali_SD
           df_ccf,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_d_etd4, thisfile)
 }
 
@@ -868,19 +811,17 @@ summary(emm_ccfe_d, side=">", infer=TRUE)
 # thisfile <- here("jubail", "lmm_ccf_rt_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_ccf_rt_max <- readRDS(thisfile)
 #   
 # } else {
-#   lmm_ccf_rt_max <- 
+#   
+#   lmm_ccf_rt_max <-
 #     lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
 #            (Congruency * Alignment | Subject) +
 #            (Congruency * Alignment | StimGroup),
 #          filter(df_ccf, Correct),
-#          control = lmerControl(optimizer = "optimx",
-#                                optCtrl = list(method = "nlminb",
-#                                               starttests = FALSE,
-#                                               kkt = FALSE)))
+#          control = lmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_ccf_rt_max, thisfile)
 # }
 # 
@@ -892,27 +833,17 @@ summary(emm_ccfe_d, side=">", infer=TRUE)
 thisfile <- here("jubail", "lmm_ccf_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_rt_zcp <- readRDS(thisfile)
   
 } else {
-  # lmm_ccf_rt_zcp <-
-  #   lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
-  #          (Con_C + Ali_C + Con_Ali || Subject) +
-  #          (Con_C + Ali_C + Con_Ali || StimGroup),
-  #        filter(df_ccf, Correct),
-  #        control = lmerControl(optimizer = "optimx",
-  #                              optCtrl = list(method = "nlminb",
-  #                                             starttests = FALSE,
-  #                                             kkt = FALSE)))
-  
-  # try the default optimizer
+
   lmm_ccf_rt_zcp <- 
     lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
            (Con_C + Ali_C + Con_Ali || Subject) +
            (Con_C + Ali_C + Con_Ali || StimGroup),
          filter(df_ccf, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_rt_zcp, thisfile)
 }
 
@@ -930,27 +861,17 @@ By-item `Con_Ali` was removed.
 thisfile <- here("jubail", "lmm_ccf_rt_rdc.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_rt_rdc <- readRDS(thisfile)
   
 } else {
-  # lmm_ccf_rt_rdc <- 
-  #   lmer(log(RT) ~ Congruency * Alignment + SD + Cue +
-  #          (Con_C + Ali_C + Con_Ali || Subject) +  
-  #          (Con_C + Ali_C || StimGroup), # + Con_Ali
-  #        filter(df_ccf, Correct),
-  #        control = lmerControl(optimizer = "optimx",
-  #                              optCtrl = list(method = "nlminb",
-  #                                             starttests = FALSE,
-  #                                             kkt = FALSE)))
   
-  # try the default optimizer
   lmm_ccf_rt_rdc <- 
     lmer(log(RT) ~ Congruency * Alignment + SD + Cue + 
            (Con_C + Ali_C + Con_Ali || Subject) +
            (Con_C + Ali_C || StimGroup), # + Con_Ali
          filter(df_ccf, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_ccf_rt_rdc, thisfile)
 }
 
@@ -966,7 +887,6 @@ summary(rePCA(lmm_ccf_rt_rdc))
 thisfile <- here("jubail", "lmm_ccf_rt_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_rt_etd <- readRDS(thisfile)
   
 } else {
@@ -976,7 +896,7 @@ if (file.exists(thisfile)) {
            (Con_C + Ali_C + Con_Ali | Subject) +
            (Con_C + Ali_C | StimGroup), # + Con_Ali
          filter(df_ccf, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
   
   saveRDS(lmm_ccf_rt_etd, thisfile)
 }
@@ -993,7 +913,6 @@ By-subject `Con_C` was removed.
 thisfile <- here("jubail", "lmm_ccf_rt_etd2.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_rt_etd2 <- readRDS(thisfile)
   
 } else {
@@ -1003,7 +922,7 @@ if (file.exists(thisfile)) {
            (Ali_C + Con_Ali | Subject) + # Con_C + 
            (Con_C + Ali_C | StimGroup), # + Con_Ali
          filter(df_ccf, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
   
   saveRDS(lmm_ccf_rt_etd2, thisfile)
 }
@@ -1020,7 +939,6 @@ By-item `Con_C` was removed.
 thisfile <- here("jubail", "lmm_ccf_rt_etd3.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_ccf_rt_etd3 <- readRDS(thisfile)
   
 } else {
@@ -1030,7 +948,7 @@ if (file.exists(thisfile)) {
            (Ali_C + Con_Ali | Subject) + # Con_C + 
            (Ali_C | StimGroup), # + Con_Ali + Con_C + 
          filter(df_ccf, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
   
   saveRDS(lmm_ccf_rt_etd3, thisfile)
 }
@@ -1095,20 +1013,18 @@ summary(emm_ccfe_rt, side="<", infer=TRUE, type = "response") # exp(-0.0405)
 # thisfile <- here("jubail", "lmm_fi_d_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_fi_d_max <- readRDS(thisfile)
 #   
 # } else {
-#   lmm_fi_d_max <- 
+#   
+#   lmm_fi_d_max <-
 #     glmer(isSame ~ Congruency * SD + Cue +
 #             (Congruency * SD | Subject) +
 #             (Congruency * SD | StimGroup),
 #           df_fi,
 #           family = binomial(link = "probit"),
-#           control = glmerControl(optimizer = "optimx", 
-#                                  optCtrl = list(method = "nlminb", 
-#                                                 starttests = FALSE, 
-#                                                 kkt = FALSE)))
+#           control = glmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_fi_d_max, thisfile)
 # }
 # 
@@ -1120,10 +1036,10 @@ summary(emm_ccfe_rt, side="<", infer=TRUE, type = "response") # exp(-0.0405)
 thisfile <- here("jubail", "lmm_fi_d_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_d_zcp <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_d_zcp <- 
     glmer(isSame ~ Congruency * SD + Cue +
             (ConInc + IncIso + SD_C + 
@@ -1132,10 +1048,8 @@ if (file.exists(thisfile)) {
                ConInc_SD + IncIso_SD || StimGroup),
           df_fi,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_d_zcp, thisfile)
 }
 
@@ -1151,10 +1065,10 @@ summary(rePCA(lmm_fi_d_zcp))
 thisfile <- here("jubail", "lmm_fi_d_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_d_etd <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_d_etd <- 
     glmer(isSame ~ Congruency * SD + Cue +
             (ConInc + IncIso + SD_C + 
@@ -1163,10 +1077,8 @@ if (file.exists(thisfile)) {
                ConInc_SD + IncIso_SD | StimGroup),
           df_fi,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx", 
-                                 optCtrl = list(method = "nlminb", 
-                                                starttests = FALSE, 
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_d_etd, thisfile)
 }
 
@@ -1183,10 +1095,10 @@ By-subject `ConInc`, `IncIso`, by-item `(Intercept)`, `ConInc`, and `IncIso` wer
 thisfile <- here("jubail", "lmm_fi_d_etd2.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_d_etd2 <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_d_etd2 <-
     glmer(isSame ~ Congruency * SD + Cue +
             (SD_C + # ConInc + IncIso +
@@ -1195,10 +1107,8 @@ if (file.exists(thisfile)) {
                ConInc_SD + IncIso_SD | StimGroup),
           df_fi,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_d_etd2, thisfile)
 }
 
@@ -1227,10 +1137,8 @@ if (file.exists(thisfile)) {
                ConInc_SD | StimGroup), # + IncIso_SD
           df_fi,
           family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_d_etd3, thisfile)
 }
 
@@ -1240,41 +1148,10 @@ summary(lmm_fi_d_etd3)
 ```{r}
 summary(rePCA(lmm_fi_d_etd3))
 ```
-By-subject `IncIso_SD` was removed.
-
-```{r}
-thisfile <- here("jubail", "lmm_fi_d_etd4.rds")
-
-if (file.exists(thisfile)) {
-  
-  lmm_fi_d_etd4 <- readRDS(thisfile)
-  
-} else {
-  lmm_fi_d_etd4 <-
-    glmer(isSame ~ Congruency * SD + Cue +
-            (0 + SD_C + # ConInc + IncIso +
-               ConInc_SD | Subject) + # + IncIso_SD
-            (0 + SD_C + # ConInc + IncIso +
-               ConInc_SD | StimGroup), # + IncIso_SD
-          df_fi,
-          family = binomial(link = "probit"),
-          control = glmerControl(optimizer = "optimx",
-                                 optCtrl = list(method = "nlminb",
-                                                starttests = FALSE,
-                                                kkt = FALSE)))
-  saveRDS(lmm_fi_d_etd4, thisfile)
-}
-
-summary(lmm_fi_d_etd4)
-```
-
-```{r}
-summary(rePCA(lmm_fi_d_etd4))
-```
 
 #### Optimal model
 ```{r}
-anova(lmm_fi_d_zcp, lmm_fi_d_etd4, refit=FALSE)
+anova(lmm_fi_d_zcp, lmm_fi_d_etd3, refit=FALSE)
 ```
 
 `lmm_fi_d_zcp` is used as the optimal model.
@@ -1318,19 +1195,17 @@ summary(emm_fie_d[3], side="<", infer=TRUE)
 # thisfile <- here("jubail", "lmm_fi_rt_max.rds")
 # 
 # if (file.exists(thisfile)) {
-#   
 #   lmm_fi_rt_max <- readRDS(thisfile)
-#   
+# 
 # } else {
-#   lmm_fi_rt_max <- 
+#   
+#   lmm_fi_rt_max <-
 #     lmer(log(RT) ~ Congruency + SD + Cue +
 #            (Congruency | Subject) +
 #            (Congruency | StimGroup),
 #          filter(df_fi, Correct),
-#          control = lmerControl(optimizer = "optimx", 
-#                                optCtrl = list(method = "nlminb", 
-#                                               starttests = FALSE, 
-#                                               kkt = FALSE)))
+#          control = lmerControl(optCtrl = list(maxfun = 1e7)))
+#   
 #   saveRDS(lmm_fi_rt_max, thisfile)
 # }
 # 
@@ -1342,16 +1217,17 @@ summary(emm_fie_d[3], side="<", infer=TRUE)
 thisfile <- here("jubail", "lmm_fi_rt_zcp.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_rt_zcp <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_rt_zcp <- 
     lmer(log(RT) ~ Congruency + SD + Cue +
            (ConInc + IncIso || Subject) +
            (ConInc + IncIso || StimGroup),
          filter(df_fi, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_rt_zcp, thisfile)
 }
 
@@ -1368,7 +1244,6 @@ No random effects need to be removed. Therefore, we apply the extended model (i.
 thisfile <- here("jubail", "lmm_fi_rt_etd.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_rt_etd <- readRDS(thisfile)
   
 } else {
@@ -1377,7 +1252,8 @@ if (file.exists(thisfile)) {
            (ConInc + IncIso | Subject) +
            (ConInc + IncIso | StimGroup),
          filter(df_fi, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_rt_etd, thisfile)
 }
 
@@ -1393,41 +1269,44 @@ By-item `(Intercept)` was removed.
 thisfile <- here("jubail", "lmm_fi_rt_etd2.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_rt_etd2 <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_rt_etd2 <- 
     lmer(log(RT) ~ Congruency + SD + Cue +
            (ConInc + IncIso | Subject) +
            (0 + ConInc + IncIso | StimGroup), 
          filter(df_fi, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_rt_etd2, thisfile)
 }
 
 summary(lmm_fi_rt_etd2)
 ```
 
-By-subject `ConInc` was removed.
 ```{r}
 summary(rePCA(lmm_fi_rt_etd2))
 ```
+
+By-subject `ConInc` was removed.
 
 ```{r}
 thisfile <- here("jubail", "lmm_fi_rt_etd3.rds")
 
 if (file.exists(thisfile)) {
-  
   lmm_fi_rt_etd3 <- readRDS(thisfile)
   
 } else {
+  
   lmm_fi_rt_etd3 <- 
     lmer(log(RT) ~ Congruency + SD + Cue +
            (ConInc + IncIso | Subject) +
            (0 + IncIso | StimGroup), # ConInc + 
          filter(df_fi, Correct),
-         control = lmerControl(optCtrl = list(maxiter = 1e7)))
+         control = lmerControl(optCtrl = list(maxfun = 1e7)))
+  
   saveRDS(lmm_fi_rt_etd3, thisfile)
 }
 
