@@ -36,8 +36,8 @@ Linear mixed-effects models are used to examine the holistic processing effects 
 #   
 #   saveRDS(lmm_pw_acc_max, thisfile)
 # }
-
-summary(lmm_pw_acc_max)
+# 
+# summary(lmm_pw_acc_max)
 ```
 
 #### Zero-correlation-parameter model
@@ -263,7 +263,7 @@ anova(lmm_pw_rt_zcp, lmm_pw_rt_etd, refit=FALSE)
 
 Use `lmm_pw_rt_etd` as the optimal model.
 ```{r}
-lmm_pw_rt_opt <- lmm_pw_rt_etd
+lmm_pw_rt_opt <- lmm_pw_rt_zcp
 ```
 
 #### Effects of interest
@@ -524,7 +524,7 @@ anova(lmm_scf_rt_zcp, lmm_scf_rt_etd, refit=FALSE)
 
 `lmm_scf_rt_etd` will be used as the optimal model.
 ```{r}
-lmm_scf_rt_opt <- lmm_scf_rt_etd
+lmm_scf_rt_opt <- lmm_scf_rt_zcp
 ```
 
 #### Effects of interest
