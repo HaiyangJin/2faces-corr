@@ -501,7 +501,8 @@ summary(emm_scfe_acc, side="<", infer=TRUE, type="response")
 plot_scf_acc <- emm_scf_acc %>%
   summary(type="response") %>% 
   as_tibble() %>% 
-  mutate(task = "SCF") %>% 
+  mutate(task = "SCF",
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>% 
   ggplot(aes(Alignment, prob, group=task)) +
   geom_point(size = 2, color = two_colors[2]) + # position = position_dodge(width = 0.1),
   geom_line(linetype="dashed", color = two_colors[2], size = 0.8) +
@@ -632,7 +633,8 @@ summary(emm_scfe_rt, side=">", infer=TRUE, type = "response") # exp(0.0805)
 plot_scf_rt <- emm_scf_rt %>% 
   summary(type = "response") %>% 
   as_tibble() %>% 
-  mutate(task = "SCF") %>% 
+  mutate(task = "SCF",
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>% 
   ggplot(aes(y = response, x = Alignment, group = task)) +
   geom_point(size = 2, color = two_colors[2]) + # position = position_dodge(width = 0.1), 
   geom_line(linetype = "dashed", # position = position_dodge(width = 0.1),
@@ -906,13 +908,20 @@ emm_ccfe_d <- contrast(emm_ccf_probit, interaction="pairwise")
 summary(emm_ccfe_d, side=">", infer=TRUE)
 ```
 
+```{r}
+# facilitation and interference of d'
+contrast(emm_ccf_probit, interaction="pairwise", by="Congruency")
+```
+
+
 #### Plot
 
 ```{r}
 plot_ccf_d <- emm_ccf_d %>%
   summary(infer=TRUE) %>% 
   as_tibble() %>% 
-  # mutate(task = "PW") %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc"),
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>%
   ggplot(aes(Alignment, estimate, color=Congruency, group=Congruency)) +
   geom_point(size = 2) + # position = position_dodge(width = 0.1),
   geom_line(aes(linetype = Congruency), size = 0.8) +
@@ -929,6 +938,25 @@ plot_ccf_d <- emm_ccf_d %>%
   NULL
 # ggsave(filename = "ccf_d.pdf", plot_ccf_d, width = 8, height = 6)
 plot_ccf_d
+```
+
+```{r}
+plot_ccf_d_fi <- contrast(emm_ccf_probit, interaction="pairwise", by="Congruency") %>% 
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc")) %>% 
+  ggplot(aes(y = estimate, x = Congruency, color = Congruency)) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_color_manual(values=two_colors) +
+  # coord_cartesian(ylim = ylimit_cf_fi_d) +  # set the limit for y axis c(0, 1100)
+  labs(x = "Congruency", y = expression(italic("d'")~"(aligned-misaligned)")) +  # set the names for main, x and y axises
+  theme(legend.position = "none") +
+  NULL
+# ggsave(filename = "ccf_d_fi.pdf", plot_ccf_d_fi, width = 4, height = 6)
+plot_ccf_d_fi
 ```
 
 ### Correct response times
@@ -1131,12 +1159,19 @@ Composite effect of RT (ratio of RT):
 summary(emm_ccfe_rt, side="<", infer=TRUE, type = "response") # exp(-0.0405)
 ```
 
+```{r}
+# facilitation and interference of d'
+contrast(emm_ccf_rt, "pairwise", by="Congruency")
+```
+
 #### Plot
 
 ```{r}
 plot_ccf_rt <- emm_ccf_rt %>% 
   summary(type = "response") %>% 
   as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc"),
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>%
   ggplot(aes(y = response, x = Alignment, color = Congruency, group = Congruency)) +
   geom_point(size = 2) + # position = position_dodge(width = 0.1), 
   geom_line(aes(linetype = Congruency), # position = position_dodge(width = 0.1),
@@ -1154,6 +1189,25 @@ plot_ccf_rt <- emm_ccf_rt %>%
   NULL
 # ggsave(filename = "ccf_rt.pdf", plot_ccf_rt, width = 8, height = 6)
 plot_ccf_rt
+```
+
+```{r}
+plot_ccf_rt_fi <- contrast(emm_ccf_rt, "pairwise", by="Congruency") %>% 
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc")) %>% 
+  ggplot(aes(y = estimate, x = Congruency, color = Congruency)) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_color_manual(values=two_colors) +
+  # coord_cartesian(ylim = ylimit_cf_fi_d) +  # set the limit for y axis c(0, 1100)
+  labs(x = "Congruency", y = "Correct response times (ms)") +  # set the names for main, x and y axises
+  theme(legend.position = "none") +
+  NULL
+# ggsave(filename = "ccf_rt_fi.pdf", plot_ccf_rt_fi, width = 8, height = 6)
+plot_ccf_rt_fi
 ```
 
 
@@ -1353,6 +1407,7 @@ plot_fi_d <- emm_fi_d %>%
   mutate(Alignment = if_else(Congruency=="iso", "iso", "ali"),
          group_ai = if_else(Congruency=="inc", "NULL", "ai"),
          group_ii = if_else(Congruency=="con", "NULL", "ii")) %>%
+  mutate(Alignment = fct_recode(Alignment, aligned="ali", isolated="iso")) %>%
   ggplot(aes(Alignment, estimate, color=Congruency, linetype=Congruency)) +
   geom_point(size = 2) + # position = position_dodge(width = 0.1),
   geom_line(aes(group=group_ai, color="con", linetype="con"), size = 0.8) +
@@ -1557,6 +1612,7 @@ plot_fi_rt <- emm_fi_rt %>%
   mutate(Alignment = if_else(Congruency=="iso", "iso", "ali"),
          group_ai = if_else(Congruency=="inc", "NULL", "ai"),
          group_ii = if_else(Congruency=="con", "NULL", "ii")) %>%
+  mutate(Alignment = fct_recode(Alignment, aligned="ali", isolated="iso")) %>%
   ggplot(aes(y = response, x = Alignment, color=Congruency, linetype=Congruency)) +
   geom_point(size = 2) + # position = position_dodge(width = 0.1), color=c(two_colors, "black")
   geom_line(aes(group=group_ai, color="con", linetype="con"), size = 0.8) +
@@ -1585,10 +1641,100 @@ plot_fi_rt
 
 ```{r}
 acc_y_limits <- c(.75, 1)
-d_y_limits <- c(1, 3)
-rt_y_limits <- c(600, 1300)
+d_y_limits <- c(0, 2.7)
+d_y_breaks <- seq(0, 2.5, .5)
+rt_y_limits <- c(550, 1450)
+rt_y_breaks <- seq(600, 1400, 200)
+
+plot_pw_acc_pub <- plot_pw_acc + 
+  coord_cartesian(ylim = acc_y_limits) 
+
+plot_pw_rt_pub <- plot_pw_rt +
+  scale_y_continuous(breaks=rt_y_breaks) +
+  coord_cartesian(ylim = rt_y_limits) 
+  
+plot_scf_acc_pub <- plot_scf_acc +
+  coord_cartesian(ylim = acc_y_limits) 
+
+plot_scf_rt_pub <- plot_scf_rt +
+  scale_y_continuous(breaks=rt_y_breaks) +
+  coord_cartesian(ylim = rt_y_limits) 
+
+plot_ccf_d_pub <- plot_ccf_d +
+  coord_cartesian(ylim = d_y_limits) +
+  scale_y_continuous(breaks=d_y_breaks) +
+  theme(legend.position = c(.7, .2),
+        legend.box = "horizontal") 
+
+plot_ccf_rt_pub <- plot_ccf_rt +
+  scale_y_continuous(breaks=rt_y_breaks) +
+  coord_cartesian(ylim = rt_y_limits) +
+  theme(legend.position = "none")
+
+plot_fi_d_pub <- plot_fi_d +
+  coord_cartesian(ylim = d_y_limits) +
+  scale_y_continuous(breaks=d_y_breaks) +
+  theme(legend.position = c(.7, .2),
+        legend.box = "horizontal") 
+
+plot_fi_rt_pub <- plot_fi_rt +
+  scale_y_continuous(breaks=rt_y_breaks) +
+  coord_cartesian(ylim = rt_y_limits) +
+  theme(legend.position = "none")
+```
+
+```{r fig.width=5.5, fig.asp=.65}
+plot_hp_iso <- 
+  ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub) %>% 
+              annotate_figure(top = text_grob("Part-whole task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_scf_acc_pub, plot_scf_rt_pub) %>% 
+              annotate_figure(top = text_grob("Standard composite face task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), ggplot() + theme_void(), ggplot() + theme_void(), 
+            ggarrange(plot_ccf_d_pub, plot_ccf_rt_pub) %>% 
+              annotate_figure(top = text_grob("Complete composite face task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_fi_d_pub, plot_fi_rt_pub) %>% 
+              annotate_figure(top = text_grob("Facilitation and interference effects", 
+                                              face="bold", size = 14)),
+            labels = c("a", "", "b", "", "", "", "c", "", "d"),
+            widths = c(1, 0.05, 1),
+            heights = c(1, 0.05, 1),
+            nrow=3, ncol=3)
+# ggsave(filename = here("figures","plot_hp_iso.pdf"), plot_hp_iso, width = 14, height = 14*.65)
+plot_hp_iso
 ```
 
 
+```{r}
+plot_ccf_d_fi_pub <- plot_ccf_d_fi 
+plot_ccf_rt_fi_pub <- plot_ccf_rt_fi 
+```
 
-
+```{r fig.width=5.5, fig.asp=.65}
+plot_hp <- 
+  ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub) %>% 
+              annotate_figure(top = text_grob("Part-whole task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_scf_acc_pub, plot_scf_rt_pub) %>% 
+              annotate_figure(top = text_grob("Standard composite face task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), ggplot() + theme_void(), ggplot() + theme_void(), 
+            ggarrange(plot_ccf_d_pub, plot_ccf_rt_pub) %>% 
+              annotate_figure(top = text_grob("Complete composite face task", 
+                                              face="bold", size = 14)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_ccf_d_fi_pub, plot_ccf_rt_fi_pub) %>% 
+              annotate_figure(top = text_grob("Facilitation and interference effects", 
+                                              face="bold", size = 14)),
+            labels = c("a", "", "b", "", "", "", "c", "", "d"),
+            widths = c(1, 0.05, 1),
+            heights = c(1, 0.05, 1),
+            nrow=3, ncol=3)
+# ggsave(filename = here("figures","plot_hp.pdf"), plot_hp, width = 14, height = 14*.65)
+plot_hp
+```
