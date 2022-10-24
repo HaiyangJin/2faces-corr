@@ -1018,6 +1018,7 @@ psych_cor2 <- function(.data, ...) {
 
 ### Subtraction
 
+#### Accuracy & d'
 ```{r}
 hpe_acc_subt <- pwe_acc %>% 
   inner_join(scfe_acc, by="Subject") %>% 
@@ -1030,38 +1031,118 @@ hpe_rt_subt <- pwe_rt %>%
   transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt_subt)
 ```
 
-Correlations among holsitic effects (accuracy or d' with subtraction):
+Correlations among holistic effects (accuracy or d' with subtraction):
 ```{r}
 corPlot(hpe_acc_subt)
 ```
 
 Correlations among holistic processing effects of accuracy (subtraction):
 ```{r}
-psych_cor2(hpe_acc_subt) %>% 
+cor_hpe_acc_subt <- psych_cor2(hpe_acc_subt) %>% 
   mutate(up_bound = c(
     upper_boundary(rel_pwe_acc_subt, rel_scfe_acc_subt),
     upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt_subt),
     upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt_subt)
   ), .before = 1)
+cor_hpe_acc_subt
 ```
 
-Correlations among holsitic effects (RT):
+```{r}
+plot_pwe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=pwe_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[3], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Part-whole difference scores (accuracy)", 
+       y = "Standard composite task difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_subt$r[1], cor_hpe_acc_subt$p[1]))
+plot_pwe_scfe_acc_subt
+```
+
+```{r}
+plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task difference scores (d')", 
+       y = "Part-whole difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
+plot_ccfe_pwe_acc_subt
+```
+
+```{r}
+plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task difference scores (d')", 
+       y = "Standard composite task difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.3f", cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
+plot_ccfe_scfe_acc_subt
+```
+
+#### RT
+
+Correlations among holistic effects (RT):
 ```{r}
 corPlot(hpe_rt_subt)
 ```
 
 Correlations among holistic processing effects of RT (subtraction)
 ```{r}
-psych_cor2(hpe_rt_subt) %>% 
+cor_hpe_rt_subt <- psych_cor2(hpe_rt_subt) %>% 
   mutate(up_bound = c(
     upper_boundary(rel_pwe_rt_subt, rel_scfe_rt_subt),
     upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt_subt),
     upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt_subt)
   ), .before = 1)
+cor_hpe_rt_subt
 ```
+
+```{r}
+plot_pwe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=pwe_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[3], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Part-whole difference scores (RT)", 
+       y = "Standard composite task difference scores (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[1], cor_hpe_rt_subt$p[1]))
+
+plot_pwe_scfe_rt_subt
+```
+
+```{r}
+plot_ccfe_pwe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task difference scores (RT)", 
+       y = "Part-whole difference scores (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[2], cor_hpe_rt_subt$p[2]))
+plot_ccfe_pwe_rt_subt
+```
+
+```{r}
+plot_ccfe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task difference scores (RT)", 
+       y = "Standard composite task difference scores (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[3], cor_hpe_rt_subt$p[3]))
+plot_ccfe_scfe_rt_subt
+```
+
+#### Plot
+```{r fig.width=12, fig.asp=.66}
+ggarrange(plot_pwe_scfe_acc_subt, plot_ccfe_pwe_acc_subt, plot_ccfe_scfe_acc_subt,
+          plot_pwe_scfe_rt_subt, plot_ccfe_pwe_rt_subt, plot_ccfe_scfe_rt_subt,
+          nrow = 2, ncol = 3)
+```
+
 
 ### Regression
 
+#### Accuracy & d'
 ```{r}
 hpe_acc_regr <- pwe_acc %>% 
   inner_join(scfe_acc, by="Subject") %>% 
@@ -1074,34 +1155,110 @@ hpe_rt_regr <- pwe_rt %>%
   transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
 ```
 
-Correlations among holsitic effects (accuracy or d' with regression):
+Correlations among holistic effects (accuracy or d' with regression):
 ```{r}
 corPlot(hpe_acc_regr)
 ```
 
 Correlations among holistic processing effects of accuracy (regression)
 ```{r}
-psych_cor2(hpe_acc_regr) %>% 
+cor_hpe_acc_regr <- psych_cor2(hpe_acc_regr) %>% 
   mutate(up_bound = c(
     upper_boundary(rel_pwe_acc_regr, rel_scfe_acc_regr),
     upper_boundary(rel_pwe_acc_regr, rel_ccfe_d_subt_regr),
     upper_boundary(rel_scfe_acc_regr, rel_ccfe_d_subt_regr)
   ), .before = 1)
+cor_hpe_acc_regr
 ```
 
-Correlations among holsitic effects (RT with regression):
+```{r}
+plot_pwe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=pwe_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[3], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Part-whole residuals (accuracy)", 
+       y = "Standard composite task residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_regr$r[1], cor_hpe_acc_regr$p[1]))
+plot_pwe_scfe_acc_regr
+```
+
+```{r}
+plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task residuals (d')", 
+       y = "Part-whole residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.3f", cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
+plot_ccfe_pwe_acc_regr
+```
+
+```{r}
+plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task residuals (d')", 
+       y = "Standard composite task residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
+plot_ccfe_scfe_acc_regr
+```
+
+#### RT
+Correlations among holistic effects (RT with regression):
 ```{r}
 corPlot(hpe_rt_regr)
 ```
 
 Correlations among holistic processing effects of RT (regression)
 ```{r}
-psych_cor2(hpe_rt_regr) %>% 
+cor_hpe_rt_regr <- psych_cor2(hpe_rt_regr) %>% 
   mutate(up_bound = c(
     upper_boundary(rel_pwe_rt_regr, rel_scfe_rt_regr),
     upper_boundary(rel_pwe_rt_regr, rel_ccfe_rt_subt_regr),
     upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_subt_regr)
   ), .before = 1)
+cor_hpe_rt_regr
+```
+
+```{r}
+plot_pwe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=pwe_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[3], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Part-whole residuals (RT)", 
+       y = "Standard composite task residuals (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[1], cor_hpe_rt_regr$p[1]))
+plot_pwe_scfe_rt_regr
+```
+
+```{r}
+plot_ccfe_pwe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task residuals (RT)", 
+       y = "Part-whole residuals (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[2], cor_hpe_rt_regr$p[2]))
+plot_ccfe_pwe_rt_regr
+```
+
+```{r}
+plot_ccfe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Complete composite task residuals (RT)", 
+       y = "Standard composite task residuals (RT)") +
+  geom_text(x=Inf, y=Inf, hjust = 1.5, vjust = 3,
+            label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[3], cor_hpe_rt_regr$p[3]))
+plot_ccfe_scfe_rt_regr
+```
+
+#### Plot
+```{r fig.width=12, fig.asp=.66}
+ggarrange(plot_pwe_scfe_acc_regr, plot_ccfe_pwe_acc_regr, plot_ccfe_scfe_acc_regr,
+          plot_pwe_scfe_rt_regr, plot_ccfe_pwe_rt_regr, plot_ccfe_scfe_rt_regr,
+          nrow = 2, ncol = 3)
 ```
 
 ## Correlations for facilitation and interference
@@ -1129,6 +1286,17 @@ psych_cor1 <- function(x, y, ...) {
 }
 ```
 
+```{r}
+hpe_acc <- pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject")
+
+hpe_rt <- pwe_rt %>% 
+  left_join(scfe_rt, by="Subject") %>% 
+  left_join(ccfe_rt, by="Subject")
+```
+
+
 ### PW and Facilitation in CCF
 
 #### Subtraction
@@ -1144,6 +1312,19 @@ rownames(r_pwe_fac_acc_subt) <- NULL
 r_pwe_fac_acc_subt
 ```
 
+```{r}
+plot_pwe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (d')",
+       y = "Part-whole difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_acc_subt$r, 
+                           r_pwe_fac_acc_subt$p))
+plot_pwe_fac_acc_subt
+```
+
 accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
@@ -1153,6 +1334,19 @@ r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_acc_subt) <- NULL
 r_pwe_fac_iso_acc_subt
+```
+
+```{r}
+plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (d')",
+       y = "Part-whole difference scores (Accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_iso_acc_subt$r, 
+                           r_pwe_fac_iso_acc_subt$p))
+plot_pwe_fac_acc_subt_iso
 ```
 
 RT 
@@ -1166,6 +1360,18 @@ rownames(r_pwe_fac_rt_subt) <- NULL
 r_pwe_fac_rt_subt
 ```
 
+```{r}
+plot_pwe_fac_rt_subt <- ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (RT)",
+       y = "Part-whole difference scores (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_rt_subt$r, 
+                           r_pwe_fac_rt_subt$p))
+plot_pwe_fac_rt_subt
+```
 
 RT isolated
 ```{r}
@@ -1176,6 +1382,19 @@ r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_rt_subt) <- NULL
 r_pwe_fac_iso_rt_subt
+```
+
+```{r}
+plot_pwe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (RT)",
+       y = "Part-whole difference scores (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_iso_rt_subt$r, 
+                           r_pwe_fac_iso_rt_subt$p))
+plot_pwe_fac_rt_subt_iso
 ```
 
 #### Regressions
@@ -1190,6 +1409,19 @@ rownames(r_pwe_fac_acc_regr) <- NULL
 r_pwe_fac_acc_regr
 ```
 
+```{r}
+plot_pwe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (d')",
+       y = "Part-whole residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.3f", 
+                           r_pwe_fac_acc_regr$r, 
+                           r_pwe_fac_acc_regr$p))
+plot_pwe_fac_acc_regr
+```
+
 Accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
@@ -1199,6 +1431,19 @@ r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_acc_regr) <- NULL
 r_pwe_fac_iso_acc_regr
+```
+
+```{r}
+plot_pwe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (d')",
+       y = "Part-whole residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.3f", 
+                           r_pwe_fac_iso_acc_regr$r, 
+                           r_pwe_fac_iso_acc_regr$p))
+plot_pwe_fac_acc_regr_iso
 ```
 
 RT 
@@ -1212,6 +1457,19 @@ rownames(r_pwe_fac_rt_regr) <- NULL
 r_pwe_fac_rt_regr
 ```
 
+```{r}
+plot_pwe_fac_rt_regr <- ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (RT)",
+       y = "Part-whole residuals (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_rt_regr$r, 
+                           r_pwe_fac_rt_regr$p))
+plot_pwe_fac_rt_regr
+```
+
 RT isolated
 ```{r}
 r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
@@ -1221,6 +1479,19 @@ r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>%
          .before = 1)
 rownames(r_pwe_fac_iso_rt_regr) <- NULL
 r_pwe_fac_iso_rt_regr
+```
+
+```{r}
+plot_pwe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (RT)",
+       y = "Part-whole residuals (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_pwe_fac_iso_rt_regr$r, 
+                           r_pwe_fac_iso_rt_regr$p))
+plot_pwe_fac_rt_regr_iso
 ```
 
 #### Interim summary
@@ -1239,11 +1510,23 @@ r_sum_pwe_fac %>%
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
+```{r fig.width=12, fig.asp=1}
+ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
+          plot_pwe_fac_acc_regr_iso, plot_pwe_fac_rt_regr_iso,
+          nrow=2, ncol=2)
+```
+
 Corrections for the baseline of misaligned:
 ```{r}
 r_sum_pwe_fac %>% 
   filter(!endsWith(pair, "_iso")) %>% 
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
+```{r fig.width=12, fig.asp=1}
+ggarrange(plot_pwe_fac_acc_subt, plot_pwe_fac_rt_subt,
+          plot_pwe_fac_acc_regr, plot_pwe_fac_rt_regr,
+          nrow=2, ncol=2)
 ```
 
 ### SCF and Interference in CCF
@@ -1260,6 +1543,19 @@ rownames(r_scfe_int_acc_subt) <- NULL
 r_scfe_int_acc_subt
 ```
 
+```{r}
+plot_scfe_int_acc_subt <- ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_acc_subt$r, 
+                           r_scfe_int_acc_subt$p))
+plot_scfe_int_acc_subt
+```
+
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
@@ -1269,6 +1565,19 @@ r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %
          .before = 1)
 rownames(r_scfe_int_iso_acc_subt) <- NULL
 r_scfe_int_iso_acc_subt
+```
+
+```{r}
+plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_iso_acc_subt$r, 
+                           r_scfe_int_iso_acc_subt$p))
+plot_scfe_int_acc_subt_iso
 ```
 
 RT 
@@ -1282,6 +1591,19 @@ rownames(r_scfe_int_rt_subt) <- NULL
 r_scfe_int_rt_subt
 ```
 
+```{r}
+plot_scfe_int_rt_subt <- ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_rt_subt$r, 
+                           r_scfe_int_rt_subt$p))
+plot_scfe_int_rt_subt
+```
+
 RT isolated
 ```{r}
 r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>% 
@@ -1291,6 +1613,19 @@ r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>
          .before = 1)
 rownames(r_scfe_int_iso_rt_subt) <- NULL
 r_scfe_int_iso_rt_subt
+```
+
+```{r}
+plot_scfe_int_rt_subt_iso <- ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (RT)",
+       y = "Standard composite task difference scores (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_iso_rt_subt$r, 
+                           r_scfe_int_iso_rt_subt$p))
+plot_scfe_int_rt_subt_iso
 ```
 
 #### Regressions
@@ -1305,6 +1640,19 @@ rownames(r_scfe_int_acc_regr) <- NULL
 r_scfe_int_acc_regr
 ```
 
+```{r}
+plot_scfe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (d')",
+       y = "Standard composite task residuals (accuracy)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_acc_regr$r, 
+                           r_scfe_int_acc_regr$p))
+plot_scfe_int_acc_regr
+```
+
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
@@ -1314,6 +1662,19 @@ r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %
          .before = 1)
 rownames(r_scfe_int_iso_acc_regr) <- NULL
 r_scfe_int_iso_acc_regr
+```
+
+```{r}
+plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (RT)",
+       y = "Standard composite task residuals (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.4f", 
+                           r_scfe_int_iso_acc_regr$r, 
+                           r_scfe_int_iso_acc_regr$p))
+plot_scfe_int_acc_regr_iso
 ```
 
 RT
@@ -1327,6 +1688,19 @@ rownames(r_scfe_int_rt_regr) <- NULL
 r_scfe_int_rt_regr
 ```
 
+```{r}
+plot_scfe_int_rt_regr <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (RT)",
+       y = "Standard composite task residuals (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_scfe_int_rt_regr$r, 
+                           r_scfe_int_rt_regr$p))
+plot_scfe_int_rt_regr
+```
+
 RT isolated
 ```{r}
 r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
@@ -1336,6 +1710,19 @@ r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>
          .before = 1)
 rownames(r_scfe_int_iso_rt_regr) <- NULL
 r_scfe_int_iso_rt_regr
+```
+
+```{r}
+plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (RT)",
+       y = "Standard composite task residuals (RT)") +
+  geom_text(x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
+            label= sprintf("r = %0.2f, p = %0.2f", 
+                           r_scfe_int_iso_rt_regr$r, 
+                           r_scfe_int_iso_rt_regr$p))
+plot_scfe_int_rt_regr_iso
 ```
 
 #### Interim summary
@@ -1354,11 +1741,24 @@ r_sum_scfe_int %>%
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
 ```
 
+```{r fig.width=12, fig.asp=1}
+ggarrange(plot_scfe_int_acc_subt_iso, plot_scfe_int_rt_subt_iso,
+          plot_scfe_int_acc_regr_iso, plot_scfe_int_rt_regr_iso,
+          nrow=2, ncol=2)
+```
+
 Corrections for the baseline of misaligned:
 ```{r}
 r_sum_scfe_int %>% 
   filter(!endsWith(pair, "_iso")) %>% 
   mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+```
+
+
+```{r fig.width=12, fig.asp=1}
+ggarrange(plot_scfe_int_acc_subt, plot_scfe_int_rt_subt,
+          plot_scfe_int_acc_regr, plot_scfe_int_rt_regr,
+          nrow=2, ncol=2)
 ```
 
 ## All pairwise correlations (just for fun)
@@ -1403,3 +1803,31 @@ pwe_rt %>%
   cor.plot()
 ```
 
+## Publication plot
+
+```{r fig.width=6, fig.asp=1}
+plot_cor_hpe <- 
+  ggarrange(plot_pwe_scfe_acc_subt, plot_ccfe_pwe_acc_subt, plot_ccfe_scfe_acc_subt,
+            plot_pwe_scfe_rt_subt, plot_ccfe_pwe_rt_subt, plot_ccfe_scfe_rt_subt,
+            plot_pwe_scfe_acc_regr, plot_ccfe_pwe_acc_regr, plot_ccfe_scfe_acc_regr,
+            plot_pwe_scfe_rt_regr, plot_ccfe_pwe_rt_regr, plot_ccfe_scfe_rt_regr,
+            nrow = 4, ncol = 3)
+# plot_cor_hpe
+```
+
+```{r fig.width=15, fig.asp=1}
+plot_cor_hpe
+```
+
+```{r fig.width=6, fig.asp=1.8}
+plot_cor_fi <- ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
+                          plot_pwe_fac_acc_regr_iso, plot_pwe_fac_rt_regr_iso,
+                          plot_scfe_int_acc_subt_iso, plot_scfe_int_rt_subt_iso,
+                          plot_scfe_int_acc_regr_iso, plot_scfe_int_rt_regr_iso,
+                          nrow=4, ncol=2)
+# plot_cor_fi
+```
+
+```{r fig.width=10, fig.asp=1.8}
+plot_cor_fi
+```

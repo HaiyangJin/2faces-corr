@@ -1705,6 +1705,10 @@ plot_hp_iso <-
             heights = c(1, 0.05, 1),
             nrow=3, ncol=3)
 # ggsave(filename = here("figures","plot_hp_iso.pdf"), plot_hp_iso, width = 14, height = 14*.65)
+# plot_hp_iso
+```
+
+```{r fig.width=13}
 plot_hp_iso
 ```
 
@@ -1736,5 +1740,9 @@ plot_hp <-
             heights = c(1, 0.05, 1),
             nrow=3, ncol=3)
 # ggsave(filename = here("figures","plot_hp.pdf"), plot_hp, width = 14, height = 14*.65)
+# plot_hp
+```
+
+```{r fig.width=13}
 plot_hp
 ```
