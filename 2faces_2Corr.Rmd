@@ -400,7 +400,7 @@ Behavioral choices for congruent aligned
 ```{r}
 rel_ccf_beha_ca <- rel_each(df_ccf_rel, "Correct", 
                             Congruency=="con", Alignment=="ali") %>%
-  tibble(DV = "behav", Condition = "con_ali", 
+  tibble(DV = "acc", Condition = "con_ali", 
          Approach = "GuttmanL2",  Reliability = .)
 
 rel_ccf_beha_ca
@@ -410,7 +410,7 @@ Behavioral choices for incongruent aligned
 ```{r}
 rel_ccf_beha_ia <- rel_each(df_ccf_rel, "Correct", 
                             Congruency=="inc", Alignment=="ali") %>% 
-  tibble(DV = "behav", Condition = "inc_ali", 
+  tibble(DV = "acc", Condition = "inc_ali", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_ia
 ```
@@ -419,7 +419,7 @@ Behavioral choices for congruent misaligned
 ```{r}
 rel_ccf_beha_cm <- rel_each(df_ccf_rel, "Correct", 
                             Congruency=="con", Alignment=="mis") %>%
-  tibble(DV = "behav", Condition = "con_mis", 
+  tibble(DV = "acc", Condition = "con_mis", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_cm
 ```
@@ -428,7 +428,7 @@ Behavioral choices for incongruent misaligned
 ```{r}
 rel_ccf_beha_im <- rel_each(df_ccf_rel, "Correct", 
                             Congruency=="inc", Alignment=="mis") %>% 
-  tibble(DV = "behav", Condition = "inc_mis", 
+  tibble(DV = "acc", Condition = "inc_mis", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_im
 ```
@@ -437,7 +437,7 @@ Behavioral choices for isolated
 ```{r}
 rel_ccf_beha_iso <- rel_each(df_ccf_rel, "Correct", 
                              Congruency=="iso", Alignment=="iso") %>%
-  tibble(DV = "behav", Condition = "isolated", 
+  tibble(DV = "acc", Condition = "isolated", 
          Approach = "GuttmanL2",  Reliability = .)
 rel_ccf_beha_iso
 ```
@@ -1059,8 +1059,10 @@ plot_pwe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=pwe_subt, y=scfe_subt)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole difference scores (accuracy)", 
        y = "Standard composite task difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_subt$r[1], cor_hpe_acc_subt$p[1]))
+  coord_cartesian(ylim = c(-.35, .6)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")",
+                          cor_hpe_acc_subt$r[1], cor_hpe_acc_subt$p[1]))
 plot_pwe_scfe_acc_subt
 ```
 
@@ -1070,8 +1072,10 @@ plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task difference scores (d')", 
        y = "Part-whole difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
+  # coord_cartesian(ylim = c(-.35, .6)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
 plot_ccfe_pwe_acc_subt
 ```
 
@@ -1081,8 +1085,9 @@ plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_sub
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task difference scores (d')", 
        y = "Standard composite task difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.3f", cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
 plot_ccfe_scfe_acc_subt
 ```
 
@@ -1113,8 +1118,9 @@ plot_pwe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=pwe_subt, y=scfe_subt)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole difference scores (RT)", 
        y = "Standard composite task difference scores (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[1], cor_hpe_rt_subt$p[1]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[1], cor_hpe_rt_subt$p[1]))
 
 plot_pwe_scfe_rt_subt
 ```
@@ -1125,8 +1131,9 @@ plot_ccfe_pwe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task difference scores (RT)", 
        y = "Part-whole difference scores (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[2], cor_hpe_rt_subt$p[2]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[2], cor_hpe_rt_subt$p[2]))
 plot_ccfe_pwe_rt_subt
 ```
 
@@ -1136,8 +1143,10 @@ plot_ccfe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=scfe_subt)
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task difference scores (RT)", 
        y = "Standard composite task difference scores (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_subt$r[3], cor_hpe_rt_subt$p[3]))
+  coord_cartesian(ylim = c(-600, 1000)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[3], cor_hpe_rt_subt$p[3]))
 plot_ccfe_scfe_rt_subt
 ```
 
@@ -1189,8 +1198,9 @@ plot_pwe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=pwe_regr, y=scfe_regr)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole residuals (accuracy)", 
        y = "Standard composite task residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_acc_regr$r[1], cor_hpe_acc_regr$p[1]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_regr$r[1], cor_hpe_acc_regr$p[1]))
 plot_pwe_scfe_acc_regr
 ```
 
@@ -1200,8 +1210,9 @@ plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task residuals (d')", 
        y = "Part-whole residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.3f", cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
 plot_ccfe_pwe_acc_regr
 ```
 
@@ -1211,8 +1222,9 @@ plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_reg
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task residuals (d')", 
        y = "Standard composite task residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
+                          cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
 plot_ccfe_scfe_acc_regr
 ```
 
@@ -1242,8 +1254,9 @@ plot_pwe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=pwe_regr, y=scfe_regr)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole residuals (RT)", 
        y = "Standard composite task residuals (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[1], cor_hpe_rt_regr$p[1]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[1], cor_hpe_rt_regr$p[1]))
 plot_pwe_scfe_rt_regr
 ```
 
@@ -1253,8 +1266,9 @@ plot_ccfe_pwe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task residuals (RT)", 
        y = "Part-whole residuals (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[2], cor_hpe_rt_regr$p[2]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[2], cor_hpe_rt_regr$p[2]))
 plot_ccfe_pwe_rt_regr
 ```
 
@@ -1264,8 +1278,9 @@ plot_ccfe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=scfe_regr)
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite task residuals (RT)", 
        y = "Standard composite task residuals (RT)") +
-  annotate("text", x=Inf, y=Inf, hjust = 1.5, vjust = 3,
-           label= sprintf("r = %0.2f, p = %0.2f", cor_hpe_rt_regr$r[3], cor_hpe_rt_regr$p[3]))
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[3], cor_hpe_rt_regr$p[3]))
 plot_ccfe_scfe_rt_regr
 ```
 
@@ -1359,16 +1374,14 @@ r_pwe_fac_acc_subt
 ```
 
 ```{r}
-plot_pwe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
+ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (d')",
        y = "Part-whole difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
-                          r_pwe_fac_acc_subt$r, 
-                          r_pwe_fac_acc_subt$p))
-plot_pwe_fac_acc_subt
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f \")",
+                          r_pwe_fac_acc_subt$r, r_pwe_fac_acc_subt$p))
 ```
 
 accuracy isolated
@@ -1383,16 +1396,15 @@ r_pwe_fac_iso_acc_subt
 ```
 
 ```{r}
-plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
+ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (d')",
        y = "Part-whole difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_subt$r, 
                           r_pwe_fac_iso_acc_subt$p))
-plot_pwe_fac_acc_subt_iso
 ```
 
 RT 
@@ -1407,16 +1419,15 @@ r_pwe_fac_rt_subt
 ```
 
 ```{r}
-plot_pwe_fac_rt_subt <- ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
+ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (RT)",
        y = "Part-whole difference scores (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_rt_subt$r, 
                           r_pwe_fac_rt_subt$p))
-plot_pwe_fac_rt_subt
 ```
 
 RT isolated
@@ -1431,16 +1442,16 @@ r_pwe_fac_iso_rt_subt
 ```
 
 ```{r}
-plot_pwe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
+ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (RT)",
        y = "Part-whole difference scores (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  coord_cartesian(ylim = c(-750, 1200)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_subt$r, 
                           r_pwe_fac_iso_rt_subt$p))
-plot_pwe_fac_rt_subt_iso
 ```
 
 #### Regressions
@@ -1456,16 +1467,15 @@ r_pwe_fac_acc_regr
 ```
 
 ```{r}
-plot_pwe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
+ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (d')",
        y = "Part-whole residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.3f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_acc_regr$r, 
                           r_pwe_fac_acc_regr$p))
-plot_pwe_fac_acc_regr
 ```
 
 Accuracy isolated
@@ -1480,16 +1490,15 @@ r_pwe_fac_iso_acc_regr
 ```
 
 ```{r}
-plot_pwe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
+ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (d')",
        y = "Part-whole residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.3f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_regr$r, 
                           r_pwe_fac_iso_acc_regr$p))
-plot_pwe_fac_acc_regr_iso
 ```
 
 RT 
@@ -1504,16 +1513,15 @@ r_pwe_fac_rt_regr
 ```
 
 ```{r}
-plot_pwe_fac_rt_regr <- ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
+ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (RT)",
        y = "Part-whole residuals (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_rt_regr$r, 
                           r_pwe_fac_rt_regr$p))
-plot_pwe_fac_rt_regr
 ```
 
 RT isolated
@@ -1528,16 +1536,16 @@ r_pwe_fac_iso_rt_regr
 ```
 
 ```{r}
-plot_pwe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
+ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (RT)",
        y = "Part-whole residuals (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  coord_cartesian(ylim = c(-650, 1200)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_regr$r, 
                           r_pwe_fac_iso_rt_regr$p))
-plot_pwe_fac_rt_regr_iso
 ```
 
 #### Interim summary
@@ -1555,9 +1563,83 @@ r_pwe_fac_iso <- r_sum_pwe_fac %>%
   filter(endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
          adjust="holm") %>%  # apply Holm-Bonferroni
-  psych_cor1_adj_CI()
+  psych_cor1_adj_CI() %>% 
+  mutate(effect = "Facilitation")
 r_pwe_fac_iso
 ```
+
+```{r}
+plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (d')",
+       y = "Part-whole difference scores (accuracy)") +
+  coord_cartesian(ylim = c(-.25, .36)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_acc_subt$r, 
+                          r_pwe_fac_iso_acc_subt$p,
+                          r_pwe_fac_iso$p.adj[1]))
+plot_pwe_fac_acc_subt_iso
+```
+
+
+```{r}
+plot_pwe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (RT)",
+       y = "Part-whole difference scores (RT)") +
+  coord_cartesian(ylim = c(-770, 1200)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_rt_subt$r, 
+                          r_pwe_fac_iso_rt_subt$p,
+                          r_pwe_fac_iso$p.adj[2]))
+plot_pwe_fac_rt_subt_iso
+```
+
+
+```{r}
+plot_pwe_fac_acc_regr_iso <-ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (d')",
+       y = "Part-whole residuals (accuracy)") +
+  coord_cartesian(ylim = c(-.35, .19)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_acc_regr$r, 
+                          r_pwe_fac_iso_acc_regr$p,
+                          r_pwe_fac_iso$p.adj[3]))
+plot_pwe_fac_acc_regr_iso
+```
+
+
+
+```{r}
+plot_pwe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (RT)",
+       y = "Part-whole residuals (RT)") +
+  coord_cartesian(ylim = c(-650, 1200)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_rt_regr$r, 
+                          r_pwe_fac_iso_rt_regr$p,
+                          r_pwe_fac_iso$p.adj[4]))
+plot_pwe_fac_rt_regr_iso
+```
+
 
 ```{r fig.width=12, fig.asp=1}
 ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
@@ -1573,6 +1655,71 @@ r_pwe_fac <- r_sum_pwe_fac %>%
          adjust="holm") %>%  # apply Holm-Bonferroni
   psych_cor1_adj_CI()
 r_pwe_fac
+```
+
+
+```{r}
+plot_pwe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (d')",
+       y = "Part-whole difference scores (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_acc_subt$r, 
+                          r_pwe_fac_acc_subt$p,
+                          r_pwe_fac$p.adj[1]))
+plot_pwe_fac_acc_subt
+```
+
+```{r}
+plot_pwe_fac_rt_subt <- ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation difference scores (RT)",
+       y = "Part-whole difference scores (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")",
+                          r_pwe_fac_rt_subt$r, 
+                          r_pwe_fac_rt_subt$p,
+                          r_pwe_fac$p.adj[2]))
+plot_pwe_fac_rt_subt
+```
+
+```{r}
+plot_pwe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (RT)",
+       y = "Part-whole residuals (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")",
+                          r_pwe_fac_acc_regr$r, 
+                          r_pwe_fac_acc_regr$p,
+                          r_pwe_fac$p.adj[3]))
+plot_pwe_fac_acc_regr
+```
+
+```{r}
+plot_pwe_fac_rt_regr <- ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Facilitation residuals (RT)",
+       y = "Part-whole residuals (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_rt_regr$r, 
+                          r_pwe_fac_rt_regr$p,
+                          r_pwe_fac$p.adj[4]))
+plot_pwe_fac_rt_regr
 ```
 
 ```{r fig.width=12, fig.asp=1}
@@ -1596,16 +1743,15 @@ r_scfe_int_acc_subt
 ```
 
 ```{r}
-plot_scfe_int_acc_subt <- ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
+ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference difference scores (d')",
        y = "Standard composite task difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
                           r_scfe_int_acc_subt$r, 
                           r_scfe_int_acc_subt$p))
-plot_scfe_int_acc_subt
 ```
 
 Accuracy isolated
@@ -1620,16 +1766,15 @@ r_scfe_int_iso_acc_subt
 ```
 
 ```{r}
-plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
+ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference difference scores (d')",
        y = "Standard composite task difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
                           r_scfe_int_iso_acc_subt$r, 
                           r_scfe_int_iso_acc_subt$p))
-plot_scfe_int_acc_subt_iso
 ```
 
 RT 
@@ -1644,16 +1789,15 @@ r_scfe_int_rt_subt
 ```
 
 ```{r}
-plot_scfe_int_rt_subt <- ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
+ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference difference scores (d')",
        y = "Standard composite task difference scores (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_scfe_int_rt_subt$r, 
                           r_scfe_int_rt_subt$p))
-plot_scfe_int_rt_subt
 ```
 
 RT isolated
@@ -1661,23 +1805,22 @@ RT isolated
 r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>%
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt_iso",
-         DV = "acc",
+         DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
          .before = 1)
 r_scfe_int_iso_rt_subt
 ```
 
 ```{r}
-plot_scfe_int_rt_subt_iso <- ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
+ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference difference scores (RT)",
        y = "Standard composite task difference scores (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")",  
                           r_scfe_int_iso_rt_subt$r, 
                           r_scfe_int_iso_rt_subt$p))
-plot_scfe_int_rt_subt_iso
 ```
 
 #### Regressions
@@ -1693,16 +1836,15 @@ r_scfe_int_acc_regr
 ```
 
 ```{r}
-plot_scfe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
+ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (d')",
        y = "Standard composite task residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
                           r_scfe_int_acc_regr$r, 
                           r_scfe_int_acc_regr$p))
-plot_scfe_int_acc_regr
 ```
 
 Accuracy isolated
@@ -1717,16 +1859,15 @@ r_scfe_int_iso_acc_regr
 ```
 
 ```{r}
-plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
+ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (d')",
        y = "Standard composite task residuals (accuracy)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.4f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
                           r_scfe_int_iso_acc_regr$r, 
                           r_scfe_int_iso_acc_regr$p))
-plot_scfe_int_acc_regr_iso
 ```
 
 RT
@@ -1741,16 +1882,15 @@ r_scfe_int_rt_regr
 ```
 
 ```{r}
-plot_scfe_int_rt_regr <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (RT)",
        y = "Standard composite task residuals (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_scfe_int_rt_regr$r, 
                           r_scfe_int_rt_regr$p))
-plot_scfe_int_rt_regr
 ```
 
 RT isolated
@@ -1765,16 +1905,15 @@ r_scfe_int_iso_rt_regr
 ```
 
 ```{r}
-plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (RT)",
        y = "Standard composite task residuals (RT)") +
-  annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
-           label= sprintf("r = %0.2f, p = %0.2f", 
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_scfe_int_iso_rt_regr$r, 
                           r_scfe_int_iso_rt_regr$p))
-plot_scfe_int_rt_regr_iso
 ```
 
 #### Interim summary
@@ -1792,8 +1931,75 @@ r_scfe_int_iso <- r_sum_scfe_int %>%
   filter(endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
          adjust="holm") %>%  # apply Holm-Bonferroni
-  psych_cor1_adj_CI()
+  psych_cor1_adj_CI() %>% 
+  mutate(effect = "Interference")
 r_scfe_int_iso
+```
+
+```{r}
+plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.5f, \"
+                          ,italic(p)[adj], \" = %0.5f\")", 
+                          r_scfe_int_iso_acc_subt$r, 
+                          r_scfe_int_iso_acc_subt$p,
+                          r_scfe_int_iso$p.adj[1]))
+plot_scfe_int_acc_subt_iso
+```
+
+```{r}
+plot_scfe_int_rt_subt_iso <- ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (RT)",
+       y = "Standard composite task difference scores (RT)") +
+  coord_cartesian(ylim = c(-1100, 600)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.3f, \"
+                          ,italic(p)[adj], \" = %0.3f\")", 
+                          r_scfe_int_iso_rt_subt$r, 
+                          r_scfe_int_iso_rt_subt$p,
+                          r_scfe_int_iso$p.adj[2]))
+plot_scfe_int_rt_subt_iso
+```
+
+```{r}
+plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (d')",
+       y = "Standard composite task residuals (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.5f, \"
+                          ,italic(p)[adj], \" = %0.5f\")", 
+                          r_scfe_int_iso_acc_regr$r, 
+                          r_scfe_int_iso_acc_regr$p,
+                          r_scfe_int_iso$p.adj[3]))
+plot_scfe_int_acc_regr_iso
+```
+
+```{r}
+plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (RT)",
+       y = "Standard composite task residuals (RT)") +
+  coord_cartesian(ylim = c(-730, 470)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_int_iso_rt_regr$r, 
+                          r_scfe_int_iso_rt_regr$p,
+                          r_scfe_int_iso$p.adj[4]))
+plot_scfe_int_rt_regr_iso
 ```
 
 ```{r fig.width=12, fig.asp=1}
@@ -1810,6 +2016,70 @@ r_scfe_int <- r_sum_scfe_int %>%
          adjust="holm") %>%  # apply Holm-Bonferroni
   psych_cor1_adj_CI()
 r_scfe_int
+```
+
+```{r}
+plot_scfe_int_acc_subt <- ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.4f, \"
+                          ,italic(p)[adj], \" = %0.3f\")", 
+                          r_scfe_int_acc_subt$r, 
+                          r_scfe_int_acc_subt$p,
+                          r_scfe_int$p.adj[1]))
+plot_scfe_int_acc_subt
+```
+
+```{r}
+plot_scfe_int_rt_subt <- ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference difference scores (d')",
+       y = "Standard composite task difference scores (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_int_rt_subt$r, 
+                          r_scfe_int_rt_subt$p,
+                          r_scfe_int$p.adj[2]))
+plot_scfe_int_rt_subt
+```
+
+```{r}
+plot_scfe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (d')",
+       y = "Standard composite task residuals (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.5f, \"
+                          ,italic(p)[adj], \" = %0.5f\")", 
+                          r_scfe_int_acc_regr$r, 
+                          r_scfe_int_acc_regr$p,
+                          r_scfe_int$p.adj[3]))
+plot_scfe_int_acc_regr
+```
+
+```{r}
+plot_scfe_int_rt_regr <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Interference residuals (RT)",
+       y = "Standard composite task residuals (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_int_rt_regr$r, 
+                          r_scfe_int_rt_regr$p,
+                          r_scfe_int$p.adj[4]))
+plot_scfe_int_rt_regr
 ```
 
 
@@ -1868,7 +2138,7 @@ pwe_rt %>%
 ```{r}
 rel_sum <- bind_rows(rel_sum_pw, rel_sum_scf, rel_sum_ccf) %>% 
   select(-niter)
-
+# write_csv(rel_sum, "reliability_summary.csv")
 rel_sum
 ```
 
@@ -1876,18 +2146,21 @@ rel_sum
 ### Table 2: correlations
 
 ```{r}
-cor_hpe %>% 
+cor_sum <- cor_hpe %>% 
   rename(upper = upper95,
          lower = lower95) %>% 
+  mutate(effect = "Holistic Processing", .before=1) %>%  
   mutate(CI = .95) %>% 
   bind_rows(bind_rows(r_pwe_fac_iso, r_scfe_int_iso) %>% 
               rename(upper = upper90,
                      lower = lower90) %>% 
               mutate(CI = .90))
+# write_csv(cor_sum, "correlation_summary.csv")
+cor_sum
 ```
 
 
-### Figure 3: correlations
+### Figure 3: correlations among holistic processing effects
 
 ```{r fig.width=6, fig.asp=1}
 plot_cor_hpe <- 
@@ -1896,12 +2169,15 @@ plot_cor_hpe <-
             plot_pwe_scfe_acc_regr, plot_ccfe_pwe_acc_regr, plot_ccfe_scfe_acc_regr,
             plot_pwe_scfe_rt_regr, plot_ccfe_pwe_rt_regr, plot_ccfe_scfe_rt_regr,
             nrow = 4, ncol = 3)
+
 # plot_cor_hpe
 ```
 
 ```{r fig.width=15, fig.asp=1}
 plot_cor_hpe
 ```
+
+### Figure 4: correlations with facilitation and interference
 
 ```{r fig.width=6, fig.asp=1.8}
 plot_cor_fi <- ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
