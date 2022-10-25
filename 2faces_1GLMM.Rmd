@@ -1705,7 +1705,9 @@ plot_hp_iso <-
             labels = c("a", "", "b", "", "", "", "c", "", "d"),
             widths = c(1, 0.05, 1),
             heights = c(1, 0.05, 1),
-            nrow=3, ncol=3)
+            nrow=3, ncol=3) +
+  bgcolor("white") +
+  border("white")
 # ggsave(filename = here("figures","plot_hp_iso.pdf"), plot_hp_iso, width = 14, height = 14*.65)
 # plot_hp_iso
 ```
@@ -1740,7 +1742,9 @@ plot_hp <-
             labels = c("a", "", "b", "", "", "", "c", "", "d"),
             widths = c(1, 0.05, 1),
             heights = c(1, 0.05, 1),
-            nrow=3, ncol=3)
+            nrow=3, ncol=3) +
+  bgcolor("white") +
+  border("white")
 # ggsave(filename = here("figures","plot_hp.pdf"), plot_hp, width = 14, height = 14*.65)
 # plot_hp
 ```
