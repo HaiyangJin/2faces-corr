@@ -1639,6 +1639,8 @@ plot_fi_rt
 
 ## Publication plot
 
+### Figure 2: holsitic processing effects
+
 ```{r}
 acc_y_limits <- c(.75, 1)
 d_y_limits <- c(0, 2.7)

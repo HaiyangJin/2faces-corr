@@ -975,19 +975,21 @@ rel_ccfe_rt_regr_regr
 #### Interim summary 
 
 ```{r}
-bind_rows(rel_ccf_beha_ca, rel_ccf_beha_ia, rel_ccf_beha_cm, rel_ccf_beha_im, rel_ccf_beha_iso, # each condition
-          rel_ccf_rt_ca, rel_ccf_rt_ia, rel_ccf_rt_cm, rel_ccf_rt_im, rel_ccf_rt_iso, # each condition
-          rel_ccf_d_ca, rel_ccf_d_ia, rel_ccf_d_cm, rel_ccf_d_im, rel_ccf_d_iso, # each condition
-          rel_fac_d_iso_subt, rel_fac_d_iso_regr, rel_fac_rt_iso_subt, rel_fac_rt_iso_regr, # facilitation (isolated)
-          rel_fac_d_subt, rel_fac_d_regr, rel_fac_rt_subt, rel_fac_rt_regr, # facilitation 
-          rel_int_d_iso_subt, rel_int_d_iso_regr, rel_int_rt_iso_subt, rel_int_rt_iso_regr, # interference (isolated)
-          rel_int_d_subt, rel_int_d_regr, rel_int_rt_subt, rel_int_rt_regr, # interference 
-          rel_ccf_d_cong_a_subt, rel_ccf_d_cong_m_subt, rel_ccf_rt_cong_a_subt, rel_ccf_rt_cong_m_subt, # congruency effects (subtraction)
-          rel_ccf_d_cong_a_regr, rel_ccf_d_cong_m_regr, rel_ccf_rt_cong_a_regr, rel_ccf_rt_cong_m_regr, # congruency effects (subtraction)
-          rel_ccfe_d_subt_subt, rel_ccfe_d_regr_subt, rel_ccfe_d_subt_regr, rel_ccfe_d_regr_regr, # composite effects
-          rel_ccfe_rt_subt_subt, rel_ccfe_rt_regr_subt, rel_ccfe_rt_subt_regr, rel_ccfe_rt_regr_regr # composite effects
-) %>% 
+rel_sum_ccf <- 
+  bind_rows(rel_ccf_beha_ca, rel_ccf_beha_ia, rel_ccf_beha_cm, rel_ccf_beha_im, rel_ccf_beha_iso, # each condition
+            rel_ccf_rt_ca, rel_ccf_rt_ia, rel_ccf_rt_cm, rel_ccf_rt_im, rel_ccf_rt_iso, # each condition
+            rel_ccf_d_ca, rel_ccf_d_ia, rel_ccf_d_cm, rel_ccf_d_im, rel_ccf_d_iso, # each condition
+            rel_fac_d_iso_subt, rel_fac_d_iso_regr, rel_fac_rt_iso_subt, rel_fac_rt_iso_regr, # facilitation (isolated)
+            rel_fac_d_subt, rel_fac_d_regr, rel_fac_rt_subt, rel_fac_rt_regr, # facilitation 
+            rel_int_d_iso_subt, rel_int_d_iso_regr, rel_int_rt_iso_subt, rel_int_rt_iso_regr, # interference (isolated)
+            rel_int_d_subt, rel_int_d_regr, rel_int_rt_subt, rel_int_rt_regr, # interference 
+            rel_ccf_d_cong_a_subt, rel_ccf_d_cong_m_subt, rel_ccf_rt_cong_a_subt, rel_ccf_rt_cong_m_subt, # congruency effects (subtraction)
+            rel_ccf_d_cong_a_regr, rel_ccf_d_cong_m_regr, rel_ccf_rt_cong_a_regr, rel_ccf_rt_cong_m_regr, # congruency effects (subtraction)
+            rel_ccfe_d_subt_subt, rel_ccfe_d_regr_subt, rel_ccfe_d_subt_regr, rel_ccfe_d_regr_regr, # composite effects
+            rel_ccfe_rt_subt_subt, rel_ccfe_rt_regr_subt, rel_ccfe_rt_subt_regr, rel_ccfe_rt_regr_regr # composite effects
+  ) %>% 
   mutate(Task = "CCF", .before=1)
+rel_sum_ccf
 ```
 
 
@@ -1039,11 +1041,15 @@ corPlot(hpe_acc_subt)
 Correlations among holistic processing effects of accuracy (subtraction):
 ```{r}
 cor_hpe_acc_subt <- psych_cor2(hpe_acc_subt) %>% 
-  mutate(up_bound = c(
-    upper_boundary(rel_pwe_acc_subt, rel_scfe_acc_subt),
-    upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt_subt),
-    upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt_subt)
-  ), .before = 1)
+  rownames_to_column("pair") %>% 
+  mutate(DV = "acc", 
+         pair = c("pwe_subt ~ scfe_subt", "ccfe_subt ~ pwe_subt", "ccfe_subt ~ scfe_subt"),
+         up_bound = c(
+           upper_boundary(rel_pwe_acc_subt, rel_scfe_acc_subt),
+           upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt_subt),
+           upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt_subt)
+         ), .before = 1) 
+  
 cor_hpe_acc_subt
 ```
 
@@ -1090,11 +1096,14 @@ corPlot(hpe_rt_subt)
 Correlations among holistic processing effects of RT (subtraction)
 ```{r}
 cor_hpe_rt_subt <- psych_cor2(hpe_rt_subt) %>% 
-  mutate(up_bound = c(
-    upper_boundary(rel_pwe_rt_subt, rel_scfe_rt_subt),
-    upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt_subt),
-    upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt_subt)
-  ), .before = 1)
+  rownames_to_column("pair") %>% 
+  mutate(DV = "rt", 
+         pair = c("pwe_subt ~ scfe_subt", "ccfe_subt ~ pwe_subt", "ccfe_subt ~ scfe_subt"),
+         up_bound = c(
+           upper_boundary(rel_pwe_rt_subt, rel_scfe_rt_subt),
+           upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt_subt),
+           upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt_subt)
+         ), .before = 1) 
 cor_hpe_rt_subt
 ```
 
@@ -1163,11 +1172,14 @@ corPlot(hpe_acc_regr)
 Correlations among holistic processing effects of accuracy (regression)
 ```{r}
 cor_hpe_acc_regr <- psych_cor2(hpe_acc_regr) %>% 
-  mutate(up_bound = c(
-    upper_boundary(rel_pwe_acc_regr, rel_scfe_acc_regr),
-    upper_boundary(rel_pwe_acc_regr, rel_ccfe_d_subt_regr),
-    upper_boundary(rel_scfe_acc_regr, rel_ccfe_d_subt_regr)
-  ), .before = 1)
+  rownames_to_column("pair") %>% 
+  mutate(DV = "acc", 
+         pair = c("pwe_regr ~ scfe_regr", "ccfe_regr ~ pwe_regr", "ccfe_regr ~ scfe_regr"),
+         up_bound = c(
+           upper_boundary(rel_pwe_acc_regr, rel_scfe_acc_regr),
+           upper_boundary(rel_pwe_acc_regr, rel_ccfe_d_subt_regr),
+           upper_boundary(rel_scfe_acc_regr, rel_ccfe_d_subt_regr)
+         ), .before = 1) 
 cor_hpe_acc_regr
 ```
 
@@ -1213,11 +1225,14 @@ corPlot(hpe_rt_regr)
 Correlations among holistic processing effects of RT (regression)
 ```{r}
 cor_hpe_rt_regr <- psych_cor2(hpe_rt_regr) %>% 
-  mutate(up_bound = c(
-    upper_boundary(rel_pwe_rt_regr, rel_scfe_rt_regr),
-    upper_boundary(rel_pwe_rt_regr, rel_ccfe_rt_subt_regr),
-    upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_subt_regr)
-  ), .before = 1)
+  rownames_to_column("pair") %>% 
+  mutate(DV = "rt", 
+         pair = c("pwe_regr ~ scfe_regr", "ccfe_regr ~ pwe_regr", "ccfe_regr ~ scfe_regr"),
+         up_bound = c(
+           upper_boundary(rel_pwe_rt_regr, rel_scfe_rt_regr),
+           upper_boundary(rel_pwe_rt_regr, rel_ccfe_rt_subt_regr),
+           upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_subt_regr)
+         ), .before = 1) 
 cor_hpe_rt_regr
 ```
 
@@ -1260,6 +1275,15 @@ ggarrange(plot_pwe_scfe_acc_regr, plot_ccfe_pwe_acc_regr, plot_ccfe_scfe_acc_reg
           plot_pwe_scfe_rt_regr, plot_ccfe_pwe_rt_regr, plot_ccfe_scfe_rt_regr,
           nrow = 2, ncol = 3)
 ```
+
+### Interim summary
+
+```{r}
+cor_hpe <- bind_rows(cor_hpe_acc_subt, cor_hpe_rt_subt, 
+                     cor_hpe_acc_regr, cor_hpe_rt_regr)
+cor_hpe
+```
+
 
 ## Correlations for facilitation and interference
 
@@ -1304,11 +1328,11 @@ hpe_rt <- pwe_rt %>%
 accuracy 
 ```{r}
 r_pwe_fac_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_subt),
          .before = 1)
-rownames(r_pwe_fac_acc_subt) <- NULL
 r_pwe_fac_acc_subt
 ```
 
@@ -1328,11 +1352,11 @@ plot_pwe_fac_acc_subt
 accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_iso_subt),
          .before = 1)
-rownames(r_pwe_fac_iso_acc_subt) <- NULL
 r_pwe_fac_iso_acc_subt
 ```
 
@@ -1341,7 +1365,7 @@ plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (d')",
-       y = "Part-whole difference scores (Accuracy)") +
+       y = "Part-whole difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
            label= sprintf("r = %0.2f, p = %0.2f", 
                           r_pwe_fac_iso_acc_subt$r, 
@@ -1352,11 +1376,11 @@ plot_pwe_fac_acc_subt_iso
 RT 
 ```{r}
 r_pwe_fac_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_subt),
          .before = 1)
-rownames(r_pwe_fac_rt_subt) <- NULL
 r_pwe_fac_rt_subt
 ```
 
@@ -1376,11 +1400,11 @@ plot_pwe_fac_rt_subt
 RT isolated
 ```{r}
 r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_iso_subt),
          .before = 1)
-rownames(r_pwe_fac_iso_rt_subt) <- NULL
 r_pwe_fac_iso_rt_subt
 ```
 
@@ -1401,11 +1425,11 @@ plot_pwe_fac_rt_subt_iso
 Accuracy
 ```{r}
 r_pwe_fac_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_regr),
          .before = 1)
-rownames(r_pwe_fac_acc_regr) <- NULL
 r_pwe_fac_acc_regr
 ```
 
@@ -1425,11 +1449,11 @@ plot_pwe_fac_acc_regr
 Accuracy isolated
 ```{r}
 r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_iso_regr),
          .before = 1)
-rownames(r_pwe_fac_iso_acc_regr) <- NULL
 r_pwe_fac_iso_acc_regr
 ```
 
@@ -1449,11 +1473,11 @@ plot_pwe_fac_acc_regr_iso
 RT 
 ```{r}
 r_pwe_fac_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_regr),
          .before = 1)
-rownames(r_pwe_fac_rt_regr) <- NULL
 r_pwe_fac_rt_regr
 ```
 
@@ -1473,11 +1497,11 @@ plot_pwe_fac_rt_regr
 RT isolated
 ```{r}
 r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_iso_regr),
          .before = 1)
-rownames(r_pwe_fac_iso_rt_regr) <- NULL
 r_pwe_fac_iso_rt_regr
 ```
 
@@ -1505,9 +1529,11 @@ r_sum_pwe_fac <- bind_rows(r_pwe_fac_acc_subt, r_pwe_fac_iso_acc_subt,
 
 Corrections for the baseline of isolated:
 ```{r}
-r_sum_pwe_fac %>% 
+r_pwe_fac_iso <- r_sum_pwe_fac %>% 
   filter(endsWith(pair, "_iso")) %>% 
-  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+  mutate(p.adj = p.adjust(p, method = "holm"),
+         adjust="holm") # apply Holm-Bonferroni
+r_pwe_fac_iso
 ```
 
 ```{r fig.width=12, fig.asp=1}
@@ -1518,9 +1544,11 @@ ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
 
 Corrections for the baseline of misaligned:
 ```{r}
-r_sum_pwe_fac %>% 
+r_pwe_fac <- r_sum_pwe_fac %>% 
   filter(!endsWith(pair, "_iso")) %>% 
-  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+  mutate(p.adj = p.adjust(p, method = "holm"),
+         adjust="holm") # apply Holm-Bonferroni
+r_pwe_fac
 ```
 
 ```{r fig.width=12, fig.asp=1}
@@ -1535,11 +1563,11 @@ ggarrange(plot_pwe_fac_acc_subt, plot_pwe_fac_rt_subt,
 Accuracy
 ```{r}
 r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_subt),
          .before = 1)
-rownames(r_scfe_int_acc_subt) <- NULL
 r_scfe_int_acc_subt
 ```
 
@@ -1559,11 +1587,11 @@ plot_scfe_int_acc_subt
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_iso_subt),
          .before = 1)
-rownames(r_scfe_int_iso_acc_subt) <- NULL
 r_scfe_int_iso_acc_subt
 ```
 
@@ -1583,11 +1611,11 @@ plot_scfe_int_acc_subt_iso
 RT 
 ```{r}
 r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_subt),
          .before = 1)
-rownames(r_scfe_int_rt_subt) <- NULL
 r_scfe_int_rt_subt
 ```
 
@@ -1606,12 +1634,12 @@ plot_scfe_int_rt_subt
 
 RT isolated
 ```{r}
-r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>% 
+r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>%
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
          .before = 1)
-rownames(r_scfe_int_iso_rt_subt) <- NULL
 r_scfe_int_iso_rt_subt
 ```
 
@@ -1632,11 +1660,11 @@ plot_scfe_int_rt_subt_iso
 Accuracy
 ```{r}
 r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_regr),
          .before = 1)
-rownames(r_scfe_int_acc_regr) <- NULL
 r_scfe_int_acc_regr
 ```
 
@@ -1656,11 +1684,11 @@ plot_scfe_int_acc_regr
 Accuracy isolated
 ```{r}
 r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_iso_regr),
          .before = 1)
-rownames(r_scfe_int_iso_acc_regr) <- NULL
 r_scfe_int_iso_acc_regr
 ```
 
@@ -1668,8 +1696,8 @@ r_scfe_int_iso_acc_regr
 plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
-  labs(x = "Interference residuals (RT)",
-       y = "Standard composite task residuals (RT)") +
+  labs(x = "Interference residuals (d')",
+       y = "Standard composite task residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.5, vjust = -3,
            label= sprintf("r = %0.2f, p = %0.4f", 
                           r_scfe_int_iso_acc_regr$r, 
@@ -1680,11 +1708,11 @@ plot_scfe_int_acc_regr_iso
 RT
 ```{r}
 r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_regr),
          .before = 1)
-rownames(r_scfe_int_rt_regr) <- NULL
 r_scfe_int_rt_regr
 ```
 
@@ -1704,11 +1732,11 @@ plot_scfe_int_rt_regr
 RT isolated
 ```{r}
 r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
+  rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_iso_regr),
          .before = 1)
-rownames(r_scfe_int_iso_rt_regr) <- NULL
 r_scfe_int_iso_rt_regr
 ```
 
@@ -1736,9 +1764,11 @@ r_sum_scfe_int <- bind_rows(r_scfe_int_acc_subt, r_scfe_int_iso_acc_subt,
 
 Corrections for the baseline of isolated:
 ```{r}
-r_sum_scfe_int %>% 
+r_scfe_int_iso <- r_sum_scfe_int %>% 
   filter(endsWith(pair, "_iso")) %>% 
-  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+  mutate(p.adj = p.adjust(p, method = "holm"),
+         adjust="holm") # apply Holm-Bonferroni
+r_scfe_int_iso
 ```
 
 ```{r fig.width=12, fig.asp=1}
@@ -1749,9 +1779,11 @@ ggarrange(plot_scfe_int_acc_subt_iso, plot_scfe_int_rt_subt_iso,
 
 Corrections for the baseline of misaligned:
 ```{r}
-r_sum_scfe_int %>% 
+r_scfe_int <- r_sum_scfe_int %>% 
   filter(!endsWith(pair, "_iso")) %>% 
-  mutate(p_cor = p.adjust(p, method = "holm")) # apply Holm-Bonferroni
+  mutate(p.adj = p.adjust(p, method = "holm"),
+         adjust="holm") # apply Holm-Bonferroni
+r_scfe_int
 ```
 
 
@@ -1803,7 +1835,33 @@ pwe_rt %>%
   cor.plot()
 ```
 
-## Publication plot
+## Publication 
+
+### Table 1: reliability
+
+```{r}
+rel_sum <- bind_rows(rel_sum_pw, rel_sum_scf, rel_sum_ccf) %>% 
+  select(-niter)
+
+rel_sum
+```
+
+
+### Table 2: correlations
+
+```{r}
+cor_hpe %>% 
+  rename(upper = upper95,
+         lower = lower95) %>% 
+  mutate(CI = .95) %>% 
+  bind_rows(bind_rows(r_pwe_fac_iso, r_scfe_int_iso) %>% 
+              rename(upper = upper90,
+                     lower = lower90) %>% 
+              mutate(CI = .90))
+```
+
+
+### Figure 3: correlations
 
 ```{r fig.width=6, fig.asp=1}
 plot_cor_hpe <- 
@@ -1831,3 +1889,5 @@ plot_cor_fi <- ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_rt_subt_iso,
 ```{r fig.width=10, fig.asp=1.8}
 plot_cor_fi
 ```
+
+
