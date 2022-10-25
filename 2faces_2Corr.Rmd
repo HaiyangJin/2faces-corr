@@ -1310,6 +1310,28 @@ psych_cor1 <- function(x, y, ...) {
 }
 ```
 
+
+```{r}
+# calculate the adjusted CI
+psych_cor1_adj_CI <- function(.data, alpha=.10){
+  # codes are modified from psych::corr.test()
+  z <- fisherz(.data$r)
+  ord <- order(z, decreasing = FALSE)
+  
+  dif.corrected <- qnorm(1-alpha/(2*(order(ord))))
+  se <- 1/sqrt(.data$N - 3)
+  
+  # dif <- qnorm(1-alpha/2)
+  # lower <- fisherz2r(z - dif * se)
+  # upper <- fisherz2r(z + dif * se)
+  .data %>% 
+    mutate(lower.adj=fisherz2r(z - dif.corrected * se),
+           upper.adj=fisherz2r(z + dif.corrected * se)) %>% 
+    return()
+}
+```
+
+
 ```{r}
 hpe_acc <- pwe_acc %>% 
   inner_join(scfe_acc, by="Subject") %>% 
@@ -1532,7 +1554,8 @@ Corrections for the baseline of isolated:
 r_pwe_fac_iso <- r_sum_pwe_fac %>% 
   filter(endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
-         adjust="holm") # apply Holm-Bonferroni
+         adjust="holm") %>%  # apply Holm-Bonferroni
+  psych_cor1_adj_CI()
 r_pwe_fac_iso
 ```
 
@@ -1547,7 +1570,8 @@ Corrections for the baseline of misaligned:
 r_pwe_fac <- r_sum_pwe_fac %>% 
   filter(!endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
-         adjust="holm") # apply Holm-Bonferroni
+         adjust="holm") %>%  # apply Holm-Bonferroni
+  psych_cor1_adj_CI()
 r_pwe_fac
 ```
 
@@ -1767,7 +1791,8 @@ Corrections for the baseline of isolated:
 r_scfe_int_iso <- r_sum_scfe_int %>% 
   filter(endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
-         adjust="holm") # apply Holm-Bonferroni
+         adjust="holm") %>%  # apply Holm-Bonferroni
+  psych_cor1_adj_CI()
 r_scfe_int_iso
 ```
 
@@ -1782,7 +1807,8 @@ Corrections for the baseline of misaligned:
 r_scfe_int <- r_sum_scfe_int %>% 
   filter(!endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
-         adjust="holm") # apply Holm-Bonferroni
+         adjust="holm") %>%  # apply Holm-Bonferroni
+  psych_cor1_adj_CI()
 r_scfe_int
 ```
 
