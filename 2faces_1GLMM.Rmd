@@ -1637,7 +1637,7 @@ plot_fi_rt <- emm_fi_rt %>%
 plot_fi_rt
 ```
 
-## Publication plot
+## Figures
 
 ### Figure 2: holsitic processing effects
 
@@ -1686,7 +1686,7 @@ plot_fi_rt_pub <- plot_fi_rt +
 ```
 
 ```{r fig.width=5.5, fig.asp=.65}
-plot_hp_iso <- 
+fig_hp_iso <- 
   ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub) %>% 
               annotate_figure(top = text_grob("Part-whole task", 
                                               face="bold", size = 14)),
@@ -1708,12 +1708,12 @@ plot_hp_iso <-
             nrow=3, ncol=3) +
   bgcolor("white") +
   border("white")
-# ggsave(filename = here("figures","plot_hp_iso.pdf"), plot_hp_iso, width = 14, height = 14*.65)
-# plot_hp_iso
+# ggsave(filename = here("figures","fig_hp_iso.pdf"), fig_hp_iso, width = 14, height = 14*.65)
+# fig_hp_iso
 ```
 
 ```{r fig.width=13}
-plot_hp_iso
+fig_hp_iso
 ```
 
 
@@ -1723,7 +1723,7 @@ plot_ccf_rt_fi_pub <- plot_ccf_rt_fi
 ```
 
 ```{r fig.width=5.5, fig.asp=.65}
-plot_hp <- 
+fig_hp <- 
   ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub) %>% 
               annotate_figure(top = text_grob("Part-whole task", 
                                               face="bold", size = 14)),
@@ -1745,10 +1745,17 @@ plot_hp <-
             nrow=3, ncol=3) +
   bgcolor("white") +
   border("white")
-# ggsave(filename = here("figures","plot_hp.pdf"), plot_hp, width = 14, height = 14*.65)
-# plot_hp
+# ggsave(filename = here("figures","fig_hp.pdf"), fig_hp, width = 14, height = 14*.65)
+# fig_hp
 ```
 
 ```{r fig.width=13}
-plot_hp
+fig_hp
 ```
+
+```{r}
+# save png
+# ggsave(filename = here("figures","fig_hp_iso.png"), fig_hp_iso, width = 14, height = 14*.65)
+# ggsave(filename = here("figures","fig_hp.png"), fig_hp, width = 14, height = 14*.65)
+```
+
