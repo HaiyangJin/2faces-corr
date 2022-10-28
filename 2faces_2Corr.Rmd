@@ -1991,11 +1991,9 @@ plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) 
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.5f, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
-                          r_scfe_int_iso_acc_regr$r, 
-                          r_scfe_int_iso_acc_regr$p,
-                          r_scfe_int_iso$p.adj[3]))
+                          ,italic(p), \" < 0.00001, \"
+                          ,italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_int_iso_acc_regr$r)) 
 plot_scfe_int_acc_regr_iso
 ```
 
@@ -2073,10 +2071,10 @@ plot_scfe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.5f, \"
+                          ,italic(p), \" < 0.00001, \"
                           ,italic(p)[adj], \" = %0.5f\")", 
                           r_scfe_int_acc_regr$r, 
-                          r_scfe_int_acc_regr$p,
+                          # r_scfe_int_acc_regr$p,
                           r_scfe_int$p.adj[3]))
 plot_scfe_int_acc_regr
 ```
