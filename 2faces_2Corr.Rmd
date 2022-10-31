@@ -1049,7 +1049,7 @@ cor_hpe_acc_subt <- psych_cor2(hpe_acc_subt) %>%
            upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt_subt),
            upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt_subt)
          ), .before = 1) 
-  
+
 cor_hpe_acc_subt
 ```
 
@@ -1918,7 +1918,7 @@ r_scfe_int_iso_rt_regr
 ```
 
 ```{r}
-ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+ggplot(hpe_rt, aes(x=int_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (RT)",
@@ -1998,7 +1998,7 @@ plot_scfe_int_acc_regr_iso
 ```
 
 ```{r}
-plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
+plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Interference residuals (RT)",
@@ -2505,6 +2505,7 @@ ggarrange(plot_pwe_int_acc_subt, plot_pwe_int_rt_subt,
 
 
 ### SCF and Facilitation in CCF (non-registered) 
+Two-sided tests will be performed.
 
 #### Subtraction
 Accuracy
@@ -2546,7 +2547,7 @@ r_scfe_fac_iso_acc_subt
 ```
 
 ```{r}
-ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
+ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) +
   geom_point(color=dark_colors[3], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation difference scores (d')",
@@ -2628,7 +2629,7 @@ ggplot(hpe_acc, aes(x=fac_regr, y=scfe_regr)) +
   labs(x = "Facilitation residuals (d')",
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
                           r_scfe_fac_acc_regr$r, 
                           r_scfe_fac_acc_regr$p))
 ```
@@ -2697,7 +2698,7 @@ r_scfe_fac_iso_rt_regr
 ```
 
 ```{r}
-ggplot(hpe_rt, aes(x=fac_regr, y=scfe_regr)) +
+ggplot(hpe_rt, aes(x=fac_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[3], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (RT)",
@@ -2734,10 +2735,11 @@ plot_scfe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Facilitation difference scores ("*italic("d'")*")"),
        y = "Standard composite difference scores (accuracy)     ") +
+  coord_cartesian(ylim = c(-.65, .25)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.5f, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_acc_subt$r, 
                           r_scfe_fac_iso_acc_subt$p,
                           r_scfe_fac_iso$p.adj[1]))
@@ -2754,8 +2756,8 @@ plot_scfe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=scfe_subt)) +
   coord_cartesian(ylim = c(-1100, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.3f, \"
-                          ,italic(p)[adj], \" = %0.3f\")", 
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_rt_subt$r, 
                           r_scfe_fac_iso_rt_subt$p,
                           r_scfe_fac_iso$p.adj[2]))
@@ -2768,21 +2770,24 @@ plot_scfe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Facilitation residuals ("*italic("d'")*")"),
        y = "Standard composite residuals (accuracy)") +
+  coord_cartesian(ylim = c(-.58, .21)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" < 0.00001, \"
-                          ,italic(p)[adj], \" < 0.00001\")", 
-                          r_scfe_fac_iso_acc_regr$r)) 
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_fac_iso_acc_regr$r, 
+                          r_scfe_fac_iso_acc_regr$p,
+                          r_scfe_fac_iso$p.adj[3]))
 plot_scfe_fac_acc_regr_iso
 ```
 
 ```{r}
-plot_scfe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr, y=scfe_regr)) +
+plot_scfe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=scfe_regr)) +
   geom_point(color=dark_colors[3], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Facilitation residuals (RT)",
        y = "Standard composite residuals (RT)") +
-  coord_cartesian(ylim = c(-730, 470), xlim = c(-620, 600)) +
+  coord_cartesian(ylim = c(-730, 470), xlim = c(-750, 490)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
                           ,italic(p), \" = %0.2f, \"
@@ -2815,10 +2820,11 @@ plot_scfe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=scfe_subt)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Facilitation difference scores ("*italic("d'")*")"),
        y = "Standard composite difference scores (accuracy)     ") +
+  coord_cartesian(ylim = c(-.65, .24)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.4f, \"
-                          ,italic(p)[adj], \" = %0.3f\")", 
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_acc_subt$r, 
                           r_scfe_fac_acc_subt$p,
                           r_scfe_int$p.adj[1]))
@@ -2848,10 +2854,11 @@ plot_scfe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=scfe_regr)) +
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Facilitation residuals ("*italic("d'")*")"),
        y = "Standard composite residuals (accuracy)") +
+  coord_cartesian(ylim = c(-.56, .23)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
            label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" < 0.00001, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_acc_regr$r, 
                           r_scfe_fac_acc_regr$p,
                           r_scfe_int$p.adj[3]))
@@ -3006,7 +3013,6 @@ fig_cor_pwe_scfe <-
 fig_cor_pwe_scfe
 ```
 
-
 Complete composite and part-whole
 ```{r fig.width=6, fig.asp=.9}
 fig_cor_ccfe_pwe <- 
@@ -3098,15 +3104,80 @@ fig_cor_int <- ggarrange(plot_scfe_int_acc_subt, plot_scfe_int_rt_subt,
 fig_cor_int
 ```
 
+### Figure S: correlations between interference and part-whole effect
+
+Interference ~ part-whole effect (isolated)
+```{r fig.width=6, fig.asp=.9}
+fig_cor_int_pwe_iso <- ggarrange(plot_pwe_int_acc_subt_iso, plot_pwe_int_rt_subt_iso,
+                                 plot_pwe_int_acc_regr_iso, plot_pwe_int_rt_regr_iso,
+                                 labels = c("a", "b", "c", "d"),
+                                 nrow=2, ncol=2)
+# ggsave(here("figures", "fig_cor_interference_pwe_iso.pdf"), fig_cor_int_pwe_iso, width = 10, height = 9)
+# fig_cor_int_pwe_iso
+```
+
+```{r fig.width=12, fig.asp=.9}
+fig_cor_int_pwe_iso
+```
+
+Interference ~ part-whole effect (misaligned)
+```{r fig.width=6, fig.asp=.9}
+fig_cor_int_pwe <- ggarrange(plot_pwe_int_acc_subt, plot_pwe_int_rt_subt,
+                             plot_pwe_int_acc_regr, plot_pwe_int_rt_regr,
+                             labels = c("a", "b", "c", "d"),
+                             nrow=2, ncol=2)
+# ggsave(here("figures", "fig_cor_interference_pwe.pdf"), fig_cor_int_pwe, width = 10, height = 9)
+# fig_cor_int_pwe
+```
+
+```{r fig.width=12, fig.asp=.9}
+fig_cor_int_pwe
+```
+
+### Figure S: correlations between facilitation and standard composite effect
+
+Facilitation ~ standard composite effect (isolated)
+```{r fig.width=6, fig.asp=.9}
+fig_cor_fac_scfe_iso <- ggarrange(plot_scfe_fac_acc_subt_iso, plot_scfe_fac_rt_subt_iso,
+                                  plot_scfe_fac_acc_regr_iso, plot_scfe_fac_rt_regr_iso,
+                                  labels = c("a", "b", "c", "d"),
+                                  nrow=2, ncol=2)
+# ggsave(here("figures", "fig_cor_facilitation_scfe_iso.pdf"), fig_cor_fac_scfe_iso, width = 10, height = 9)
+# fig_cor_fac_scfe_iso
+```
+
+```{r fig.width=12, fig.asp=.9}
+fig_cor_fac_scfe_iso
+```
+
+Facilitation ~ standard composite effect (misaligned)
+```{r fig.width=6, fig.asp=.9}
+fig_cor_fac_scfe <- ggarrange(plot_scfe_fac_acc_subt, plot_scfe_fac_rt_subt,
+                              plot_scfe_fac_acc_regr, plot_scfe_fac_rt_regr,
+                              labels = c("a", "b", "c", "d"),
+                              nrow=2, ncol=2)
+# ggsave(here("figures", "fig_cor_facilitation_scfe.pdf"), fig_cor_fac_scfe, width = 10, height = 9)
+# fig_cor_fac_scfe
+```
+
+```{r fig.width=12, fig.asp=.9}
+fig_cor_fac_scfe
+```
+
 ```{r}
 # save all figures
-# ext <- "png"
-# ggsave(here("figures", paste0("fig_cor_pwe_scfe.", ext)), fig_cor_pwe_scfe, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_ccfe_pwe.", ext)), fig_cor_ccfe_pwe, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_ccfe_scfe.", ext)), fig_cor_ccfe_scfe, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_facilitation_iso.", ext)), fig_cor_fac_iso, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_facilitation.", ext)), fig_cor_fac, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_interference_iso.", ext)), fig_cor_int_iso, width = 10, height = 9)
-# ggsave(here("figures", paste0("fig_cor_interference.", ext)), fig_cor_int, width = 10, height = 9)
+ext <- "png"
+ggsave(here("figures", paste0("fig_cor_pwe_scfe.", ext)), fig_cor_pwe_scfe, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_ccfe_pwe.", ext)), fig_cor_ccfe_pwe, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_ccfe_scfe.", ext)), fig_cor_ccfe_scfe, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_facilitation_iso.", ext)), fig_cor_fac_iso, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_facilitation.", ext)), fig_cor_fac, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_interference_iso.", ext)), fig_cor_int_iso, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_interference.", ext)), fig_cor_int, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_interference_pwe_iso.", ext)), fig_cor_int_pwe_iso, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_interference_pwe.", ext)), fig_cor_int_pwe, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_facilitation_scfe_iso.", ext)), fig_cor_fac_scfe_iso, width = 10, height = 9)
+ggsave(here("figures", paste0("fig_cor_facilitation_scfe.", ext)), fig_cor_fac_scfe, width = 10, height = 9)
 ```
+
 
