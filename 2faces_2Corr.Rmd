@@ -2945,6 +2945,27 @@ rel_sum <- bind_rows(rel_sum_pw, rel_sum_scf, rel_sum_ccf) %>%
 rel_sum
 ```
 
+```{r}
+Stab_rel <- rel_sum %>% 
+  mutate(DV = case_when(
+    DV=="rt" ~ toupper(DV),
+    DV=="acc" ~ "accuracy",
+    DV=="d" ~ "d'"
+  ),
+  Reliability = round(Reliability, 2),
+  Task = as_factor(Task),
+  ) %>% 
+  filter(!(Task=="CCF" & DV=="accuracy")) %>% 
+  filter(!endsWith(Condition, " con_mis")) %>% 
+  filter(Condition != "inc_ali - inc_mis") %>%
+  filter(Condition != "inc_ali ~ inc_mis") %>%
+  filter(!startsWith(Condition, "(con_ali ~ inc_ali)")) %>% 
+  arrange(Task)
+# write_csv(Stab_rel, "STab_reliability.csv")
+Stab_rel
+```
+
+
 
 ### Table 2: correlations
 
@@ -2962,8 +2983,37 @@ cor_sum <- cor_hpe %>%
               rename(upper = upper95,
                      lower = lower95) %>% 
               mutate(CI = .95))
+  
 # write_csv(cor_sum, "correlation_summary.csv")
 cor_sum
+```
+
+
+```{r}
+stab_cor <- cor_sum %>% 
+  separate(pair, c("pair1", "pair2"), " ~ ") %>% 
+  mutate(method = if_else(endsWith(pair1, "subt"), "subtraction", 
+                          if_else(endsWith(pair1, "regr"), "regression", "NA")),
+         pair1 = str_remove(pair1, "e_\\D*"),
+         pair2 = str_remove(pair2, "_\\D*")) %>% 
+  transmute(
+    Pair = case_when(
+      pair2=="fac" ~ paste0("Facilitation ~ ", toupper(pair1)),
+      pair2=="int" ~ paste0("Interference ~ ", toupper(pair1)),
+      TRUE ~ paste(toupper(pair1), toupper(str_remove(pair2, "e")), sep=" ~ ")),
+    Method = as_factor(method),
+    DV = if_else(DV=="acc", "Accuracy or d'", "RT"),
+    Max = round(up_bound, 2),
+    r = round(r, 2),
+    lower = round(lower, 2),
+    upper = if_else(alt=="two.sided", round(upper, 2), 1),
+    `p-value` = signif(p, 2),
+    `p-adjust` = signif(p.adj, 2)) %>% 
+  mutate(Pair = as_factor(Pair),
+         Pair = fct_relevel(Pair, "Interference ~ PW", after = Inf)) %>% 
+  arrange(Pair, Method)
+# write_csv(stab_cor, "STab_correlations.csv")
+stab_cor
 ```
 
 
