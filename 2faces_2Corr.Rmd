@@ -36,22 +36,6 @@ pwe_acc <- df_pw %>%
 pwe_acc
 ```
 
-```{r}
-pwe_d <- df_pw %>% 
-  group_by(Subject, PW) %>% 
-  summarize(acc = mean(Correct),
-            N = n(), 
-            .groups = "drop") %>% 
-  mutate(acc_cor = if_else(acc==1, (N-0.5)/N, acc),
-         d = qnorm(acc_cor)*sqrt(2)) %>% 
-  pivot_wider(Subject, names_from = PW, values_from = d) %>% 
-  mutate(pwe_subt = whole - part) %>% # subtraction
-  cal_reg(whole ~ part, pwe_regr) # regression
-
-pwe_d
-# pwe_acc <- pwe_d
-```
-
 Condition means and part-whole effect in RT:
 ```{r}
 pwe_rt <- df_pw %>% 
