@@ -654,6 +654,262 @@ plot_scf_rt <- emm_scf_rt %>%
 plot_scf_rt
 ```
 
+### Sensitivity d'
+
+#### Maximal model
+```{r}
+# thisfile <- here("jubail", "bias", "lmm_scf_d_max.rds")
+# 
+# if (file.exists(thisfile)) {
+#   lmm_scf_d_max <- readRDS(thisfile)
+# 
+# } else {
+# 
+#   lmm_scf_d_max <-
+#     glmer(isSame ~ Alignment * SD +
+#             (Alignment * SD | Subject) +
+#             (Alignment * SD | StimGroup),
+#           df_scf_d,
+#           family = binomial(link = "probit"),
+#           control = glmerControl(optCtrl = list(maxfun = 1e7)))
+# 
+#   saveRDS(lmm_scf_d_max, thisfile)
+# }
+# 
+# summary(lmm_scf_d_max)
+```
+
+#### Zero-correlation-parameter model
+```{r}
+thisfile <- here("jubail", "bias", "lmm_scf_d_zcp.rds")
+
+if (file.exists(thisfile)) {
+  lmm_scf_d_zcp <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_scf_d_zcp <- 
+    glmer(isSame ~ Alignment * SD +
+            (Ali_C + SD_C + 
+               Ali_SD || Subject) +
+            (Ali_C + SD_C + 
+               Ali_SD || StimGroup),
+          df_scf_d,
+          family = binomial(link = "probit"),
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
+  saveRDS(lmm_scf_d_zcp, thisfile)
+}
+
+summary(lmm_scf_d_zcp)
+```
+
+```{r}
+summary(rePCA(lmm_scf_d_zcp))
+```
+
+By-subject and by-item `Ali_SD` were removed.
+
+#### Reduced model
+```{r}
+thisfile <- here("jubail", "bias", "lmm_scf_d_rdc.rds")
+
+if (file.exists(thisfile)) {
+  lmm_scf_d_rdc <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_scf_d_rdc <- 
+    glmer(isSame ~ Alignment * SD +
+            (Ali_C + SD_C # + 
+               || Subject) + # Ali_SD
+            (Ali_C + SD_C # + 
+               || StimGroup), # Ali_SD
+          df_scf_d,
+          family = binomial(link = "probit"),
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
+  saveRDS(lmm_scf_d_rdc, thisfile)
+}
+
+summary(lmm_scf_d_rdc)
+```
+
+```{r}
+summary(rePCA(lmm_scf_d_rdc))
+```
+
+#### Extended model
+```{r}
+thisfile <- here("jubail", "bias", "lmm_scf_d_etd.rds")
+
+if (file.exists(thisfile)) {
+  lmm_scf_d_etd <- readRDS(thisfile)
+  
+} else {
+  lmm_scf_d_etd <- 
+    glmer(isSame ~ Alignment * SD +
+            (Ali_C + SD_C # + 
+               | Subject) + # Ali_SD
+            (Ali_C + SD_C # + 
+               | StimGroup), # Ali_SD
+          df_scf_d,
+          family = binomial(link = "probit"),
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
+  saveRDS(lmm_scf_d_etd, thisfile)
+}
+
+summary(lmm_scf_d_etd)
+```
+
+```{r}
+summary(rePCA(lmm_scf_d_etd))
+```
+
+By-item `Ali_C` was removed.
+
+```{r}
+thisfile <- here("jubail", "bias", "lmm_scf_d_etd2.rds")
+
+if (file.exists(thisfile)) {
+  lmm_scf_d_etd2 <- readRDS(thisfile)
+  
+} else {
+  
+  lmm_scf_d_etd2 <- 
+    glmer(isSame ~ Alignment * SD +
+            (Ali_C + SD_C # + 
+             | Subject) + # Ali_SD
+            (SD_C # + Ali_C + 
+             | StimGroup), # Ali_SD
+          df_scf_d,
+          family = binomial(link = "probit"),
+          control = glmerControl(optCtrl = list(maxfun = 1e7)))
+  
+  saveRDS(lmm_scf_d_etd2, thisfile)
+}
+
+summary(lmm_scf_d_etd2)
+```
+
+```{r}
+summary(rePCA(lmm_scf_d_etd2))
+```
+
+#### Optimal model
+```{r}
+anova(lmm_scf_d_rdc, lmm_scf_d_etd2, refit=FALSE)
+```
+
+`lmm_scf_d_rdc` is used as the optimal model.
+```{r}
+lmm_scf_d_opt <- lmm_scf_d_rdc
+```
+
+#### Effects of interest
+Hit and false alarm rates:
+```{r}
+(emm_scf_probit <- emmeans(lmm_scf_d_opt, ~ Alignment + SD, type = "response"))
+```
+
+Sensitivity d' in each condition:
+```{r}
+emm_scf_d <- contrast(emm_scf_probit, "pairwise", simple="SD")
+summary(emm_scf_d[1:2], infer=TRUE)
+```
+
+Plot of d' in each condition:
+```{r}
+emmip(emm_scf_d, ~ Alignment, CIs = TRUE)
+```
+Congruency effect of d' for the aligned condition:
+```{r}
+emm_con_d <- contrast(emm_scf_probit, interaction="pairwise")
+summary(emm_con_d, side="<", infer=TRUE)
+```
+
+Criteria
+The following results are the reverse of the criteria, e.g., the criteria for `ali` is 1.58 (not -1.58).
+```{r}
+(emm_scf_criteria <- summary(emm_scf_probit[3:4], type = "link"))
+```
+
+Criteria for aligned (1.58) is larger than misaligned (1.38).
+```{r}
+contrast(emm_scf_probit[3:4], "revpairwise")
+```
+
+Response bias (c)
+(Following is the reverse of the bias results)
+```{r}
+(emm_scf_c <- emmeans(lmm_scf_d_opt, ~ Alignment, infer=TRUE))
+```
+
+For aligned trials, participants were biased to report "different". 
+For misaligned trials, participants were biased to report "same".
+
+```{r}
+contrast(emm_scf_c, "revpairwise")
+```
+
+Participants were biased to report "different" for aligned relative to misaligned trials.
+
+Plot of c in each condition:
+```{r}
+emmip(emm_scf_c, ~ Alignment, CIs = TRUE)
+```
+
+#### Plot
+
+```{r}
+plot_scf_d <- emm_scf_d %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>%
+  ggplot(aes(Alignment, estimate)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  # geom_line(aes(linetype = Congruency), size = 0.8) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
+  labs(y = expression("Sensitivity"~italic("d'"))) +  # set the names for main, x and y axises
+  # geom_text(label = c("***", "", "", ""), 
+  #           color = "red", 
+  #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
+  NULL
+# ggsave(filename = "scf_d.pdf", plot_scf_d, width = 5, height = 6)
+plot_scf_d
+```
+
+```{r}
+plot_scf_c <- emm_scf_c %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis"),
+         emmean = -emmean,
+         asymp.LCL = -asymp.LCL,
+         asymp.UCL = -asymp.UCL,
+         `z.ratio` = -z.ratio) %>%
+  ggplot(aes(Alignment, emmean)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  geom_hline(yintercept = 0, linetype="dashed") + 
+  coord_cartesian(ylim = c(-.3,.3)) +  # set the limit for y axis c(0, 1100)
+  labs(y = "Response bias (c)") +  # set the names for main, x and y axises
+  NULL
+# ggsave(filename = "scf_bias_c.pdf", plot_scf_c, width = 5, height = 6)
+plot_scf_c
+```
+
+
 ## Complete composite face task
 
 ### Sensitivity d'
@@ -896,6 +1152,7 @@ Plot of d' in each condition:
 ```{r}
 emmip(emm_ccf_d, Congruency ~ Alignment, CIs = TRUE)
 ```
+
 Congruency effect of d' for the aligned condition:
 ```{r}
 emm_con_d <- contrast(emm_ccf_probit, interaction="pairwise", by="Alignment")
@@ -911,6 +1168,37 @@ summary(emm_ccfe_d, side=">", infer=TRUE)
 ```{r}
 # facilitation and interference of d'
 contrast(emm_ccf_probit, interaction="pairwise", by="Congruency")
+```
+
+Criteria
+The following results are the reverse of the criteria, e.g., the criteria for `ali` is 1.58 (not -1.58).
+```{r}
+(emm_ccf_criteria <- summary(emm_ccf_probit[5:8], type = "link", infer=TRUE))
+```
+
+Criteria for congruent-aligned (0.875) was larger than congruent-misaligned (0.604).
+```{r}
+contrast(emm_ccf_probit[5:8], "revpairwise", by=c("SD", "Congruency"))
+```
+
+Response bias (c)
+(Following is the reverse of the bias results)
+```{r}
+(emm_ccf_c <- emmeans(lmm_ccf_d_opt, ~ Alignment + Congruency, infer=TRUE))
+```
+
+For congruent-aligned trials, participants were biased to report "same". 
+For congruent-misaligned trials, participants were biased to report "same". 
+For incongruent-misaligned trials, participants were unbiased to report any.
+For incongruent-misaligned trials, participants were biased to report "same".
+
+```{r}
+contrast(emm_ccf_c, "revpairwise")
+```
+
+Plot of c in each condition:
+```{r}
+emmip(emm_ccf_c, Congruency ~ Alignment, CIs = TRUE)
 ```
 
 
@@ -936,7 +1224,7 @@ plot_ccf_d <- emm_ccf_d %>%
   #           color = "red", 
   #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
   NULL
-# ggsave(filename = "ccf_d.pdf", plot_ccf_d, width = 8, height = 6)
+# ggsave(filename = "ccf_d.pdf", plot_ccf_d, width = 6.5, height = 6)
 plot_ccf_d
 ```
 
@@ -957,6 +1245,35 @@ plot_ccf_d_fi <- contrast(emm_ccf_probit, interaction="pairwise", by="Congruency
   NULL
 # ggsave(filename = "ccf_d_fi.pdf", plot_ccf_d_fi, width = 4, height = 6)
 plot_ccf_d_fi
+```
+
+```{r}
+plot_ccf_c <- emm_ccf_c %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc"),
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis"),
+         emmean = -emmean,
+         asymp.LCL = -asymp.LCL,
+         asymp.UCL = -asymp.UCL,
+         `z.ratio` = -z.ratio) %>%
+  ggplot(aes(Alignment, emmean, color=Congruency, group=Congruency)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  geom_line(aes(linetype = Congruency), size = 0.8) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_hline(yintercept = 0, linetype="dashed") +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  # coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
+  labs(y = "Response bias (c)", fill = "Congruency") +  # set the names for main, x and y axises
+  # geom_text(label = c("***", "", "", ""), 
+  #           color = "red", 
+  #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
+  NULL
+# ggsave(filename = "ccf_bias_c.pdf", plot_ccf_c, width = 6.5, height = 6)
+plot_ccf_c
 ```
 
 ### Correct response times

@@ -228,6 +228,27 @@ df_scf <- df_tidy %>%
 str(df_scf)
 ```
 
+```{r}
+df_scf_d <- df_tidy %>% 
+  filter(Task == "SCF") %>% # only use trials when the top is the same
+  select(Subject, Alignment, SD, Correct, RT, Trial_num, StimGroup) %>% 
+  mutate(Alignment = fct_drop(Alignment),
+         Ali_C = if_else(Alignment=="ali", -.5, 
+                         if_else(Alignment=="mis", .5, NaN)),
+         SD_C = if_else(SD=="same", -.5, if_else(SD=="diff", .5, NaN)),
+         Ali_SD = Ali_C * SD_C,
+         isSame = if_else( # whether participants responded "same" (signal)
+           ((SD=="same")&Correct) | ((SD=="diff")&!Correct), 1,
+           if_else(((SD=="same")&!Correct) | ((SD=="diff")&Correct), 0, NaN))) %>% 
+  set_sdif("Alignment") %>% 
+  set_sdif("SD")
+
+# saveRDS(df_scf_d, file=here("jubail", "bias", "df_scf_d.rds"))
+
+str(df_scf_d)
+```
+
+
 ### Complete composite face task
 The structure of the clean data for complete composite face task (`df_ccf`):
 ```{r}
