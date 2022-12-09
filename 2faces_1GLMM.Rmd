@@ -1201,6 +1201,15 @@ Plot of c in each condition:
 emmip(emm_ccf_c, Congruency ~ Alignment, CIs = TRUE)
 ```
 
+SCF design in CCF
+```{r}
+(emm_ccf_scf_acc <- emm_ccf_probit[c(2,4)])
+```
+
+
+```{r}
+contrast(emm_ccf_probit, "pairwise", simple="Alignment")[2]
+```
 
 #### Plot
 
@@ -1274,6 +1283,30 @@ plot_ccf_c <- emm_ccf_c %>%
   NULL
 # ggsave(filename = "ccf_bias_c.pdf", plot_ccf_c, width = 6.5, height = 6)
 plot_ccf_c
+```
+
+```{r}
+plot_ccf_scf_acc <- emm_ccf_scf_acc %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc"),
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>%
+  ggplot(aes(Alignment, prob, color=Congruency, group=Congruency)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  geom_line(aes(linetype = Congruency), size = 0.8) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  # coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
+  labs(y = "Accuracy", fill = "Congruency") +  # set the names for main, x and y axises
+  # geom_text(label = c("***", "", "", ""), 
+  #           color = "red", 
+  #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
+  NULL
+# ggsave(filename = "ccf_scfdesign_acc.pdf", plot_ccf_scf_acc, width = 8, height = 6)
+plot_ccf_scf_acc
 ```
 
 ### Correct response times
@@ -1481,6 +1514,15 @@ summary(emm_ccfe_rt, side="<", infer=TRUE, type = "response") # exp(-0.0405)
 contrast(emm_ccf_rt, "pairwise", by="Congruency")
 ```
 
+SCF effect in CCF
+```{r}
+(emm_ccf_scf_rt <- emmeans(lmm_ccf_rt_opt, ~ Congruency + Alignment + SD, type="response")[c(2,4)])
+```
+
+```{r}
+contrast(emm_ccf_scf_rt, "pairwise", simple="Alignment")
+```
+
 #### Plot
 
 ```{r}
@@ -1527,6 +1569,29 @@ plot_ccf_rt_fi <- contrast(emm_ccf_rt, "pairwise", by="Congruency") %>%
 plot_ccf_rt_fi
 ```
 
+```{r}
+plot_ccf_scf_rt <- emm_ccf_scf_rt %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Congruency = fct_recode(Congruency, congruent="con", incongruent="inc"),
+         Alignment = fct_recode(Alignment, aligned="ali", misaligned="mis")) %>%
+  ggplot(aes(Alignment, response, color=Congruency, group=Congruency)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  geom_line(aes(linetype = Congruency), size = 0.8) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  # coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
+  labs(y = "Correct response times (ms)", fill = "Congruency") +  # set the names for main, x and y axises
+  # geom_text(label = c("***", "", "", ""), 
+  #           color = "red", 
+  #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
+  NULL
+# ggsave(filename = "ccf_scfdesign_rt.pdf", plot_ccf_scf_rt, width = 8, height = 6)
+plot_ccf_scf_rt
+```
 
 ## Facilitation and interference in the complete composite face task
 

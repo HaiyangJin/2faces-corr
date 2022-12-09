@@ -2983,7 +2983,7 @@ cor_sum <- cor_hpe %>%
               rename(upper = upper95,
                      lower = lower95) %>% 
               mutate(CI = .95))
-  
+
 # write_csv(cor_sum, "correlation_summary.csv")
 cor_sum
 ```
@@ -3230,4 +3230,304 @@ ggsave(here("figures", paste0("fig_cor_facilitation_scfe_iso.", ext)), fig_cor_f
 ggsave(here("figures", paste0("fig_cor_facilitation_scfe.", ext)), fig_cor_fac_scfe, width = 10, height = 9)
 ```
 
+## Supplementary analysis (SCF vs. SCF design in CCF)
 
+### SCF effect in CCF
+```{r}
+ccfe_scfacc <- df_ccf_iso %>% 
+  filter(Congruency=="inc", SD=="same") %>% 
+  group_by(Subject, Alignment) %>% 
+  summarize(acc = mean(Correct), .groups = "drop") %>% 
+  pivot_wider(names_from = "Alignment", values_from = "acc") %>% 
+  mutate(ccf_scfe_subt = ali-mis) %>% 
+  cal_reg(ali ~ mis, ccf_scfe_regr)  # regression
+```
+
+```{r}
+ccfe_scfrt <- df_ccf_iso %>% 
+  filter(Congruency=="inc", SD=="same") %>% 
+  group_by(Subject, Alignment) %>% 
+  summarize(rt = mean(RT), .groups = "drop") %>% 
+  pivot_wider(names_from = "Alignment", values_from = "rt") %>% 
+  mutate(ccf_scfe_subt = ali-mis) %>% 
+  cal_reg(ali ~ mis, ccf_scfe_regr) # regression
+```
+
+
+### Reliability
+
+```{r}
+# CCF
+df_ccf_rel2 <- df_ccf_iso %>% # need to include the isolated condition
+  group_by(Subject, Congruency, SD, Alignment) %>% 
+  summarize(test_item = 1:n(),
+            Correct, RT,
+            .groups = "drop") %>% 
+  filter(Congruency=="inc", SD=="same")
+
+str(df_ccf_rel2)
+```
+
+```{r}
+rel_ccf_acc_ias <- rel_each(df_ccf_rel2, "Correct", Alignment=="ali") %>%
+  tibble(DV = "acc", Condition = "ali", 
+         Approach = "GuttmanL2",  Reliability = .)
+
+rel_ccf_acc_ias
+```
+
+```{r}
+rel_ccf_acc_ims <- rel_each(df_ccf_rel2, "Correct", Alignment=="mis") %>%
+  tibble(DV = "acc", Condition = "mis", 
+         Approach = "GuttmanL2",  Reliability = .)
+
+rel_ccf_acc_ims
+```
+
+```{r}
+rel_ccf_rt_ias <- rel_each(df_ccf_rel2, "RT", Alignment=="ali") %>%
+  tibble(DV = "rt", Condition = "ali", 
+         Approach = "GuttmanL2",  Reliability = .)
+
+rel_ccf_rt_ias
+```
+
+```{r}
+rel_ccf_rt_ims <- rel_each(df_ccf_rel2, "RT", Alignment=="mis") %>%
+  tibble(DV = "rt", Condition = "mis", 
+         Approach = "GuttmanL2",  Reliability = .)
+
+rel_ccf_rt_ims
+```
+
+Subtraction of accuracy
+```{r}
+rel_ccfe_acc_subt <- rel_sub(rel_ccf_acc_ias, rel_ccf_acc_ims, 
+                            ccfe_scfacc$ali, ccfe_scfacc$mis) %>% 
+  tibble(DV = "acc", Condition = "ali - mis", 
+         Approach = "Subtraction", Reliability = .)
+rel_ccfe_acc_subt
+```
+
+Regression of accuracy
+```{r}
+rel_ccfe_acc_regr <- rel_reg(rel_ccf_acc_ias, rel_ccf_acc_ims, 
+                             ccfe_scfacc$ali, ccfe_scfacc$mis) %>% 
+  tibble(DV = "acc", Condition = "ali ~ mis", 
+         Approach = "Regression", Reliability = .)
+rel_ccfe_acc_regr
+```
+
+Subtraction of RT
+```{r}
+rel_ccfe_rt_subt <- rel_sub(rel_ccf_rt_ias, rel_ccf_rt_ims, 
+                            ccfe_scfrt$ali, ccfe_scfrt$mis) %>% 
+  tibble(DV = "rt", Condition = "ali - mis", 
+         Approach = "Subtraction", Reliability = .)
+rel_ccfe_rt_subt
+```
+
+Regression of RT
+```{r}
+rel_ccfe_rt_regr <- rel_reg(rel_ccf_rt_ias, rel_ccf_rt_ims, 
+                            ccfe_scfrt$ali, ccfe_scfrt$mis) %>% 
+  tibble(DV = "rt", Condition = "ali ~ mis", 
+         Approach = "Regression", Reliability = .)
+rel_ccfe_rt_regr
+```
+
+
+### Correlations
+```{r}
+r_scfe_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_scfacc$ccf_scfe_subt) %>% 
+  rownames_to_column("pair") %>% 
+  mutate(pair = "scfe_subt ~ ccf_scfe_subt",
+         DV = "acc",
+         up_bound = upper_boundary(rel_scfe_acc_subt, rel_ccfe_acc_subt),
+         .before = 1)
+r_scfe_acc_subt
+```
+
+```{r}
+full_join(scfe_acc, ccfe_scfacc, by="Subject") %>% 
+  ggplot(aes(x=scfe_subt, y=ccf_scfe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Standard composite effect in SCF (accuracy)",
+       y = "Standard composite effect in CCF (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" < 0.00001 \")",
+                          r_scfe_acc_subt$r))
+```
+
+```{r}
+r_scfe_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_scfacc$ccf_scfe_regr) %>% 
+  rownames_to_column("pair") %>% 
+  mutate(pair = "scfe_regr ~ ccf_scfe_regr",
+         DV = "acc",
+         up_bound = upper_boundary(rel_scfe_acc_regr, rel_ccfe_acc_regr),
+         .before = 1)
+r_scfe_acc_regr
+```
+
+```{r}
+full_join(scfe_acc, ccfe_scfacc, by="Subject") %>% 
+  ggplot(aes(x=scfe_regr, y=ccf_scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Standard composite effect in SCF (accuracy)",
+       y = "Standard composite effect in CCF (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" < 0.00001 \")",
+                          r_scfe_acc_regr$r))
+```
+
+
+```{r}
+r_scfe_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_scfrt$ccf_scfe_subt) %>% 
+  rownames_to_column("pair") %>% 
+  mutate(pair = "scfe_subt ~ ccf_scfe_subt",
+         DV = "rt",
+         up_bound = upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt),
+         .before = 1)
+r_scfe_rt_subt
+```
+
+```{r}
+full_join(scfe_rt, ccfe_scfrt, by="Subject") %>% 
+  ggplot(aes(x=scfe_subt, y=ccf_scfe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Standard composite effect in SCF (RT)",
+       y = "Standard composite effect in CCF (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f \")",
+                          r_scfe_rt_subt$r, r_scfe_rt_subt$p))
+```
+
+```{r}
+r_scfe_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_scfrt$ccf_scfe_regr) %>% 
+  rownames_to_column("pair") %>% 
+  mutate(pair = "scfe_regr ~ ccf_scfe_regr",
+         DV = "rt",
+         up_bound = upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_regr),
+         .before = 1)
+r_scfe_rt_regr
+```
+
+```{r}
+full_join(scfe_rt, ccfe_scfrt, by="Subject") %>% 
+  ggplot(aes(x=scfe_regr, y=ccf_scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = "Standard composite effect in SCF (RT)",
+       y = "Standard composite effect in CCF (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" < %0.4f \")",
+                          r_scfe_rt_regr$r, r_scfe_rt_regr$p))
+```
+
+### Interim summary
+
+```{r}
+r_sum_scfe <- bind_rows(r_scfe_acc_subt, r_scfe_acc_regr,
+                        r_scfe_rt_subt, r_scfe_rt_regr) 
+```
+
+Corrections for the baseline of isolated:
+```{r}
+r_scfe_ccfscfe <- r_sum_scfe %>% 
+  mutate(p.adj = p.adjust(p, method = "holm"),
+         adjust="holm") %>%  # apply Holm-Bonferroni
+  psych_cor1_adj_CI() %>% 
+  mutate(effect = "SCFE ~ CCF_SCFE")
+r_scfe_ccfscfe
+```
+
+```{r}
+plot_scfe_ccf_acc_subt <-
+  full_join(scfe_acc, ccfe_scfacc, by="Subject") %>% 
+  ggplot(aes(x=scfe_subt, y=ccf_scfe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  coord_cartesian(y=c(-0.50, 0.3)) +
+  labs(x = "Standard composite effect in SCF (accuracy)",
+       y = "Standard composite effect in CCF (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" < 0.00001, \"
+                          ,italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_ccfscfe$r[1]))
+plot_scfe_ccf_acc_subt
+```
+
+```{r}
+plot_scfe_ccf_acc_regr <-
+  full_join(scfe_acc, ccfe_scfacc, by="Subject") %>% 
+  ggplot(aes(x=scfe_regr, y=ccf_scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  coord_cartesian(y=c(-0.4, 0.2)) +
+  labs(x = "Standard composite effect in SCF (accuracy)",
+       y = "Standard composite effect in CCF (accuracy)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" < 0.00001, \"
+                          ,italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_ccfscfe$r[2]))
+plot_scfe_ccf_acc_regr
+```
+
+```{r}
+plot_scfe_ccf_rt_subt <- 
+  full_join(scfe_rt, ccfe_scfrt, by="Subject") %>% 
+  ggplot(aes(x=scfe_subt, y=ccf_scfe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  coord_cartesian(y=c(-900, 700)) +
+  labs(x = "Standard composite effect in SCF (RT)",
+       y = "Standard composite effect in CCF (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" < %0.2f, \"
+                          ,italic(p)[adj], \" < %0.2f\")", 
+                          r_scfe_ccfscfe$r[3], 
+                          r_scfe_ccfscfe$p[3],
+                          r_scfe_ccfscfe$p.adj[3]))
+plot_scfe_ccf_rt_subt
+```
+
+```{r}
+plot_scfe_ccf_rt_regr <-
+  full_join(scfe_rt, ccfe_scfrt, by="Subject") %>% 
+  ggplot(aes(x=scfe_regr, y=ccf_scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  coord_cartesian(y=c(-800, 700)) +
+  labs(x = "Standard composite effect in SCF (RT)",
+       y = "Standard composite effect in CCF (RT)") +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" < %0.4f, \"
+                          ,italic(p)[adj], \" < %0.4f\")", 
+                          r_scfe_ccfscfe$r[4], 
+                          r_scfe_ccfscfe$p[4],
+                          r_scfe_ccfscfe$p.adj[4]))
+
+plot_scfe_ccf_rt_regr
+```
+
+### Figure
+Figure together
+```{r fig.width=6, fig.asp=.9}
+fig_cor_ccfscfe <- ggarrange(plot_scfe_ccf_acc_subt, plot_scfe_ccf_acc_regr,
+                             plot_scfe_ccf_rt_subt, plot_scfe_ccf_rt_regr,
+                             labels = c("a", "b", "c", "d"),
+                             nrow=2, ncol=2)
+# ggsave(here("fig_cor_scfe_in_ccf.pdf"), fig_cor_ccfscfe, width = 10, height = 9)
+# fig_cor_ccfscfe
+```
+
+```{r fig.width=12, fig.asp=.9}
+fig_cor_ccfscfe
+```
