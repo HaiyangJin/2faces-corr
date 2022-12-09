@@ -1206,9 +1206,39 @@ SCF design in CCF
 (emm_ccf_scf_acc <- emm_ccf_probit[c(2,4)])
 ```
 
-
 ```{r}
 contrast(emm_ccf_probit, "pairwise", simple="Alignment")[2]
+```
+
+##### SCF effect in CCF
+```{r}
+(emm_scf_in_ccf <- emmeans(lmm_ccf_d_opt, ~ Alignment + Congruency + SD, infer=TRUE)[3:6])
+```
+
+Sensitivity d'
+```{r}
+scf_in_ccf_d <- contrast(emm_scf_in_ccf, method = list("ali_d"=c(1, 0, -1, 0),
+                                                       "mis_d"=c(0, 1, 0, -1)))
+scf_in_ccf_d
+```
+
+```{r}
+contrast(emm_scf_in_ccf, method = list("(ali-mis)_d"=c(1, -1, -1, 1)))
+```
+
+Response bias (c)
+(Following is the reverse of the bias results)
+```{r}
+scf_in_ccf_c <- contrast(emm_scf_in_ccf, method = list("ali_c"=c(0.5, 0, 0.5, 0),
+                                                       "mis_c"=c(0, 0.5, 0, 0.5)))
+scf_in_ccf_c
+```
+
+For aligned trials, participants were biased to report "different". 
+For misaligned trials, participants were biased to report "same". 
+
+```{r}
+contrast(emm_scf_in_ccf, method = list("(mis - ali)_c"=c(-0.5, 0.5, -0.5, 0.5)))
 ```
 
 #### Plot
@@ -1308,6 +1338,54 @@ plot_ccf_scf_acc <- emm_ccf_scf_acc %>%
 # ggsave(filename = "ccf_scfdesign_acc.pdf", plot_ccf_scf_acc, width = 8, height = 6)
 plot_ccf_scf_acc
 ```
+SCF trials in CCF
+```{r}
+plot_scf_ccf_d <- scf_in_ccf_d %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Alignment = fct_recode(contrast, aligned="ali_d", misaligned="mis_d")) %>%
+  ggplot(aes(Alignment, estimate)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  # geom_line(aes(linetype = Congruency), size = 0.8) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
+  labs(y = expression("Sensitivity"~italic("d'"))) +  # set the names for main, x and y axises
+  # geom_text(label = c("***", "", "", ""), 
+  #           color = "red", 
+  #           size = 6, nudge_y = 0.5, nudge_x = 0.5) + # add starts to the significant columns
+  NULL
+# ggsave(filename = "scf_in_ccf_d.pdf", plot_scf_ccf_d, width = 5, height = 6)
+plot_scf_ccf_d
+```
+
+```{r}
+plot_scf_ccf_c <- scf_in_ccf_c %>%
+  summary(infer=TRUE) %>% 
+  as_tibble() %>% 
+  mutate(Alignment = fct_recode(contrast, aligned="ali_c", misaligned="mis_c"),
+         estimate = -estimate,
+         asymp.LCL = -asymp.LCL,
+         asymp.UCL = -asymp.UCL,
+         `z.ratio` = -z.ratio) %>%
+  ggplot(aes(Alignment, estimate)) +
+  geom_point(size = 2) + # position = position_dodge(width = 0.1),
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  scale_color_manual(values=two_colors) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), size=1.5, width=0, 
+                alpha = .6, # position = position_dodge(width = 0.1),
+                show.legend = F) + 
+  geom_hline(yintercept = 0, linetype="dashed") + 
+  coord_cartesian(ylim = c(-.3,.3)) +  # set the limit for y axis c(0, 1100)
+  labs(y = "Response bias (c)") +  # set the names for main, x and y axises
+  NULL
+# ggsave(filename = "scf_in_ccf_bias_c.pdf", plot_scf_ccf_c, width = 5, height = 6)
+plot_scf_ccf_c
+```
+
 
 ### Correct response times
 
