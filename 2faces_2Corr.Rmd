@@ -29,7 +29,7 @@ pwe_acc <- df_pw %>%
   group_by(Subject, PW) %>% 
   summarize(acc = mean(Correct),
             .groups = "drop") %>% 
-  pivot_wider(Subject, names_from = PW, values_from = acc) %>% 
+  pivot_wider(id_cols=Subject, names_from = PW, values_from = acc) %>% 
   mutate(pwe_subt = whole - part) %>% # subtraction
   cal_reg(whole ~ part, pwe_regr) # regression
 
@@ -3230,4 +3230,283 @@ ggsave(here("figures", paste0("fig_cor_facilitation_scfe_iso.", ext)), fig_cor_f
 ggsave(here("figures", paste0("fig_cor_facilitation_scfe.", ext)), fig_cor_fac_scfe, width = 10, height = 9)
 ```
 
+### Individual figures
+
+```{r}
+lim_pwe_acc <- c(-.35, .35)
+lim_scfe_acc <- c(-.6, .4)
+lim_ccfe_d <- c(-3, 3)
+```
+
+#### Facilitation
+
+```{r}
+plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
+       y = "Part-whole difference scores (accuracy)") +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  # coord_cartesian(ylim = c(-.35, .6)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
+plot_ccfe_pwe_acc_subt
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_ccfe_pwe_acc_subt.pdf"), 
+       plot_ccfe_pwe_acc_subt, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
+       y = "Part-whole residuals (accuracy)") +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
+plot_ccfe_pwe_acc_regr
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_ccfe_pwe_acc_regr.pdf"), 
+       plot_ccfe_pwe_acc_regr, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[1], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Facilitation difference scores ("*italic("d'")*")"),
+       y = "Part-whole difference scores (accuracy)") +
+  # scale_y_continuous(breaks=seq(-.2, .3, .1)) +
+  # coord_cartesian(ylim = c(-.25, .36)) +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_acc_subt$r, 
+                          r_pwe_fac_iso_acc_subt$p,
+                          r_pwe_fac_iso$p.adj[1]))
+plot_pwe_fac_acc_subt_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_pwe_fac_acc_subt.pdf"), 
+       plot_pwe_fac_acc_subt_iso, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_pwe_fac_acc_regr_iso <-ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[1], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Facilitation residuals ("*italic("d'")*")"),
+       y = "Part-whole residuals (accuracy)") +
+  # scale_x_continuous(breaks=seq(-2, 2, .5)) +
+  # scale_y_continuous(breaks=seq(-.4, .2, .1)) +
+  # coord_cartesian(ylim = c(-.35, .19)) +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_fac_iso_acc_regr$r, 
+                          r_pwe_fac_iso_acc_regr$p,
+                          r_pwe_fac_iso$p.adj[3]))
+plot_pwe_fac_acc_regr_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_pwe_fac_acc_regr.pdf"), 
+       plot_pwe_fac_acc_regr_iso, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_pwe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
+  geom_point(color=dark_colors[3], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Interference difference scores ("*italic("d'")*")"),
+       y = "Part-whole difference scores (accuracy)") +
+  # scale_y_continuous(breaks=seq(-.2, .3, .1)) +
+  # coord_cartesian(ylim = c(-.25, .36)) +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_int_iso_acc_subt$r, 
+                          r_pwe_int_iso_acc_subt$p,
+                          r_pwe_int_iso$p.adj[1]))
+plot_pwe_int_acc_subt_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_pwe_int_acc_subt.pdf"), 
+       plot_pwe_int_acc_subt_iso, width = 5, height = 5*.9)
+```
+
+```{r}
+plot_pwe_int_acc_regr_iso <-ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
+  geom_point(color=dark_colors[3], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Interference residuals ("*italic("d'")*")"),
+       y = "Part-whole residuals (accuracy)") +
+  # scale_x_continuous(breaks=seq(-2, 2, .5)) +
+  # scale_y_continuous(breaks=seq(-.4, .2, .1)) +
+  # coord_cartesian(ylim = c(-.35, .19)) +
+  coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_pwe_int_iso_acc_regr$r, 
+                          r_pwe_int_iso_acc_regr$p,
+                          r_pwe_int_iso$p.adj[3]))
+plot_pwe_int_acc_regr_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_pwe_int_acc_regr.pdf"), 
+       plot_pwe_int_acc_regr_iso, width = 5, height = 5*.9)
+```
+
+#### Interference
+
+```{r}
+plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
+       y = "Standard composite difference scores (accuracy)     ") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
+plot_ccfe_scfe_acc_subt
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_ccfe_scfe_acc_subt.pdf"), 
+       plot_ccfe_scfe_acc_subt, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
+       y = "Standard composite residuals (accuracy)") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
+                          cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
+plot_ccfe_scfe_acc_regr
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr", "fig_ccfe_scfe_acc_regr.pdf"), 
+       plot_ccfe_scfe_acc_regr, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[2], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Interference difference scores ("*italic("d'")*")"),
+       y = "Standard composite difference scores (accuracy)     ") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.5f, \"
+                          ,italic(p)[adj], \" = %0.5f\")", 
+                          r_scfe_int_iso_acc_subt$r, 
+                          r_scfe_int_iso_acc_subt$p,
+                          r_scfe_int_iso$p.adj[1]))
+plot_scfe_int_acc_subt_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr", "fig_scfe_int_acc_subt.pdf"), 
+       plot_scfe_int_acc_subt_iso, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
+  geom_point(color=dark_colors[2], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Interference residuals ("*italic("d'")*")"),
+       y = "Standard composite residuals (accuracy)") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" < 0.00001, \"
+                          ,italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_int_iso_acc_regr$r)) 
+plot_scfe_int_acc_regr_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr", "fig_scfe_int_acc_regr.pdf"), 
+       plot_scfe_int_acc_regr_iso, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_scfe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) +
+  geom_point(color=dark_colors[3], shape=subt_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Facilitation difference scores ("*italic("d'")*")"),
+       y = "Standard composite difference scores (accuracy)     ") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  # coord_cartesian(ylim = c(-.65, .25)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_fac_iso_acc_subt$r, 
+                          r_scfe_fac_iso_acc_subt$p,
+                          r_scfe_fac_iso$p.adj[1]))
+plot_scfe_fac_acc_subt_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr", "fig_scfe_fac_acc_subt.pdf"), 
+       plot_scfe_fac_acc_subt_iso, width = 5, height = 5*.9)
+```
+
+
+```{r}
+plot_scfe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) +
+  geom_point(color=dark_colors[3], shape=regr_shape) + 
+  geom_smooth(color="black", method=lm, formula='y ~ x') +
+  labs(x = expression("Facilitation residuals ("*italic("d'")*")"),
+       y = "Standard composite residuals (accuracy)") +
+  coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
+  # coord_cartesian(ylim = c(-.58, .21)) +
+  annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
+           label= sprintf("paste(italic(r), \" = %0.2f, \"
+                          ,italic(p), \" = %0.2f, \"
+                          ,italic(p)[adj], \" = %0.2f\")", 
+                          r_scfe_fac_iso_acc_regr$r, 
+                          r_scfe_fac_iso_acc_regr$p,
+                          r_scfe_fac_iso$p.adj[3]))
+plot_scfe_fac_acc_regr_iso
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr", "fig_scfe_fac_acc_regr.pdf"), 
+       plot_scfe_fac_acc_regr_iso, width = 5, height = 5*.9)
+```
 
