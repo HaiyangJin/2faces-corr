@@ -639,7 +639,6 @@ if (file.exists(thisfile)) {
 rel_ccf_d_iso
 ```
 
-
 #### Reliability of facilitation
 
 Subtraction of accuracy (with isolated baselines)
@@ -851,7 +850,7 @@ rel_ccf_d_cong_m_regr
 Congruency in RT subtraction (aligned)
 ```{r}
 rel_ccf_rt_cong_a_subt <- rel_sub(rel_ccf_rt_ca, rel_ccf_rt_ia, 
-                                  ccfe_d$con_ali, ccfe_d$inc_ali) %>% 
+                                  ccfe_rt$con_ali, ccfe_rt$inc_ali) %>% 
   tibble(DV = "rt", Condition = "con_ali - inc_ali", 
          Approach = "Subtraction",  Reliability = .)
 
@@ -861,7 +860,7 @@ rel_ccf_rt_cong_a_subt
 Congruency in RT regression (aligned)
 ```{r}
 rel_ccf_rt_cong_a_regr <- rel_reg(rel_ccf_rt_ca, rel_ccf_rt_ia, 
-                                  ccfe_d$con_ali, ccfe_d$inc_ali) %>% 
+                                  ccfe_rt$con_ali, ccfe_rt$inc_ali) %>% 
   tibble(DV = "rt", Condition = "con_ali ~ inc_ali", 
          Approach = "Regression",  Reliability = .)
 
@@ -871,7 +870,7 @@ rel_ccf_rt_cong_a_regr
 Congruency in RT subtraction (misaligned)
 ```{r}
 rel_ccf_rt_cong_m_subt <- rel_sub(rel_ccf_rt_cm, rel_ccf_rt_im, 
-                                  ccfe_d$con_mis, ccfe_d$inc_mis) %>% 
+                                  ccfe_rt$con_mis, ccfe_rt$inc_mis) %>% 
   tibble(DV = "rt", Condition = "con_mis - inc_mis", 
          Approach = "Subtraction",  Reliability = .)
 
@@ -881,7 +880,7 @@ rel_ccf_rt_cong_m_subt
 Congruency in RT subtraction (misaligned)
 ```{r}
 rel_ccf_rt_cong_m_regr <- rel_reg(rel_ccf_rt_cm, rel_ccf_rt_im, 
-                                  ccfe_d$con_mis, ccfe_d$inc_mis) %>% 
+                                  ccfe_rt$con_mis, ccfe_rt$inc_mis) %>% 
   tibble(DV = "rt", Condition = "con_mis ~ inc_mis", 
          Approach = "Regression",  Reliability = .)
 
