@@ -1420,8 +1420,8 @@ plot_fi_d <- emm_fi_d %>%
                      breaks = c("con", "inc"),
                      labels = c("Facilitation", "Interference", NULL)) +
   scale_linetype_manual(values = fi_linetype,
-                     breaks = c("con", "inc"),
-                     labels = c("Facilitation", "Interference", NULL)) +
+                        breaks = c("con", "inc"),
+                        labels = c("Facilitation", "Interference", NULL)) +
   coord_cartesian(ylim = c(0,3.2)) +  # set the limit for y axis c(0, 1100)
   labs(y = expression("Sensitivity"~italic("d'")), color=NULL, linetype=NULL) +  # set the names for main, x and y axises
   # geom_text(label = c("***", "***", ""),
@@ -1625,8 +1625,8 @@ plot_fi_rt <- emm_fi_rt %>%
                      breaks = c("con", "inc"),
                      labels = c("Facilitation", "Interference", NULL)) +
   scale_linetype_manual(values = fi_linetype,
-                     breaks = c("con", "inc"),
-                     labels = c("Facilitation", "Interference", NULL)) +
+                        breaks = c("con", "inc"),
+                        labels = c("Facilitation", "Interference", NULL)) +
   coord_cartesian(ylim = c(800, 1000)) +  # set the limit for y axis c(0, 1100)
   labs(y = "Correct response times (ms)", color=NULL, linetype=NULL) +  # set the names for main, x and y axises
   # geom_text(label = c("***", "***", ""),
@@ -1654,7 +1654,7 @@ plot_pw_acc_pub <- plot_pw_acc +
 plot_pw_rt_pub <- plot_pw_rt +
   scale_y_continuous(breaks=rt_y_breaks) +
   coord_cartesian(ylim = rt_y_limits) 
-  
+
 plot_scf_acc_pub <- plot_scf_acc +
   coord_cartesian(ylim = acc_y_limits) 
 
@@ -1911,6 +1911,8 @@ plot_ccf_d_pub <- emm_ccf_d %>%
   theme(legend.position = c(.7, .2),
         legend.box = "horizontal",
         legend.margin=margin(unit(-0.6,"cm"))) +
+  guides(color=guide_legend(keyheight=0.5,
+                            default.unit="cm")) +
   NULL
 
 plot_ccf_d_pub
@@ -1954,7 +1956,7 @@ plot_ccf_rt_pub <- emm_ccf_rt %>%
   theme(legend.position = "none") +
   labs(y = "Correct response times (ms)", fill = "Congruency") +  # set the names for main, x and y axises
   NULL
-  
+
 plot_ccf_rt_pub
 ```
 
@@ -1988,4 +1990,31 @@ fig_hp2
 ```{r eval=FALSE, include=FALSE}
 ggsave(filename = here("figures","individual_hpe","fig_hp.pdf"), 
        fig_hp2, width = 11, height = 11*.7)
+```
+
+```{r fig.width=22, fig.asp=.2}
+fig_hp_poster <- 
+  ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub, nrow=1) %>% 
+              annotate_figure(top = text_grob("                Part-whole task", 
+                                              face="bold", size = 16)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_scf_acc_pub, plot_scf_rt_pub, nrow=1) %>% 
+              annotate_figure(top = text_grob("                Standard composite task", 
+                                              face="bold", size = 16)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_ccf_d_pub, plot_ccf_rt_pub, nrow=1) %>% 
+              annotate_figure(top = text_grob("                Complete composite task", 
+                                              face="bold", size = 16)),
+            # labels = c("a", "", "b", "", "c", ""),
+            widths = c(0.9, 0.05, 0.9, 0.05, 1.1),
+            nrow=1) +
+  bgcolor("white") +
+  border("white")
+
+fig_hp_poster
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_hpe","fig_hp_poster.pdf"), 
+       fig_hp_poster, width = 22, height = 22*.2)
 ```

@@ -3509,3 +3509,27 @@ ggsave(filename = here("figures","individual_corr", "fig_scfe_fac_acc_regr.pdf")
        plot_scfe_fac_acc_regr_iso, width = 5, height = 5*.9)
 ```
 
+```{r fig.width=22, fig.asp=.5}
+fig_corr_poster <- 
+  ggarrange(ggarrange(plot_ccfe_pwe_acc_subt, plot_ccfe_pwe_acc_regr, nrow=1),
+            ggplot() + theme_void(), 
+            ggarrange(plot_ccfe_scfe_acc_subt, plot_ccfe_scfe_acc_regr, nrow=1),
+            ggplot() + theme_void(), 
+            ggplot() + theme_void(), 
+            ggplot() + theme_void(), 
+            ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_acc_regr_iso, nrow=1),
+            ggplot() + theme_void(), 
+            ggarrange(plot_scfe_int_acc_subt_iso, plot_scfe_int_acc_regr_iso, nrow=1),
+            widths = c(1, 0.1, 1),
+            heights = c(1, 0.1, 1),
+            nrow=3, ncol=3) +
+  bgcolor("white") +
+  border("white")
+
+fig_corr_poster
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(filename = here("figures","individual_corr","fig_cor_poster.pdf"), 
+       fig_corr_poster, width = 23, height = 23*.46)
+```
