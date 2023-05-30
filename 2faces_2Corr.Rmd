@@ -1017,6 +1017,14 @@ psych_cor2 <- function(.data, ...) {
 ```
 
 
+```{r}
+# custom function to calculate the disattenuated correlation
+# Spearman, C. (1904). The proof and measurement of association between two things. The American Journal of Psychology, 15(1), 72–101. https://doi.org/10.2307/1412159
+# disa_corr <- function(cor.value, rel1, rel2){
+#   return(cor.value / sqrt(rel1, rel2))
+# }
+```
+
 ### Subtraction
 
 #### Accuracy & d'
@@ -1047,7 +1055,9 @@ cor_hpe_acc_subt <- psych_cor2(hpe_acc_subt) %>%
            upper_boundary(rel_pwe_acc_subt, rel_scfe_acc_subt),
            upper_boundary(rel_pwe_acc_subt, rel_ccfe_d_subt_subt),
            upper_boundary(rel_scfe_acc_subt, rel_ccfe_d_subt_subt)
-         ), .before = 1) 
+         ), 
+         r_corr = r/up_bound,
+         .before = 1) 
 
 cor_hpe_acc_subt
 ```
@@ -1060,8 +1070,12 @@ plot_pwe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=pwe_subt, y=scfe_subt)) +
        y = "Standard composite difference scores (accuracy)     ") +
   coord_cartesian(ylim = c(-.35, .6)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")",
-                          cor_hpe_acc_subt$r[1], cor_hpe_acc_subt$p[1]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")",
+                          cor_hpe_acc_subt$r[1], 
+                          cor_hpe_acc_subt$r_corr[1], 
+                          cor_hpe_acc_subt$p[1]))
 plot_pwe_scfe_acc_subt
 ```
 
@@ -1073,8 +1087,12 @@ plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)
        y = "Part-whole difference scores (accuracy)") +
   # coord_cartesian(ylim = c(-.35, .6)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_subt$r[2], 
+                          cor_hpe_acc_subt$r_corr[2], 
+                          cor_hpe_acc_subt$p[2]))
 plot_ccfe_pwe_acc_subt
 ```
 
@@ -1085,8 +1103,12 @@ plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_sub
   labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
        y = "Standard composite difference scores (accuracy)     ") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
-                          cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_subt$r[3], 
+                          cor_hpe_acc_subt$r_corr[3], 
+                          cor_hpe_acc_subt$p[3]))
 plot_ccfe_scfe_acc_subt
 ```
 
@@ -1107,7 +1129,9 @@ cor_hpe_rt_subt <- psych_cor2(hpe_rt_subt) %>%
            upper_boundary(rel_pwe_rt_subt, rel_scfe_rt_subt),
            upper_boundary(rel_pwe_rt_subt, rel_ccfe_rt_subt_subt),
            upper_boundary(rel_scfe_rt_subt, rel_ccfe_rt_subt_subt)
-         ), .before = 1) 
+         ), 
+         r_corr = r/up_bound, 
+         .before = 1) 
 cor_hpe_rt_subt
 ```
 
@@ -1118,8 +1142,12 @@ plot_pwe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=pwe_subt, y=scfe_subt)) +
   labs(x = "Part-whole difference scores (RT)", 
        y = "Standard composite difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_subt$r[1], cor_hpe_rt_subt$p[1]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[1], 
+                          cor_hpe_rt_subt$r_corr[1], 
+                          cor_hpe_rt_subt$p[1]))
 
 plot_pwe_scfe_rt_subt
 ```
@@ -1131,8 +1159,12 @@ plot_ccfe_pwe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) 
   labs(x = "Complete composite difference scores (RT)", 
        y = "Part-whole difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_subt$r[2], cor_hpe_rt_subt$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[2], 
+                          cor_hpe_rt_subt$r_corr[2], 
+                          cor_hpe_rt_subt$p[2]))
 plot_ccfe_pwe_rt_subt
 ```
 
@@ -1144,8 +1176,12 @@ plot_ccfe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=scfe_subt)
        y = "Standard composite difference scores (RT)") +
   coord_cartesian(ylim = c(-600, 1000)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_subt$r[3], cor_hpe_rt_subt$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_subt$r[3], 
+                          cor_hpe_rt_subt$r_corr[3], 
+                          cor_hpe_rt_subt$p[3]))
 plot_ccfe_scfe_rt_subt
 ```
 
@@ -1187,7 +1223,9 @@ cor_hpe_acc_regr <- psych_cor2(hpe_acc_regr) %>%
            upper_boundary(rel_pwe_acc_regr, rel_scfe_acc_regr),
            upper_boundary(rel_pwe_acc_regr, rel_ccfe_d_subt_regr),
            upper_boundary(rel_scfe_acc_regr, rel_ccfe_d_subt_regr)
-         ), .before = 1) 
+         ), 
+         r_corr = r/up_bound, 
+         .before = 1) 
 cor_hpe_acc_regr
 ```
 
@@ -1199,8 +1237,12 @@ plot_pwe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=pwe_regr, y=scfe_regr)) +
        y = "Standard composite residuals (accuracy)") +
   coord_cartesian(ylim=c(-.3, .45)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_acc_regr$r[1], cor_hpe_acc_regr$p[1]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_regr$r[1], 
+                          cor_hpe_acc_regr$r_corr[1], 
+                          cor_hpe_acc_regr$p[1]))
 plot_pwe_scfe_acc_regr
 ```
 
@@ -1211,8 +1253,12 @@ plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
        y = "Part-whole residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
-                          cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_regr$r[2], 
+                          cor_hpe_acc_regr$r_corr[2], 
+                          cor_hpe_acc_regr$p[2]))
 plot_ccfe_pwe_acc_regr
 ```
 
@@ -1223,8 +1269,12 @@ plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_reg
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
-                          cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.4f\")", 
+                          cor_hpe_acc_regr$r[3], 
+                          cor_hpe_acc_regr$r_corr[3], 
+                          cor_hpe_acc_regr$p[3]))
 plot_ccfe_scfe_acc_regr
 ```
 
@@ -1244,7 +1294,9 @@ cor_hpe_rt_regr <- psych_cor2(hpe_rt_regr) %>%
            upper_boundary(rel_pwe_rt_regr, rel_scfe_rt_regr),
            upper_boundary(rel_pwe_rt_regr, rel_ccfe_rt_subt_regr),
            upper_boundary(rel_scfe_rt_regr, rel_ccfe_rt_subt_regr)
-         ), .before = 1) 
+         ), 
+         r_corr = r/up_bound,
+         .before = 1) 
 cor_hpe_rt_regr
 ```
 
@@ -1255,8 +1307,12 @@ plot_pwe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=pwe_regr, y=scfe_regr)) +
   labs(x = "Part-whole residuals (RT)", 
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_regr$r[1], cor_hpe_rt_regr$p[1]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[1], 
+                          cor_hpe_rt_regr$r_corr[1], 
+                          cor_hpe_rt_regr$p[1]))
 plot_pwe_scfe_rt_regr
 ```
 
@@ -1267,8 +1323,12 @@ plot_ccfe_pwe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) 
   labs(x = "Complete composite residuals (RT)", 
        y = "Part-whole residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_regr$r[2], cor_hpe_rt_regr$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[2], 
+                          cor_hpe_rt_regr$r_corr[2], 
+                          cor_hpe_rt_regr$p[2]))
 plot_ccfe_pwe_rt_regr
 ```
 
@@ -1279,8 +1339,12 @@ plot_ccfe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=scfe_regr)
   labs(x = "Complete composite residuals (RT)", 
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_rt_regr$r[3], cor_hpe_rt_regr$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_rt_regr$r[3], 
+                          cor_hpe_rt_regr$r_corr[3], 
+                          cor_hpe_rt_regr$p[3]))
 plot_ccfe_scfe_rt_regr
 ```
 
@@ -1369,6 +1433,7 @@ r_pwe_fac_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt) %>%
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_acc_subt
 ```
@@ -1381,8 +1446,12 @@ ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
        y = "Part-whole difference scores (accuracy)") +
   coord_cartesian(ylim = c(-.23, .35)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f \")",
-                          r_pwe_fac_acc_subt$r, r_pwe_fac_acc_subt$p))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f \")",
+                          r_pwe_fac_acc_subt$r, 
+                          r_pwe_fac_acc_subt$r_corr, 
+                          r_pwe_fac_acc_subt$p))
 ```
 
 accuracy isolated
@@ -1392,6 +1461,7 @@ r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>%
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_fac_d_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_iso_acc_subt
 ```
@@ -1403,8 +1473,11 @@ ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
   labs(x = "Facilitation difference scores (d')",
        y = "Part-whole difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_subt$r, 
+                          r_pwe_fac_iso_acc_subt$r_corr, 
                           r_pwe_fac_iso_acc_subt$p))
 ```
 
@@ -1415,6 +1488,7 @@ r_pwe_fac_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt) %>%
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_rt_subt
 ```
@@ -1426,8 +1500,11 @@ ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
   labs(x = "Facilitation difference scores (RT)",
        y = "Part-whole difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_rt_subt$r, 
+                          r_pwe_fac_rt_subt$r_corr, 
                           r_pwe_fac_rt_subt$p))
 ```
 
@@ -1438,6 +1515,7 @@ r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>%
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_fac_rt_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_iso_rt_subt
 ```
@@ -1450,8 +1528,11 @@ ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-750, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_subt$r, 
+                          r_pwe_fac_iso_rt_subt$r_corr, 
                           r_pwe_fac_iso_rt_subt$p))
 ```
 
@@ -1463,6 +1544,7 @@ r_pwe_fac_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr) %>%
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_acc_regr
 ```
@@ -1474,8 +1556,11 @@ ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
   labs(x = "Facilitation residuals (d')",
        y = "Part-whole residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_acc_regr$r, 
+                          r_pwe_fac_acc_regr$r_corr, 
                           r_pwe_fac_acc_regr$p))
 ```
 
@@ -1486,6 +1571,7 @@ r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>%
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_fac_d_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_iso_acc_regr
 ```
@@ -1497,8 +1583,11 @@ ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
   labs(x = "Facilitation residuals (d')",
        y = "Part-whole residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_regr$r, 
+                          r_pwe_fac_iso_acc_regr$r_corr, 
                           r_pwe_fac_iso_acc_regr$p))
 ```
 
@@ -1509,6 +1598,7 @@ r_pwe_fac_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr) %>%
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_rt_regr
 ```
@@ -1520,8 +1610,11 @@ ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
   labs(x = "Facilitation residuals (RT)",
        y = "Part-whole residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_rt_regr$r, 
+                          r_pwe_fac_rt_regr$r_corr, 
                           r_pwe_fac_rt_regr$p))
 ```
 
@@ -1532,6 +1625,7 @@ r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>%
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_fac_rt_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_fac_iso_rt_regr
 ```
@@ -1544,8 +1638,11 @@ ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
        y = "Part-whole residuals (RT)") +
   coord_cartesian(ylim = c(-650, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_regr$r, 
+                          r_pwe_fac_iso_rt_regr$r_corr, 
                           r_pwe_fac_iso_rt_regr$p))
 ```
 
@@ -1578,10 +1675,12 @@ plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
   scale_y_continuous(breaks=seq(-.2, .3, .1)) +
   coord_cartesian(ylim = c(-.25, .36)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_subt$r, 
+                          r_pwe_fac_iso_acc_subt$r_corr,
                           r_pwe_fac_iso_acc_subt$p,
                           r_pwe_fac_iso$p.adj[1]))
 plot_pwe_fac_acc_subt_iso
@@ -1596,10 +1695,12 @@ plot_pwe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-770, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_subt$r, 
+                          r_pwe_fac_iso_rt_subt$r_corr, 
                           r_pwe_fac_iso_rt_subt$p,
                           r_pwe_fac_iso$p.adj[2]))
 plot_pwe_fac_rt_subt_iso
@@ -1616,10 +1717,12 @@ plot_pwe_fac_acc_regr_iso <-ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
   scale_y_continuous(breaks=seq(-.4, .2, .1)) +
   coord_cartesian(ylim = c(-.35, .19)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_regr$r, 
+                          r_pwe_fac_iso_acc_regr$r_corr, 
                           r_pwe_fac_iso_acc_regr$p,
                           r_pwe_fac_iso$p.adj[3]))
 plot_pwe_fac_acc_regr_iso
@@ -1637,10 +1740,12 @@ plot_pwe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=pwe_regr)) +
   scale_x_continuous(breaks = seq(-750, 500, 250)) +
   coord_cartesian(ylim = c(-650, 1200), xlim = c(-770, 550)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_rt_regr$r, 
+                          r_pwe_fac_iso_rt_regr$r_corr, 
                           r_pwe_fac_iso_rt_regr$p,
                           r_pwe_fac_iso$p.adj[4]))
 plot_pwe_fac_rt_regr_iso
@@ -1674,10 +1779,12 @@ plot_pwe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
   scale_y_continuous(breaks=seq(-.4, .4, .1)) +
   coord_cartesian(ylim = c(-.22, .35)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_acc_subt$r, 
+                          r_pwe_fac_acc_subt$r_corr, 
                           r_pwe_fac_acc_subt$p,
                           r_pwe_fac$p.adj[1]))
 plot_pwe_fac_acc_subt
@@ -1691,10 +1798,12 @@ plot_pwe_fac_rt_subt <- ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-800, 1100)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")",
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")",
                           r_pwe_fac_rt_subt$r, 
+                          r_pwe_fac_rt_subt$r_corr, 
                           r_pwe_fac_rt_subt$p,
                           r_pwe_fac$p.adj[2]))
 plot_pwe_fac_rt_subt
@@ -1708,10 +1817,12 @@ plot_pwe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
        y = "Part-whole residuals (accuracy)") +
   coord_cartesian(ylim = c(-.35, .16)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")",
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")",
                           r_pwe_fac_acc_regr$r, 
+                          r_pwe_fac_acc_regr$r_corr, 
                           r_pwe_fac_acc_regr$p,
                           r_pwe_fac$p.adj[3]))
 plot_pwe_fac_acc_regr
@@ -1725,10 +1836,12 @@ plot_pwe_fac_rt_regr <- ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
        y = "Part-whole residuals (RT)") +
   coord_cartesian(ylim = c(-700, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_rt_regr$r, 
+                          r_pwe_fac_rt_regr$r_corr, 
                           r_pwe_fac_rt_regr$p,
                           r_pwe_fac$p.adj[4]))
 plot_pwe_fac_rt_regr
@@ -1750,6 +1863,7 @@ r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>%
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_acc_subt
 ```
@@ -1761,8 +1875,11 @@ ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
   labs(x = "Interference difference scores (d')",
        y = "Standard composite difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.4f\")", 
                           r_scfe_int_acc_subt$r, 
+                          r_scfe_int_acc_subt$r_corr, 
                           r_scfe_int_acc_subt$p))
 ```
 
@@ -1773,6 +1890,7 @@ r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_int_d_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_iso_acc_subt
 ```
@@ -1784,8 +1902,11 @@ ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
   labs(x = "Interference difference scores (d')",
        y = "Standard composite difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f\")", 
                           r_scfe_int_iso_acc_subt$r, 
+                          r_scfe_int_iso_acc_subt$r_corr, 
                           r_scfe_int_iso_acc_subt$p))
 ```
 
@@ -1796,6 +1917,7 @@ r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>%
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_rt_subt
 ```
@@ -1807,8 +1929,11 @@ ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
   labs(x = "Interference difference scores (RT)",
        y = "Standard composite difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_int_rt_subt$r, 
+                          r_scfe_int_rt_subt$r_corr, 
                           r_scfe_int_rt_subt$p))
 ```
 
@@ -1819,6 +1944,7 @@ r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_int_rt_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_iso_rt_subt
 ```
@@ -1830,8 +1956,11 @@ ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
   labs(x = "Interference difference scores (RT)",
        y = "Standard composite difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")",  
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")",  
                           r_scfe_int_iso_rt_subt$r, 
+                          r_scfe_int_iso_rt_subt$r_corr, 
                           r_scfe_int_iso_rt_subt$p))
 ```
 
@@ -1843,6 +1972,7 @@ r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>%
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_acc_regr
 ```
@@ -1854,8 +1984,11 @@ ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
   labs(x = "Interference residuals (d')",
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f\")", 
                           r_scfe_int_acc_regr$r, 
+                          r_scfe_int_acc_regr$r_corr, 
                           r_scfe_int_acc_regr$p))
 ```
 
@@ -1866,6 +1999,7 @@ r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_int_d_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_iso_acc_regr
 ```
@@ -1877,8 +2011,11 @@ ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
   labs(x = "Interference residuals (d')",
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f\")", 
                           r_scfe_int_iso_acc_regr$r, 
+                          r_scfe_int_iso_acc_regr$r_corr, 
                           r_scfe_int_iso_acc_regr$p))
 ```
 
@@ -1889,6 +2026,7 @@ r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>%
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_rt_regr
 ```
@@ -1900,8 +2038,11 @@ ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
   labs(x = "Interference residuals (RT)",
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_int_rt_regr$r, 
+                          r_scfe_int_rt_regr$r_corr, 
                           r_scfe_int_rt_regr$p))
 ```
 
@@ -1912,6 +2053,7 @@ r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_int_rt_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_int_iso_rt_regr
 ```
@@ -1923,8 +2065,11 @@ ggplot(hpe_rt, aes(x=int_regr_iso, y=scfe_regr)) +
   labs(x = "Interference residuals (RT)",
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_int_iso_rt_regr$r, 
+                          r_scfe_int_iso_rt_regr$r_corr, 
                           r_scfe_int_iso_rt_regr$p))
 ```
 
@@ -1955,10 +2100,12 @@ plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) 
   labs(x = expression("Interference difference scores ("*italic("d'")*")"),
        y = "Standard composite difference scores (accuracy)     ") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.5f, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f, \",
+                          italic(p)[adj], \" = %0.5f\")", 
                           r_scfe_int_iso_acc_subt$r, 
+                          r_scfe_int_iso_acc_subt$r_corr, 
                           r_scfe_int_iso_acc_subt$p,
                           r_scfe_int_iso$p.adj[1]))
 plot_scfe_int_acc_subt_iso
@@ -1973,10 +2120,12 @@ plot_scfe_int_rt_subt_iso <- ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
   scale_x_continuous(breaks=seq(-500, 1000, 250)) +
   coord_cartesian(ylim = c(-1100, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.3f, \"
-                          ,italic(p)[adj], \" = %0.3f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f, \",
+                          italic(p)[adj], \" = %0.3f\")", 
                           r_scfe_int_iso_rt_subt$r, 
+                          r_scfe_int_iso_rt_subt$r_corr, 
                           r_scfe_int_iso_rt_subt$p,
                           r_scfe_int_iso$p.adj[2]))
 plot_scfe_int_rt_subt_iso
@@ -1989,10 +2138,12 @@ plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) 
   labs(x = expression("Interference residuals ("*italic("d'")*")"),
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" < 0.00001, \"
-                          ,italic(p)[adj], \" < 0.00001\")", 
-                          r_scfe_int_iso_acc_regr$r)) 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" < 0.00001, \",
+                          italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_int_iso_acc_regr$r,
+                          r_scfe_int_iso_acc_regr$r_corr)) 
 plot_scfe_int_acc_regr_iso
 ```
 
@@ -2004,10 +2155,12 @@ plot_scfe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr_iso, y=scfe_regr)) +
        y = "Standard composite residuals (RT)") +
   coord_cartesian(ylim = c(-730, 470), xlim = c(-620, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_int_iso_rt_regr$r, 
+                          r_scfe_int_iso_rt_regr$r_corr, 
                           r_scfe_int_iso_rt_regr$p,
                           r_scfe_int_iso$p.adj[4]))
 plot_scfe_int_rt_regr_iso
@@ -2036,10 +2189,12 @@ plot_scfe_int_acc_subt <- ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
   labs(x = expression("Interference difference scores ("*italic("d'")*")"),
        y = "Standard composite difference scores (accuracy)     ") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.4f, \"
-                          ,italic(p)[adj], \" = %0.3f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.4f, \",
+                          italic(p)[adj], \" = %0.3f\")", 
                           r_scfe_int_acc_subt$r, 
+                          r_scfe_int_acc_subt$r_corr, 
                           r_scfe_int_acc_subt$p,
                           r_scfe_int$p.adj[1]))
 plot_scfe_int_acc_subt
@@ -2053,10 +2208,12 @@ plot_scfe_int_rt_subt <- ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
        y = "Standard composite difference scores (RT)") +
   coord_cartesian(ylim = c(-1100, 500)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_int_rt_subt$r, 
+                          r_scfe_int_rt_subt$r_corr, 
                           r_scfe_int_rt_subt$p,
                           r_scfe_int$p.adj[2]))
 plot_scfe_int_rt_subt
@@ -2069,10 +2226,12 @@ plot_scfe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
   labs(x = expression("Interference residuals ("*italic("d'")*")"),
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" < 0.00001, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" < 0.00001, \",
+                          italic(p)[adj], \" = %0.5f\")", 
                           r_scfe_int_acc_regr$r, 
+                          r_scfe_int_acc_regr$r_corr, 
                           # r_scfe_int_acc_regr$p,
                           r_scfe_int$p.adj[3]))
 plot_scfe_int_acc_regr
@@ -2087,10 +2246,12 @@ plot_scfe_int_rt_regr <- ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
   scale_x_continuous(breaks=seq(-600, 600, 300)) +
   coord_cartesian(ylim = c(-720, 380), xlim = c(-620, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_int_rt_regr$r, 
+                          r_scfe_int_rt_regr$r_corr, 
                           r_scfe_int_rt_regr$p,
                           r_scfe_int$p.adj[4]))
 plot_scfe_int_rt_regr
@@ -2117,6 +2278,7 @@ r_pwe_int_acc_subt <- bind_cols(pwe_acc['pwe_subt'],
   mutate(pair = "pwe_subt ~ int_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_int_d_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_acc_subt
 ```
@@ -2129,8 +2291,12 @@ ggplot(hpe_acc, aes(x=int_subt, y=pwe_subt)) +
        y = "Part-whole difference scores (accuracy)") +
   coord_cartesian(ylim = c(-.23, .35)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f \")",
-                          r_pwe_int_acc_subt$r, r_pwe_int_acc_subt$p))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f \")",
+                          r_pwe_int_acc_subt$r, 
+                          r_pwe_int_acc_subt$r_corr, 
+                          r_pwe_int_acc_subt$p))
 ```
 
 accuracy isolated
@@ -2142,6 +2308,7 @@ r_pwe_int_iso_acc_subt <- bind_cols(pwe_acc['pwe_subt'],
   mutate(pair = "pwe_subt ~ int_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_pwe_acc_subt, rel_int_d_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_iso_acc_subt
 ```
@@ -2153,8 +2320,11 @@ ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
   labs(x = "Interference difference scores (d')",
        y = "Part-whole difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_iso_acc_subt$r, 
+                          r_pwe_int_iso_acc_subt$r_corr, 
                           r_pwe_int_iso_acc_subt$p))
 ```
 
@@ -2167,6 +2337,7 @@ r_pwe_int_rt_subt <- bind_cols(pwe_rt['pwe_subt'],
   mutate(pair = "pwe_subt ~ int_subt",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_int_rt_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_rt_subt
 ```
@@ -2178,8 +2349,11 @@ ggplot(hpe_rt, aes(x=int_subt, y=pwe_subt)) +
   labs(x = "Interference difference scores (RT)",
        y = "Part-whole difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_rt_subt$r, 
+                          r_pwe_int_rt_subt$r_corr, 
                           r_pwe_int_rt_subt$p))
 ```
 
@@ -2192,6 +2366,7 @@ r_pwe_int_iso_rt_subt <- bind_cols(pwe_rt['pwe_subt'],
   mutate(pair = "pwe_subt ~ int_subt_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_subt, rel_int_rt_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_iso_rt_subt
 ```
@@ -2204,8 +2379,11 @@ ggplot(hpe_rt, aes(x=int_subt_iso, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-750, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_iso_rt_subt$r, 
+                          r_pwe_int_iso_rt_subt$r_corr, 
                           r_pwe_int_iso_rt_subt$p))
 ```
 
@@ -2219,6 +2397,7 @@ r_pwe_int_acc_regr <- bind_cols(pwe_acc['pwe_regr'],
   mutate(pair = "pwe_regr ~ int_regr",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_int_d_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_acc_regr
 ```
@@ -2230,8 +2409,11 @@ ggplot(hpe_acc, aes(x=int_regr, y=pwe_regr)) +
   labs(x = "Interference residuals (d')",
        y = "Part-whole residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_acc_regr$r, 
+                          r_pwe_int_acc_regr$r_corr, 
                           r_pwe_int_acc_regr$p))
 ```
 
@@ -2244,6 +2426,7 @@ r_pwe_int_iso_acc_regr <- bind_cols(pwe_acc['pwe_regr'],
   mutate(pair = "pwe_regr ~ int_regr_iso",
          DV = "acc", 
          up_bound = upper_boundary(rel_pwe_acc_regr, rel_int_d_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_iso_acc_regr
 ```
@@ -2255,8 +2438,11 @@ ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
   labs(x = "Interference residuals (d')",
        y = "Part-whole residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_iso_acc_regr$r, 
+                          r_pwe_int_iso_acc_regr$r_corr, 
                           r_pwe_int_iso_acc_regr$p))
 ```
 
@@ -2269,6 +2455,7 @@ r_pwe_int_rt_regr <- bind_cols(pwe_rt['pwe_regr'],
   mutate(pair = "pwe_regr ~ int_regr",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_int_rt_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_rt_regr
 ```
@@ -2280,8 +2467,11 @@ ggplot(hpe_rt, aes(x=int_regr, y=pwe_regr)) +
   labs(x = "Interference residuals (RT)",
        y = "Part-whole residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_rt_regr$r, 
+                          r_pwe_int_rt_regr$r_corr, 
                           r_pwe_int_rt_regr$p))
 ```
 
@@ -2294,6 +2484,7 @@ r_pwe_int_iso_rt_regr <- bind_cols(pwe_rt['pwe_regr'],
   mutate(pair = "pwe_regr ~ int_regr_iso",
          DV = "rt", 
          up_bound = upper_boundary(rel_pwe_rt_regr, rel_int_rt_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_pwe_int_iso_rt_regr
 ```
@@ -2306,8 +2497,11 @@ ggplot(hpe_rt, aes(x=int_regr_iso, y=pwe_regr)) +
        y = "Part-whole residuals (RT)") +
   coord_cartesian(ylim = c(-650, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_pwe_int_iso_rt_regr$r, 
+                          r_pwe_int_iso_rt_regr$r_corr, 
                           r_pwe_int_iso_rt_regr$p))
 ```
 
@@ -2340,10 +2534,12 @@ plot_pwe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
   scale_y_continuous(breaks=seq(-.2, .3, .1)) +
   coord_cartesian(ylim = c(-.25, .36)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_acc_subt$r, 
+                          r_pwe_int_iso_acc_subt$r_corr, 
                           r_pwe_int_iso_acc_subt$p,
                           r_pwe_int_iso$p.adj[1]))
 plot_pwe_int_acc_subt_iso
@@ -2358,10 +2554,12 @@ plot_pwe_int_rt_subt_iso <- ggplot(hpe_rt, aes(x=int_subt_iso, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-770, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_rt_subt$r, 
+                          r_pwe_int_iso_rt_subt$r_corr, 
                           r_pwe_int_iso_rt_subt$p,
                           r_pwe_int_iso$p.adj[2]))
 plot_pwe_int_rt_subt_iso
@@ -2378,10 +2576,12 @@ plot_pwe_int_acc_regr_iso <-ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
   scale_y_continuous(breaks=seq(-.4, .2, .1)) +
   coord_cartesian(ylim = c(-.35, .19)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_acc_regr$r, 
+                          r_pwe_int_iso_acc_regr$r_corr, 
                           r_pwe_int_iso_acc_regr$p,
                           r_pwe_int_iso$p.adj[3]))
 plot_pwe_int_acc_regr_iso
@@ -2399,10 +2599,12 @@ plot_pwe_int_rt_regr_iso <- ggplot(hpe_rt, aes(x=int_regr_iso, y=pwe_regr)) +
   scale_x_continuous(breaks = seq(-750, 500, 250)) +
   coord_cartesian(ylim = c(-650, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_rt_regr$r, 
+                          r_pwe_int_iso_rt_regr$r_corr, 
                           r_pwe_int_iso_rt_regr$p,
                           r_pwe_int_iso$p.adj[4]))
 plot_pwe_int_rt_regr_iso
@@ -2436,10 +2638,12 @@ plot_pwe_int_acc_subt <- ggplot(hpe_acc, aes(x=int_subt, y=pwe_subt)) +
   scale_y_continuous(breaks=seq(-.4, .4, .1)) +
   coord_cartesian(ylim = c(-.22, .35)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_acc_subt$r, 
+                          r_pwe_int_acc_subt$r_corr, 
                           r_pwe_int_acc_subt$p,
                           r_pwe_int$p.adj[1]))
 plot_pwe_int_acc_subt
@@ -2453,10 +2657,12 @@ plot_pwe_int_rt_subt <- ggplot(hpe_rt, aes(x=int_subt, y=pwe_subt)) +
        y = "Part-whole difference scores (RT)") +
   coord_cartesian(ylim = c(-800, 1100)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")",
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")",
                           r_pwe_int_rt_subt$r, 
+                          r_pwe_int_rt_subt$r_corr, 
                           r_pwe_int_rt_subt$p,
                           r_pwe_int$p.adj[2]))
 plot_pwe_int_rt_subt
@@ -2470,10 +2676,12 @@ plot_pwe_int_acc_regr <- ggplot(hpe_acc, aes(x=int_regr, y=pwe_regr)) +
        y = "Part-whole residuals (accuracy)") +
   coord_cartesian(ylim = c(-.35, .16)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")",
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")",
                           r_pwe_int_acc_regr$r, 
+                          r_pwe_int_acc_regr$r_corr, 
                           r_pwe_int_acc_regr$p,
                           r_pwe_int$p.adj[3]))
 plot_pwe_int_acc_regr
@@ -2487,10 +2695,12 @@ plot_pwe_int_rt_regr <- ggplot(hpe_rt, aes(x=int_regr, y=pwe_regr)) +
        y = "Part-whole residuals (RT)") +
   coord_cartesian(ylim = c(-700, 1200)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_rt_regr$r, 
+                          r_pwe_int_rt_regr$r_corr, 
                           r_pwe_int_rt_regr$p,
                           r_pwe_int$p.adj[4]))
 plot_pwe_int_rt_regr
@@ -2516,6 +2726,7 @@ r_scfe_fac_acc_subt <- bind_cols(scfe_acc['scfe_subt'],
   mutate(pair = "scfe_subt ~ fac_subt",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_fac_d_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_acc_subt
 ```
@@ -2527,8 +2738,11 @@ ggplot(hpe_acc, aes(x=fac_subt, y=scfe_subt)) +
   labs(x = "Facilitation difference scores (d')",
        y = "Standard composite difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.4f\")", 
                           r_scfe_fac_acc_subt$r, 
+                          r_scfe_fac_acc_subt$r_corr, 
                           r_scfe_fac_acc_subt$p))
 ```
 
@@ -2541,6 +2755,7 @@ r_scfe_fac_iso_acc_subt <- bind_cols(scfe_acc['scfe_subt'],
   mutate(pair = "scfe_subt ~ fac_subt_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_subt, rel_fac_d_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_iso_acc_subt
 ```
@@ -2552,8 +2767,11 @@ ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) +
   labs(x = "Facilitation difference scores (d')",
        y = "Standard composite difference scores (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f\")", 
                           r_scfe_fac_iso_acc_subt$r, 
+                          r_scfe_fac_iso_acc_subt$r_corr, 
                           r_scfe_fac_iso_acc_subt$p))
 ```
 
@@ -2566,6 +2784,7 @@ r_scfe_fac_rt_subt <- bind_cols(scfe_rt['scfe_subt'],
   mutate(pair = "scfe_subt ~ fac_subt",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_fac_rt_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_rt_subt
 ```
@@ -2577,8 +2796,11 @@ ggplot(hpe_rt, aes(x=fac_subt, y=scfe_subt)) +
   labs(x = "Facilitation difference scores (RT)",
        y = "Standard composite difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_fac_rt_subt$r, 
+                          r_scfe_fac_rt_subt$r_corr, 
                           r_scfe_fac_rt_subt$p))
 ```
 
@@ -2591,6 +2813,7 @@ r_scfe_fac_iso_rt_subt <- bind_cols(scfe_rt['scfe_subt'],
   mutate(pair = "scfe_subt ~ fac_subt_iso",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_subt, rel_fac_rt_iso_subt),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_iso_rt_subt
 ```
@@ -2602,8 +2825,11 @@ ggplot(hpe_rt, aes(x=fac_subt_iso, y=scfe_subt)) +
   labs(x = "Facilitation difference scores (RT)",
        y = "Standard composite difference scores (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")",  
-                          r_scfe_fac_iso_rt_subt$r, 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")",  
+                          r_scfe_fac_iso_rt_subt$r,
+                          r_scfe_fac_iso_rt_subt$r_corr,
                           r_scfe_fac_iso_rt_subt$p))
 ```
 
@@ -2617,6 +2843,7 @@ r_scfe_fac_acc_regr <- bind_cols(scfe_acc['scfe_regr'],
   mutate(pair = "scfe_regr ~ fac_regr",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_fac_d_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_acc_regr
 ```
@@ -2628,8 +2855,11 @@ ggplot(hpe_acc, aes(x=fac_regr, y=scfe_regr)) +
   labs(x = "Facilitation residuals (d')",
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_fac_acc_regr$r, 
+                          r_scfe_fac_acc_regr$r_corr, 
                           r_scfe_fac_acc_regr$p))
 ```
 
@@ -2642,6 +2872,7 @@ r_scfe_fac_iso_acc_regr <- bind_cols(scfe_acc['scfe_regr'],
   mutate(pair = "scfe_regr ~ fac_regr_iso",
          DV = "acc",
          up_bound = upper_boundary(rel_scfe_acc_regr, rel_fac_d_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_iso_acc_regr
 ```
@@ -2653,8 +2884,11 @@ ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) +
   labs(x = "Facilitation residuals (d')",
        y = "Standard composite residuals (accuracy)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f\")", 
                           r_scfe_fac_iso_acc_regr$r, 
+                          r_scfe_fac_iso_acc_regr$r_corr, 
                           r_scfe_fac_iso_acc_regr$p))
 ```
 
@@ -2667,6 +2901,7 @@ r_scfe_fac_rt_regr <- bind_cols(scfe_rt['scfe_regr'],
   mutate(pair = "scfe_regr ~ fac_regr",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_fac_rt_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_rt_regr
 ```
@@ -2678,8 +2913,11 @@ ggplot(hpe_rt, aes(x=fac_regr, y=scfe_regr)) +
   labs(x = "Facilitation residuals (RT)",
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_fac_rt_regr$r, 
+                          r_scfe_fac_rt_regr$r_corr, 
                           r_scfe_fac_rt_regr$p))
 ```
 
@@ -2692,6 +2930,7 @@ r_scfe_fac_iso_rt_regr <- bind_cols(scfe_rt['scfe_regr'],
   mutate(pair = "scfe_regr ~ fac_regr_iso",
          DV = "rt",
          up_bound = upper_boundary(rel_scfe_rt_regr, rel_fac_rt_iso_regr),
+         r_corr = r/up_bound,
          .before = 1)
 r_scfe_fac_iso_rt_regr
 ```
@@ -2703,15 +2942,18 @@ ggplot(hpe_rt, aes(x=fac_regr_iso, y=scfe_regr)) +
   labs(x = "Facilitation residuals (RT)",
        y = "Standard composite residuals (RT)") +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
                           r_scfe_fac_iso_rt_regr$r, 
+                          r_scfe_fac_iso_rt_regr$r_corr, 
                           r_scfe_fac_iso_rt_regr$p))
 ```
 
 #### Interim summary
 
 ```{r}
-r_sum_scfe_int <- bind_rows(r_scfe_fac_acc_subt, r_scfe_fac_iso_acc_subt,
+r_sum_scfe_fac <- bind_rows(r_scfe_fac_acc_subt, r_scfe_fac_iso_acc_subt,
                             r_scfe_fac_rt_subt, r_scfe_fac_iso_rt_subt,
                             r_scfe_fac_acc_regr, r_scfe_fac_iso_acc_regr,
                             r_scfe_fac_rt_regr, r_scfe_fac_iso_rt_regr) 
@@ -2719,7 +2961,7 @@ r_sum_scfe_int <- bind_rows(r_scfe_fac_acc_subt, r_scfe_fac_iso_acc_subt,
 
 Corrections for the baseline of isolated:
 ```{r}
-r_scfe_fac_iso <- r_sum_scfe_int %>% 
+r_scfe_fac_iso <- r_sum_scfe_fac %>% 
   filter(endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
          adjust="holm") %>%  # apply Holm-Bonferroni
@@ -2736,10 +2978,12 @@ plot_scfe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) 
        y = "Standard composite difference scores (accuracy)     ") +
   coord_cartesian(ylim = c(-.65, .25)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_acc_subt$r, 
+                          r_scfe_fac_iso_acc_subt$r_corr, 
                           r_scfe_fac_iso_acc_subt$p,
                           r_scfe_fac_iso$p.adj[1]))
 plot_scfe_fac_acc_subt_iso
@@ -2754,10 +2998,12 @@ plot_scfe_fac_rt_subt_iso <- ggplot(hpe_rt, aes(x=fac_subt_iso, y=scfe_subt)) +
   scale_x_continuous(breaks=seq(-500, 1000, 250)) +
   coord_cartesian(ylim = c(-1100, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_rt_subt$r, 
+                          r_scfe_fac_iso_rt_subt$r_corr, 
                           r_scfe_fac_iso_rt_subt$p,
                           r_scfe_fac_iso$p.adj[2]))
 plot_scfe_fac_rt_subt_iso
@@ -2771,10 +3017,12 @@ plot_scfe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) 
        y = "Standard composite residuals (accuracy)") +
   coord_cartesian(ylim = c(-.58, .21)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_acc_regr$r, 
+                          r_scfe_fac_iso_acc_regr$r_corr, 
                           r_scfe_fac_iso_acc_regr$p,
                           r_scfe_fac_iso$p.adj[3]))
 plot_scfe_fac_acc_regr_iso
@@ -2788,10 +3036,12 @@ plot_scfe_fac_rt_regr_iso <- ggplot(hpe_rt, aes(x=fac_regr_iso, y=scfe_regr)) +
        y = "Standard composite residuals (RT)") +
   coord_cartesian(ylim = c(-730, 470), xlim = c(-750, 490)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_rt_regr$r, 
+                          r_scfe_fac_iso_rt_regr$r_corr, 
                           r_scfe_fac_iso_rt_regr$p,
                           r_scfe_fac_iso$p.adj[4]))
 plot_scfe_fac_rt_regr_iso
@@ -2805,12 +3055,12 @@ ggarrange(plot_scfe_fac_acc_subt_iso, plot_scfe_fac_rt_subt_iso,
 
 Corrections for the misaligned baseline:
 ```{r}
-r_scfe_int <- r_sum_scfe_int %>% 
+r_scfe_fac <- r_sum_scfe_fac %>% 
   filter(!endsWith(pair, "_iso")) %>% 
   mutate(p.adj = p.adjust(p, method = "holm"),
          adjust="holm") %>%  # apply Holm-Bonferroni
   psych_cor1_adj_CI()
-r_scfe_int
+r_scfe_fac
 ```
 
 ```{r}
@@ -2821,12 +3071,14 @@ plot_scfe_fac_acc_subt <- ggplot(hpe_acc, aes(x=fac_subt, y=scfe_subt)) +
        y = "Standard composite difference scores (accuracy)     ") +
   coord_cartesian(ylim = c(-.65, .24)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_acc_subt$r, 
+                          r_scfe_fac_acc_subt$r_corr,
                           r_scfe_fac_acc_subt$p,
-                          r_scfe_int$p.adj[1]))
+                          r_scfe_fac$p.adj[1]))
 plot_scfe_fac_acc_subt
 ```
 
@@ -2838,12 +3090,14 @@ plot_scfe_fac_rt_subt <- ggplot(hpe_rt, aes(x=fac_subt, y=scfe_subt)) +
        y = "Standard composite difference scores (RT)") +
   coord_cartesian(ylim = c(-1100, 500)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_rt_subt$r, 
+                          r_scfe_fac_rt_subt$r_corr, 
                           r_scfe_fac_rt_subt$p,
-                          r_scfe_int$p.adj[2]))
+                          r_scfe_fac$p.adj[2]))
 plot_scfe_fac_rt_subt
 ```
 
@@ -2855,12 +3109,14 @@ plot_scfe_fac_acc_regr <- ggplot(hpe_acc, aes(x=fac_regr, y=scfe_regr)) +
        y = "Standard composite residuals (accuracy)") +
   coord_cartesian(ylim = c(-.56, .23)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_acc_regr$r, 
+                          r_scfe_fac_acc_regr$r_corr, 
                           r_scfe_fac_acc_regr$p,
-                          r_scfe_int$p.adj[3]))
+                          r_scfe_fac$p.adj[3]))
 plot_scfe_fac_acc_regr
 ```
 
@@ -2873,12 +3129,14 @@ plot_scfe_fac_rt_regr <- ggplot(hpe_rt, aes(x=fac_regr, y=scfe_regr)) +
   scale_x_continuous(breaks=seq(-600, 600, 300)) +
   coord_cartesian(ylim = c(-720, 380), xlim = c(-620, 600)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_rt_regr$r, 
+                          r_scfe_fac_rt_regr$r_corr,
                           r_scfe_fac_rt_regr$p,
-                          r_scfe_int$p.adj[4]))
+                          r_scfe_fac$p.adj[4]))
 plot_scfe_fac_rt_regr
 ```
 
@@ -3004,6 +3262,7 @@ stab_cor <- cor_sum %>%
     DV = if_else(DV=="acc", "Accuracy or d'", "RT"),
     Max = round(up_bound, 2),
     r = round(r, 2),
+    r_c = round(r_corr, 2),
     lower = round(lower, 2),
     upper = if_else(alt=="two.sided", round(upper, 2), 1),
     `p-value` = signif(p, 2),
@@ -3248,8 +3507,12 @@ plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   # coord_cartesian(ylim = c(-.35, .6)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.2f\")", 
-                          cor_hpe_acc_subt$r[2], cor_hpe_acc_subt$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f\")", 
+                          cor_hpe_acc_subt$r[2], 
+                          cor_hpe_acc_subt$r_corr[2], 
+                          cor_hpe_acc_subt$p[2]))
 plot_ccfe_pwe_acc_subt
 ```
 
@@ -3267,8 +3530,12 @@ plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)
        y = "Part-whole residuals (accuracy)") +
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
-                          cor_hpe_acc_regr$r[2], cor_hpe_acc_regr$p[2]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_regr$r[2], 
+                          cor_hpe_acc_regr$r_corr[2], 
+                          cor_hpe_acc_regr$p[2]))
 plot_ccfe_pwe_acc_regr
 ```
 
@@ -3288,10 +3555,12 @@ plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
   # coord_cartesian(ylim = c(-.25, .36)) +
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_subt$r, 
+                          r_pwe_fac_iso_acc_subt$r_corr, 
                           r_pwe_fac_iso_acc_subt$p,
                           r_pwe_fac_iso$p.adj[1]))
 plot_pwe_fac_acc_subt_iso
@@ -3314,10 +3583,12 @@ plot_pwe_fac_acc_regr_iso <-ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
   # coord_cartesian(ylim = c(-.35, .19)) +
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_fac_iso_acc_regr$r, 
+                          r_pwe_fac_iso_acc_regr$r_corr, 
                           r_pwe_fac_iso_acc_regr$p,
                           r_pwe_fac_iso$p.adj[3]))
 plot_pwe_fac_acc_regr_iso
@@ -3339,10 +3610,12 @@ plot_pwe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
   # coord_cartesian(ylim = c(-.25, .36)) +
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_acc_subt$r, 
+                          r_pwe_int_iso_acc_subt$r_corr, 
                           r_pwe_int_iso_acc_subt$p,
                           r_pwe_int_iso$p.adj[1]))
 plot_pwe_int_acc_subt_iso
@@ -3364,10 +3637,12 @@ plot_pwe_int_acc_regr_iso <-ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
   # coord_cartesian(ylim = c(-.35, .19)) +
   coord_cartesian(ylim = lim_pwe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_pwe_int_iso_acc_regr$r, 
+                          r_pwe_int_iso_acc_regr$r_corr, 
                           r_pwe_int_iso_acc_regr$p,
                           r_pwe_int_iso$p.adj[3]))
 plot_pwe_int_acc_regr_iso
@@ -3388,8 +3663,12 @@ plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_sub
        y = "Standard composite difference scores (accuracy)     ") +
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.3f\")", 
-                          cor_hpe_acc_subt$r[3], cor_hpe_acc_subt$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.3f\")", 
+                          cor_hpe_acc_subt$r[3], 
+                          cor_hpe_acc_subt$r_corr[3], 
+                          cor_hpe_acc_subt$p[3]))
 plot_ccfe_scfe_acc_subt
 ```
 
@@ -3407,8 +3686,12 @@ plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_reg
        y = "Standard composite residuals (accuracy)") +
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \",italic(p), \" = %0.4f\")", 
-                          cor_hpe_acc_regr$r[3], cor_hpe_acc_regr$p[3]))
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.4f\")", 
+                          cor_hpe_acc_regr$r[3], 
+                          cor_hpe_acc_regr$r_corr[3], 
+                          cor_hpe_acc_regr$p[3]))
 plot_ccfe_scfe_acc_regr
 ```
 
@@ -3426,10 +3709,12 @@ plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) 
        y = "Standard composite difference scores (accuracy)     ") +
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.5f, \"
-                          ,italic(p)[adj], \" = %0.5f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.5f, \",
+                          italic(p)[adj], \" = %0.5f\")", 
                           r_scfe_int_iso_acc_subt$r, 
+                          r_scfe_int_iso_acc_subt$r_corr, 
                           r_scfe_int_iso_acc_subt$p,
                           r_scfe_int_iso$p.adj[1]))
 plot_scfe_int_acc_subt_iso
@@ -3449,10 +3734,12 @@ plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) 
        y = "Standard composite residuals (accuracy)") +
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" < 0.00001, \"
-                          ,italic(p)[adj], \" < 0.00001\")", 
-                          r_scfe_int_iso_acc_regr$r)) 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" < 0.00001, \",
+                          italic(p)[adj], \" < 0.00001\")", 
+                          r_scfe_int_iso_acc_regr$r,
+                          r_scfe_int_iso_acc_regr$r_corr)) 
 plot_scfe_int_acc_regr_iso
 ```
 
@@ -3471,10 +3758,12 @@ plot_scfe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) 
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   # coord_cartesian(ylim = c(-.65, .25)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_acc_subt$r, 
+                          r_scfe_fac_iso_acc_subt$r_corr, 
                           r_scfe_fac_iso_acc_subt$p,
                           r_scfe_fac_iso$p.adj[1]))
 plot_scfe_fac_acc_subt_iso
@@ -3495,10 +3784,12 @@ plot_scfe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) 
   coord_cartesian(ylim = lim_scfe_acc, xlim = lim_ccfe_d) +
   # coord_cartesian(ylim = c(-.58, .21)) +
   annotate("text", x=Inf, y=-Inf, hjust = 1.1, vjust = -.5, parse = TRUE,
-           label= sprintf("paste(italic(r), \" = %0.2f, \"
-                          ,italic(p), \" = %0.2f, \"
-                          ,italic(p)[adj], \" = %0.2f\")", 
+           label= sprintf("paste(italic(r), \" = %0.2f, \",
+                          italic(r)[c], \" = %0.2f, \",
+                          italic(p), \" = %0.2f, \",
+                          italic(p)[adj], \" = %0.2f\")", 
                           r_scfe_fac_iso_acc_regr$r, 
+                          r_scfe_fac_iso_acc_regr$r_corr, 
                           r_scfe_fac_iso_acc_regr$p,
                           r_scfe_fac_iso$p.adj[3]))
 plot_scfe_fac_acc_regr_iso
