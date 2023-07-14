@@ -3849,7 +3849,7 @@ fig_corr_faci
 
 ```{r eval=TRUE, include=FALSE}
 ggsave(filename = here("figures","fig_cor_facilitation.pdf"), 
-       fig_corr_faci, width = 10, height = 10*1)
+       fig_corr_faci, width = 9, height = 9*1)
 ```
 
 
@@ -3875,6 +3875,6 @@ fig_corr_inte
 
 ```{r eval=TRUE, include=FALSE}
 ggsave(filename = here("figures","fig_cor_interference.pdf"), 
-       fig_corr_inte, width = 10, height = 10*1)
+       fig_corr_inte, width = 9, height = 9*1)
 ```
 

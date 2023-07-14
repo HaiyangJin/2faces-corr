@@ -1924,7 +1924,7 @@ plot_ccf_d_pub
 
 ```{r eval=save_figure, include=FALSE}
 ggsave(filename = here("figures","fig_ccf_d.pdf"), 
-       plot_ccf_d_pub, width = 3.5, height = 3.5*1.2)
+       plot_ccf_d_pub, width = 4.7, height = 3.5*1.2)
 ```
 
 
@@ -1966,7 +1966,7 @@ plot_ccf_rt_pub
 
 ```{r eval=save_figure, include=FALSE}
 ggsave(filename = here("figures","fig_ccf_rt.pdf"), 
-       plot_ccf_rt_pub, width = 3.5, height = 3.5*1.2)
+       plot_ccf_rt_pub, width = 4.7, height = 3.5*1.2)
 ```
 
 ```{r fig.width=11, fig.asp=.7}
@@ -2063,7 +2063,7 @@ fig_hpe <-
                                                 face="bold", size = 14)),
               ggplot() + theme_void(), 
               labels = c("", "a", ""),
-              widths = c(0.2, 1.15, 0.2),
+              widths = c(0.3, 0.95, 0.3),
               nrow=1),
     ggplot() + theme_void(), 
     ggarrange(ggarrange(plot_pw_acc_pub, plot_pw_rt_pub, nrow=1) %>% 
