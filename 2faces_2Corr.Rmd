@@ -139,6 +139,32 @@ ccfe_rt <- df_ccf_iso %>%
 ccfe_rt
 ```
 
+### Holistic effects
+```{r}
+# put all effects in one data frame
+hpe_acc <- pwe_acc %>% 
+  inner_join(scfe_acc, by="Subject") %>% 
+  inner_join(ccfe_d, by="Subject") %>% 
+  # make it to larger values corresponding to stronger composite effect
+  mutate(scfe_subt = -scfe_subt, 
+         scfe_regr = -scfe_regr, 
+         int_subt = -int_subt,
+         int_subt_iso = -int_subt_iso,
+         int_regr = -int_regr,
+         int_regr_iso = -int_regr_iso)
+
+hpe_rt <- pwe_rt %>% 
+  left_join(scfe_rt, by="Subject") %>% 
+  left_join(ccfe_rt, by="Subject") %>% 
+  # make it to larger values corresponding to stronger composite effect
+  mutate(scfe_subt = -scfe_subt, 
+         scfe_regr = -scfe_regr,
+         int_subt = -int_subt,
+         int_subt_iso = -int_subt_iso,
+         int_regr = -int_regr,
+         int_regr_iso = -int_regr_iso)
+```
+
 ## Reliability of measurement
 
 `psych::splitHalf(..., check.keys=FALSE)` is used to calculate the Guttman's $\lambda_2$ (although it will report results of various methods). 
@@ -1025,19 +1051,16 @@ psych_cor2 <- function(.data, ...) {
 # }
 ```
 
+
 ### Subtraction
 
 #### Accuracy & d'
 ```{r}
-hpe_acc_subt <- pwe_acc %>% 
-  inner_join(scfe_acc, by="Subject") %>% 
-  inner_join(ccfe_d, by="Subject") %>% 
-  transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt_subt) 
+hpe_acc_subt <- hpe_acc %>% 
+  transmute(pwe_subt, scfe_subt, ccfe_subt_subt) 
 
-hpe_rt_subt <- pwe_rt %>% 
-  inner_join(scfe_rt, by="Subject") %>% 
-  inner_join(ccfe_rt, by="Subject") %>% 
-  transmute(pwe_subt, scfe_subt=-scfe_subt, ccfe_subt_subt)
+hpe_rt_subt <- hpe_rt %>% 
+  transmute(pwe_subt, scfe_subt, ccfe_subt_subt)
 ```
 
 Correlations among holistic effects (accuracy or d' with subtraction):
@@ -1063,7 +1086,7 @@ cor_hpe_acc_subt
 ```
 
 ```{r}
-plot_pwe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=pwe_subt, y=scfe_subt)) +
+plot_pwe_scfe_acc_subt <- ggplot(hpe_acc, aes(x=pwe_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[3], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole difference scores (accuracy)", 
@@ -1080,7 +1103,7 @@ plot_pwe_scfe_acc_subt
 ```
 
 ```{r}
-plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc, aes(x=ccfe_subt_subt, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
@@ -1097,7 +1120,7 @@ plot_ccfe_pwe_acc_subt
 ```
 
 ```{r}
-plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc, aes(x=ccfe_subt_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
@@ -1136,7 +1159,7 @@ cor_hpe_rt_subt
 ```
 
 ```{r}
-plot_pwe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=pwe_subt, y=scfe_subt)) +
+plot_pwe_scfe_rt_subt <- ggplot(hpe_rt, aes(x=pwe_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[3], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole difference scores (RT)", 
@@ -1153,7 +1176,7 @@ plot_pwe_scfe_rt_subt
 ```
 
 ```{r}
-plot_ccfe_pwe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+plot_ccfe_pwe_rt_subt <- ggplot(hpe_rt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite difference scores (RT)", 
@@ -1169,7 +1192,7 @@ plot_ccfe_pwe_rt_subt
 ```
 
 ```{r}
-plot_ccfe_scfe_rt_subt <- ggplot(hpe_rt_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+plot_ccfe_scfe_rt_subt <- ggplot(hpe_rt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite difference scores (RT)", 
@@ -1197,15 +1220,11 @@ ggarrange(plot_pwe_scfe_acc_subt, plot_ccfe_pwe_acc_subt, plot_ccfe_scfe_acc_sub
 
 #### Accuracy & d'
 ```{r}
-hpe_acc_regr <- pwe_acc %>% 
-  inner_join(scfe_acc, by="Subject") %>% 
-  inner_join(ccfe_d, by="Subject") %>% 
-  transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
+hpe_acc_regr <- hpe_acc %>% 
+  transmute(pwe_regr, scfe_regr, ccfe_subt_regr)
 
-hpe_rt_regr <- pwe_rt %>% 
-  inner_join(scfe_rt, by="Subject") %>% 
-  inner_join(ccfe_rt, by="Subject") %>% 
-  transmute(pwe_regr, scfe_regr=-scfe_regr, ccfe_subt_regr)
+hpe_rt_regr <- hpe_rt %>% 
+  transmute(pwe_regr, scfe_regr, ccfe_subt_regr)
 ```
 
 Correlations among holistic effects (accuracy or d' with regression):
@@ -1230,7 +1249,7 @@ cor_hpe_acc_regr
 ```
 
 ```{r}
-plot_pwe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=pwe_regr, y=scfe_regr)) +
+plot_pwe_scfe_acc_regr <- ggplot(hpe_acc, aes(x=pwe_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[3], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole residuals (accuracy)", 
@@ -1247,7 +1266,7 @@ plot_pwe_scfe_acc_regr
 ```
 
 ```{r}
-plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc, aes(x=ccfe_subt_regr, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
@@ -1263,7 +1282,7 @@ plot_ccfe_pwe_acc_regr
 ```
 
 ```{r}
-plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc, aes(x=ccfe_subt_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
@@ -1301,7 +1320,7 @@ cor_hpe_rt_regr
 ```
 
 ```{r}
-plot_pwe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=pwe_regr, y=scfe_regr)) +
+plot_pwe_scfe_rt_regr <- ggplot(hpe_rt, aes(x=pwe_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[3], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Part-whole residuals (RT)", 
@@ -1317,7 +1336,7 @@ plot_pwe_scfe_rt_regr
 ```
 
 ```{r}
-plot_ccfe_pwe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+plot_ccfe_pwe_rt_regr <- ggplot(hpe_rt, aes(x=ccfe_subt_regr, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite residuals (RT)", 
@@ -1333,7 +1352,7 @@ plot_ccfe_pwe_rt_regr
 ```
 
 ```{r}
-plot_ccfe_scfe_rt_regr <- ggplot(hpe_rt_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+plot_ccfe_scfe_rt_regr <- ggplot(hpe_rt, aes(x=ccfe_subt_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = "Complete composite residuals (RT)", 
@@ -1410,25 +1429,13 @@ psych_cor1_adj_CI <- function(.data, alpha=.10){
 }
 ```
 
-
-```{r}
-hpe_acc <- pwe_acc %>% 
-  inner_join(scfe_acc, by="Subject") %>% 
-  inner_join(ccfe_d, by="Subject")
-
-hpe_rt <- pwe_rt %>% 
-  left_join(scfe_rt, by="Subject") %>% 
-  left_join(ccfe_rt, by="Subject")
-```
-
-
 ### PW and Facilitation in CCF
 
 #### Subtraction
 
 accuracy 
 ```{r}
-r_pwe_fac_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt) %>% 
+r_pwe_fac_acc_subt <- psych_cor1(hpe_acc$pwe_subt, hpe_acc$fac_subt) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "acc",
@@ -1456,7 +1463,7 @@ ggplot(hpe_acc, aes(x=fac_subt, y=pwe_subt)) +
 
 accuracy isolated
 ```{r}
-r_pwe_fac_iso_acc_subt <- psych_cor1(pwe_acc$pwe_subt, ccfe_d$fac_subt_iso) %>% 
+r_pwe_fac_iso_acc_subt <- psych_cor1(hpe_acc$pwe_subt, hpe_acc$fac_subt_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "acc",
@@ -1483,7 +1490,7 @@ ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
 
 RT 
 ```{r}
-r_pwe_fac_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt) %>% 
+r_pwe_fac_rt_subt <- psych_cor1(hpe_rt$pwe_subt, hpe_rt$fac_subt) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt",
          DV = "rt", 
@@ -1510,7 +1517,7 @@ ggplot(hpe_rt, aes(x=fac_subt, y=pwe_subt)) +
 
 RT isolated
 ```{r}
-r_pwe_fac_iso_rt_subt <- psych_cor1(pwe_rt$pwe_subt, ccfe_rt$fac_subt_iso) %>% 
+r_pwe_fac_iso_rt_subt <- psych_cor1(hpe_rt$pwe_subt, hpe_rt$fac_subt_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ fac_subt_iso",
          DV = "rt", 
@@ -1539,7 +1546,7 @@ ggplot(hpe_rt, aes(x=fac_subt_iso, y=pwe_subt)) +
 #### Regressions
 Accuracy
 ```{r}
-r_pwe_fac_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr) %>% 
+r_pwe_fac_acc_regr <- psych_cor1(hpe_acc$pwe_regr, hpe_acc$fac_regr) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "acc", 
@@ -1566,7 +1573,7 @@ ggplot(hpe_acc, aes(x=fac_regr, y=pwe_regr)) +
 
 Accuracy isolated
 ```{r}
-r_pwe_fac_iso_acc_regr <- psych_cor1(pwe_acc$pwe_regr, ccfe_d$fac_regr_iso) %>% 
+r_pwe_fac_iso_acc_regr <- psych_cor1(hpe_acc$pwe_regr, hpe_acc$fac_regr_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "acc", 
@@ -1593,7 +1600,7 @@ ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
 
 RT 
 ```{r}
-r_pwe_fac_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr) %>% 
+r_pwe_fac_rt_regr <- psych_cor1(hpe_rt$pwe_regr, hpe_rt$fac_regr) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr",
          DV = "rt", 
@@ -1620,7 +1627,7 @@ ggplot(hpe_rt, aes(x=fac_regr, y=pwe_regr)) +
 
 RT isolated
 ```{r}
-r_pwe_fac_iso_rt_regr <- psych_cor1(pwe_rt$pwe_regr, ccfe_rt$fac_regr_iso) %>% 
+r_pwe_fac_iso_rt_regr <- psych_cor1(hpe_rt$pwe_regr, hpe_rt$fac_regr_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ fac_regr_iso",
          DV = "rt", 
@@ -1858,7 +1865,7 @@ ggarrange(plot_pwe_fac_acc_subt, plot_pwe_fac_rt_subt,
 #### Subtraction
 Accuracy
 ```{r}
-r_scfe_int_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt) %>% 
+r_scfe_int_acc_subt <- psych_cor1(hpe_acc$scfe_subt, hpe_acc$int_subt) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "acc",
@@ -1885,7 +1892,7 @@ ggplot(hpe_acc, aes(x=int_subt, y=scfe_subt)) +
 
 Accuracy isolated
 ```{r}
-r_scfe_int_iso_acc_subt <- psych_cor1(scfe_acc$scfe_subt, ccfe_d$int_subt_iso) %>% 
+r_scfe_int_iso_acc_subt <- psych_cor1(hpe_acc$scfe_subt, hpe_acc$int_subt_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "acc",
@@ -1912,7 +1919,7 @@ ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) +
 
 RT 
 ```{r}
-r_scfe_int_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt) %>% 
+r_scfe_int_rt_subt <- psych_cor1(hpe_rt$scfe_subt, hpe_rt$int_subt) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt",
          DV = "rt",
@@ -1939,7 +1946,7 @@ ggplot(hpe_rt, aes(x=int_subt, y=scfe_subt)) +
 
 RT isolated
 ```{r}
-r_scfe_int_iso_rt_subt <- psych_cor1(scfe_rt$scfe_subt, ccfe_rt$int_subt_iso) %>%
+r_scfe_int_iso_rt_subt <- psych_cor1(hpe_rt$scfe_subt, hpe_rt$int_subt_iso) %>%
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ int_subt_iso",
          DV = "rt",
@@ -1967,7 +1974,7 @@ ggplot(hpe_rt, aes(x=int_subt_iso, y=scfe_subt)) +
 #### Regressions
 Accuracy
 ```{r}
-r_scfe_int_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr) %>% 
+r_scfe_int_acc_regr <- psych_cor1(hpe_acc$scfe_regr, hpe_acc$int_regr) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "acc",
@@ -1994,7 +2001,7 @@ ggplot(hpe_acc, aes(x=int_regr, y=scfe_regr)) +
 
 Accuracy isolated
 ```{r}
-r_scfe_int_iso_acc_regr <- psych_cor1(scfe_acc$scfe_regr, ccfe_d$int_regr_iso) %>% 
+r_scfe_int_iso_acc_regr <- psych_cor1(hpe_acc$scfe_regr, hpe_acc$int_regr_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "acc",
@@ -2021,7 +2028,7 @@ ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) +
 
 RT
 ```{r}
-r_scfe_int_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr) %>% 
+r_scfe_int_rt_regr <- psych_cor1(hpe_rt$scfe_regr, hpe_rt$int_regr) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr",
          DV = "rt",
@@ -2048,7 +2055,7 @@ ggplot(hpe_rt, aes(x=int_regr, y=scfe_regr)) +
 
 RT isolated
 ```{r}
-r_scfe_int_iso_rt_regr <- psych_cor1(scfe_rt$scfe_regr, ccfe_rt$int_regr_iso) %>% 
+r_scfe_int_iso_rt_regr <- psych_cor1(hpe_rt$scfe_regr, hpe_rt$int_regr_iso) %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ int_regr_iso",
          DV = "rt",
@@ -2271,8 +2278,8 @@ Two-sided tests will be performed.
 
 accuracy 
 ```{r}
-r_pwe_int_acc_subt <- bind_cols(pwe_acc['pwe_subt'],
-                                ccfe_d['int_subt']) %>% 
+r_pwe_int_acc_subt <- bind_cols(hpe_acc['pwe_subt'],
+                                hpe_acc['int_subt']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ int_subt",
@@ -2301,8 +2308,8 @@ ggplot(hpe_acc, aes(x=int_subt, y=pwe_subt)) +
 
 accuracy isolated
 ```{r}
-r_pwe_int_iso_acc_subt <- bind_cols(pwe_acc['pwe_subt'], 
-                                    ccfe_d['int_subt_iso']) %>% 
+r_pwe_int_iso_acc_subt <- bind_cols(hpe_acc['pwe_subt'], 
+                                    hpe_acc['int_subt_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ int_subt_iso",
@@ -2330,8 +2337,8 @@ ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
 
 RT 
 ```{r}
-r_pwe_int_rt_subt <- bind_cols(pwe_rt['pwe_subt'],
-                               ccfe_rt['int_subt']) %>% 
+r_pwe_int_rt_subt <- bind_cols(hpe_rt['pwe_subt'],
+                               hpe_rt['int_subt']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ int_subt",
@@ -2359,8 +2366,8 @@ ggplot(hpe_rt, aes(x=int_subt, y=pwe_subt)) +
 
 RT isolated
 ```{r}
-r_pwe_int_iso_rt_subt <- bind_cols(pwe_rt['pwe_subt'], 
-                                   ccfe_rt['int_subt_iso']) %>% 
+r_pwe_int_iso_rt_subt <- bind_cols(hpe_rt['pwe_subt'], 
+                                   hpe_rt['int_subt_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_subt ~ int_subt_iso",
@@ -2390,8 +2397,8 @@ ggplot(hpe_rt, aes(x=int_subt_iso, y=pwe_subt)) +
 #### Regressions
 Accuracy
 ```{r}
-r_pwe_int_acc_regr <- bind_cols(pwe_acc['pwe_regr'], 
-                                ccfe_d['int_regr']) %>% 
+r_pwe_int_acc_regr <- bind_cols(hpe_acc['pwe_regr'], 
+                                hpe_acc['int_regr']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ int_regr",
@@ -2419,8 +2426,8 @@ ggplot(hpe_acc, aes(x=int_regr, y=pwe_regr)) +
 
 Accuracy isolated
 ```{r}
-r_pwe_int_iso_acc_regr <- bind_cols(pwe_acc['pwe_regr'], 
-                                    ccfe_d['int_regr_iso']) %>% 
+r_pwe_int_iso_acc_regr <- bind_cols(hpe_acc['pwe_regr'], 
+                                    hpe_acc['int_regr_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ int_regr_iso",
@@ -2448,8 +2455,8 @@ ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
 
 RT 
 ```{r}
-r_pwe_int_rt_regr <- bind_cols(pwe_rt['pwe_regr'], 
-                               ccfe_rt['int_regr']) %>% 
+r_pwe_int_rt_regr <- bind_cols(hpe_rt['pwe_regr'], 
+                               hpe_rt['int_regr']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ int_regr",
@@ -2477,8 +2484,8 @@ ggplot(hpe_rt, aes(x=int_regr, y=pwe_regr)) +
 
 RT isolated
 ```{r}
-r_pwe_int_iso_rt_regr <- bind_cols(pwe_rt['pwe_regr'], 
-                                   ccfe_rt['int_regr_iso']) %>% 
+r_pwe_int_iso_rt_regr <- bind_cols(hpe_rt['pwe_regr'], 
+                                   hpe_rt['int_regr_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "pwe_regr ~ int_regr_iso",
@@ -2719,8 +2726,8 @@ Two-sided tests will be performed.
 #### Subtraction
 Accuracy
 ```{r}
-r_scfe_fac_acc_subt <- bind_cols(scfe_acc['scfe_subt'],
-                                 ccfe_d['fac_subt']) %>% 
+r_scfe_fac_acc_subt <- bind_cols(hpe_acc['scfe_subt'],
+                                 hpe_acc['fac_subt']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ fac_subt",
@@ -2748,8 +2755,8 @@ ggplot(hpe_acc, aes(x=fac_subt, y=scfe_subt)) +
 
 Accuracy isolated
 ```{r}
-r_scfe_fac_iso_acc_subt <- bind_cols(scfe_acc['scfe_subt'],
-                                     ccfe_d['fac_subt_iso']) %>% 
+r_scfe_fac_iso_acc_subt <- bind_cols(hpe_acc['scfe_subt'],
+                                     hpe_acc['fac_subt_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ fac_subt_iso",
@@ -2777,8 +2784,8 @@ ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) +
 
 RT 
 ```{r}
-r_scfe_fac_rt_subt <- bind_cols(scfe_rt['scfe_subt'],
-                                ccfe_rt['fac_subt']) %>% 
+r_scfe_fac_rt_subt <- bind_cols(hpe_rt['scfe_subt'],
+                                hpe_rt['fac_subt']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ fac_subt",
@@ -2806,8 +2813,8 @@ ggplot(hpe_rt, aes(x=fac_subt, y=scfe_subt)) +
 
 RT isolated
 ```{r}
-r_scfe_fac_iso_rt_subt <- bind_cols(scfe_rt['scfe_subt'],
-                                    ccfe_rt['fac_subt_iso']) %>% 
+r_scfe_fac_iso_rt_subt <- bind_cols(hpe_rt['scfe_subt'],
+                                    hpe_rt['fac_subt_iso']) %>% 
   psych_cor2() %>%
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_subt ~ fac_subt_iso",
@@ -2836,8 +2843,8 @@ ggplot(hpe_rt, aes(x=fac_subt_iso, y=scfe_subt)) +
 #### Regressions
 Accuracy
 ```{r}
-r_scfe_fac_acc_regr <- bind_cols(scfe_acc['scfe_regr'],
-                                 ccfe_d['fac_regr']) %>% 
+r_scfe_fac_acc_regr <- bind_cols(hpe_acc['scfe_regr'],
+                                 hpe_acc['fac_regr']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ fac_regr",
@@ -2865,8 +2872,8 @@ ggplot(hpe_acc, aes(x=fac_regr, y=scfe_regr)) +
 
 Accuracy isolated
 ```{r}
-r_scfe_fac_iso_acc_regr <- bind_cols(scfe_acc['scfe_regr'],
-                                     ccfe_d['fac_regr_iso']) %>% 
+r_scfe_fac_iso_acc_regr <- bind_cols(hpe_acc['scfe_regr'],
+                                     hpe_acc['fac_regr_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ fac_regr_iso",
@@ -2894,8 +2901,8 @@ ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) +
 
 RT
 ```{r}
-r_scfe_fac_rt_regr <- bind_cols(scfe_rt['scfe_regr'],
-                                ccfe_rt['fac_regr']) %>% 
+r_scfe_fac_rt_regr <- bind_cols(hpe_rt['scfe_regr'],
+                                hpe_rt['fac_regr']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ fac_regr",
@@ -2923,8 +2930,8 @@ ggplot(hpe_rt, aes(x=fac_regr, y=scfe_regr)) +
 
 RT isolated
 ```{r}
-r_scfe_fac_iso_rt_regr <- bind_cols(scfe_rt['scfe_regr'],
-                                    ccfe_rt['fac_regr_iso']) %>% 
+r_scfe_fac_iso_rt_regr <- bind_cols(hpe_rt['scfe_regr'],
+                                    hpe_rt['fac_regr_iso']) %>% 
   psych_cor2() %>% 
   rownames_to_column("pair") %>% 
   mutate(pair = "scfe_regr ~ fac_regr_iso",
@@ -3155,18 +3162,14 @@ ggarrange(plot_scfe_fac_acc_subt, plot_scfe_fac_rt_subt,
 
 Correlations among effects (accuracy or d' with subtraction):
 ```{r fig.width=12, fig.asp=1}
-pwe_acc %>% 
-  inner_join(scfe_acc, by="Subject") %>% 
-  inner_join(ccfe_d, by="Subject") %>% 
+hpe_acc %>% 
   select(-Subject, -contains("regr")) %>% 
   cor.plot()
 ```
 
 Correlations among effects (accuracy or d' with regression):
 ```{r fig.width=12, fig.asp=1}
-pwe_acc %>% 
-  inner_join(scfe_acc, by="Subject") %>% 
-  inner_join(ccfe_d, by="Subject") %>% 
+hpe_acc %>% 
   select(-Subject, -contains("subt"), ccfe_subt_regr) %>% 
   cor.plot()
 ```
@@ -3175,23 +3178,19 @@ pwe_acc %>%
 
 Correlations among effects (RT with subtraction):
 ```{r fig.width=12, fig.asp=1}
-pwe_rt %>% 
-  left_join(scfe_rt, by="Subject") %>% 
-  left_join(ccfe_rt, by="Subject") %>% 
+hpe_rt %>% 
   select(-Subject, -contains("regr")) %>% 
   cor.plot()
 ```
 
 Correlations among effects (RT with regression):
 ```{r fig.width=12, fig.asp=1}
-pwe_rt %>% 
-  left_join(scfe_rt, by="Subject") %>% 
-  left_join(ccfe_rt, by="Subject") %>% 
+hpe_rt %>% 
   select(-Subject, -contains("subt"), ccfe_subt_regr) %>% 
   cor.plot()
 ```
 
-## Figures 
+## Tables
 
 ### Table 1: reliability
 
@@ -3274,6 +3273,7 @@ stab_cor <- cor_sum %>%
 stab_cor
 ```
 
+## Figures (version 1)
 
 ### Figure 3: correlations among holistic processing effects
 
@@ -3472,7 +3472,7 @@ fig_cor_fac_scfe <- ggarrange(plot_scfe_fac_acc_subt, plot_scfe_fac_rt_subt,
 fig_cor_fac_scfe
 ```
 
-```{r}
+```{r eval=save_figure, include=FALSE}
 # save all figures
 ext <- "png"
 ggsave(here("figures", paste0("fig_cor_pwe_scfe.", ext)), fig_cor_pwe_scfe, width = 10, height = 9)
@@ -3488,18 +3488,20 @@ ggsave(here("figures", paste0("fig_cor_facilitation_scfe_iso.", ext)), fig_cor_f
 ggsave(here("figures", paste0("fig_cor_facilitation_scfe.", ext)), fig_cor_fac_scfe, width = 10, height = 9)
 ```
 
+## Figure (version 2: combine complete and facilitation & interference)
+
 ### Individual figures
 
 ```{r}
 lim_pwe_acc <- c(-.35, .35)
-lim_scfe_acc <- c(-.6, .4)
+lim_scfe_acc <- c(-.3, .4)
 lim_ccfe_d <- c(-3, 3)
 ```
 
 #### Facilitation
 
 ```{r}
-plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)) +
+plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc, aes(x=ccfe_subt_subt, y=pwe_subt)) +
   geom_point(color=dark_colors[1], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
@@ -3516,14 +3518,14 @@ plot_ccfe_pwe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=pwe_subt)
 plot_ccfe_pwe_acc_subt
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_ccfe_pwe_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_ccfe_pwe_acc_subt.pdf"), 
        plot_ccfe_pwe_acc_subt, width = 5, height = 5*.9)
 ```
 
 
 ```{r}
-plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)) +
+plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc, aes(x=ccfe_subt_regr, y=pwe_regr)) +
   geom_point(color=dark_colors[1], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
@@ -3539,8 +3541,8 @@ plot_ccfe_pwe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=pwe_regr)
 plot_ccfe_pwe_acc_regr
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_ccfe_pwe_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_ccfe_pwe_acc_regr.pdf"), 
        plot_ccfe_pwe_acc_regr, width = 5, height = 5*.9)
 ```
 
@@ -3566,8 +3568,8 @@ plot_pwe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=pwe_subt)) +
 plot_pwe_fac_acc_subt_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_pwe_fac_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_pwe_fac_acc_subt.pdf"), 
        plot_pwe_fac_acc_subt_iso, width = 5, height = 5*.9)
 ```
 
@@ -3594,8 +3596,8 @@ plot_pwe_fac_acc_regr_iso <-ggplot(hpe_acc, aes(x=fac_regr_iso, y=pwe_regr)) +
 plot_pwe_fac_acc_regr_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_pwe_fac_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_pwe_fac_acc_regr.pdf"), 
        plot_pwe_fac_acc_regr_iso, width = 5, height = 5*.9)
 ```
 
@@ -3621,8 +3623,8 @@ plot_pwe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=pwe_subt)) +
 plot_pwe_int_acc_subt_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_pwe_int_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_pwe_int_acc_subt.pdf"), 
        plot_pwe_int_acc_subt_iso, width = 5, height = 5*.9)
 ```
 
@@ -3648,15 +3650,15 @@ plot_pwe_int_acc_regr_iso <-ggplot(hpe_acc, aes(x=int_regr_iso, y=pwe_regr)) +
 plot_pwe_int_acc_regr_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_pwe_int_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_pwe_int_acc_regr.pdf"), 
        plot_pwe_int_acc_regr_iso, width = 5, height = 5*.9)
 ```
 
 #### Interference
 
 ```{r}
-plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_subt)) +
+plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc, aes(x=ccfe_subt_subt, y=scfe_subt)) +
   geom_point(color=dark_colors[2], shape=subt_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite difference scores ("*italic("d'")*")"), 
@@ -3672,14 +3674,14 @@ plot_ccfe_scfe_acc_subt <- ggplot(hpe_acc_subt, aes(x=ccfe_subt_subt, y=scfe_sub
 plot_ccfe_scfe_acc_subt
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_ccfe_scfe_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_ccfe_scfe_acc_subt.pdf"), 
        plot_ccfe_scfe_acc_subt, width = 5, height = 5*.9)
 ```
 
 
 ```{r}
-plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_regr)) +
+plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc, aes(x=ccfe_subt_regr, y=scfe_regr)) +
   geom_point(color=dark_colors[2], shape=regr_shape) + 
   geom_smooth(color="black", method=lm, formula='y ~ x') +
   labs(x = expression("Complete composite residuals ("*italic("d'")*")"), 
@@ -3695,8 +3697,8 @@ plot_ccfe_scfe_acc_regr <- ggplot(hpe_acc_regr, aes(x=ccfe_subt_regr, y=scfe_reg
 plot_ccfe_scfe_acc_regr
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr", "fig_ccfe_scfe_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures", "fig_ccfe_scfe_acc_regr.pdf"), 
        plot_ccfe_scfe_acc_regr, width = 5, height = 5*.9)
 ```
 
@@ -3720,8 +3722,8 @@ plot_scfe_int_acc_subt_iso <- ggplot(hpe_acc, aes(x=int_subt_iso, y=scfe_subt)) 
 plot_scfe_int_acc_subt_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr", "fig_scfe_int_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures", "fig_scfe_int_acc_subt.pdf"), 
        plot_scfe_int_acc_subt_iso, width = 5, height = 5*.9)
 ```
 
@@ -3743,8 +3745,8 @@ plot_scfe_int_acc_regr_iso <- ggplot(hpe_acc, aes(x=int_regr_iso, y=scfe_regr)) 
 plot_scfe_int_acc_regr_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr", "fig_scfe_int_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures", "fig_scfe_int_acc_regr.pdf"), 
        plot_scfe_int_acc_regr_iso, width = 5, height = 5*.9)
 ```
 
@@ -3769,8 +3771,8 @@ plot_scfe_fac_acc_subt_iso <- ggplot(hpe_acc, aes(x=fac_subt_iso, y=scfe_subt)) 
 plot_scfe_fac_acc_subt_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr", "fig_scfe_fac_acc_subt.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures", "fig_scfe_fac_acc_subt.pdf"), 
        plot_scfe_fac_acc_subt_iso, width = 5, height = 5*.9)
 ```
 
@@ -3795,8 +3797,8 @@ plot_scfe_fac_acc_regr_iso <- ggplot(hpe_acc, aes(x=fac_regr_iso, y=scfe_regr)) 
 plot_scfe_fac_acc_regr_iso
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr", "fig_scfe_fac_acc_regr.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures", "fig_scfe_fac_acc_regr.pdf"), 
        plot_scfe_fac_acc_regr_iso, width = 5, height = 5*.9)
 ```
 
@@ -3820,7 +3822,59 @@ fig_corr_poster <-
 fig_corr_poster
 ```
 
-```{r eval=FALSE, include=FALSE}
-ggsave(filename = here("figures","individual_corr","fig_cor_poster.pdf"), 
+```{r eval=save_figure, include=FALSE}
+ggsave(filename = here("figures","fig_cor_poster.pdf"), 
        fig_corr_poster, width = 23, height = 23*.46)
 ```
+
+### Facilitation, CCF and PW
+
+```{r fig.width=11, fig.asp=1}
+fig_corr_faci <- 
+  ggarrange(ggarrange(plot_ccfe_pwe_acc_subt, plot_ccfe_pwe_acc_regr, nrow=1) %>% 
+                annotate_figure(top = text_grob("Correlations between holistic effects in the compolete composite task and the part-whole task", 
+                                                face="bold", size = 12)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_pwe_fac_acc_subt_iso, plot_pwe_fac_acc_regr_iso, nrow=1) %>% 
+                annotate_figure(top = text_grob("Correlations between facilitation in the compolete composite task and the part-whole task", 
+                                                face="bold", size = 12)),
+            heights = c(1, 0.1, 1),
+            labels = c("a", "", "b"),
+            nrow=3) +
+  bgcolor("white") +
+  border("white")
+
+fig_corr_faci
+```
+
+```{r eval=TRUE, include=FALSE}
+ggsave(filename = here("figures","fig_cor_facilitation.pdf"), 
+       fig_corr_faci, width = 10, height = 10*1)
+```
+
+
+### Interference, CCF and SCF
+
+```{r fig.width=11, fig.asp=1}
+fig_corr_inte <- 
+  ggarrange(ggarrange(plot_ccfe_scfe_acc_subt, plot_ccfe_scfe_acc_regr, nrow=1) %>% 
+                annotate_figure(top = text_grob("Correlations between holistic effects in the compolete composite task and the standard composite task", 
+                                                face="bold", size = 12)),
+            ggplot() + theme_void(), 
+            ggarrange(plot_scfe_int_acc_subt_iso, plot_scfe_int_acc_regr_iso, nrow=1) %>% 
+                annotate_figure(top = text_grob("Correlations between interference in the compolete composite task and the standard composite task", 
+                                                face="bold", size = 12)),
+            heights = c(1, 0.1, 1),
+            labels = c("a", "", "b"),
+            nrow=3) +
+  bgcolor("white") +
+  border("white")
+
+fig_corr_inte
+```
+
+```{r eval=TRUE, include=FALSE}
+ggsave(filename = here("figures","fig_cor_interference.pdf"), 
+       fig_corr_inte, width = 10, height = 10*1)
+```
+

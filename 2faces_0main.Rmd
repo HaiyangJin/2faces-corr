@@ -53,7 +53,8 @@ two_colors <- c("#D55E00", "#56B4E9") # facilitation and interference
 dark_colors <- c("#800D00", "#165F83", "gray45") # darker (facilitation, interference, null)
 subt_shape <- 20 # diamond
 regr_shape <- 18 # round
-equi_boundary <- .15
+
+save_figure <- FALSE
 
 # APA theme for figures
 theme_set(papaja::theme_apa(base_size = 12, base_family = "Helvetica", box = FALSE))

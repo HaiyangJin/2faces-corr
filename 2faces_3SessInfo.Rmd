@@ -15,7 +15,7 @@
 
 Sex
 ```{r}
-df_demo <- readRDS(here("data", "df_demo.rds")) %>% 
+df_demo <- readRDS(here("data", "df_demographic.rds")) %>% 
   filter(!Subject %in% subjlist_ex) # exclude outlier subjects
 
 df_demo %>% 
