@@ -1383,14 +1383,22 @@ Plot of d':
 emmip(emm_fi_d, ~ Congruency, CIs = TRUE)
 ```
 
-Facilitation in d':
+
 ```{r}
 emm_fie_d <- contrast(emm_fi_probit, interaction="pairwise")
+# two-sided tests
+summary(emm_fie_d[2:3], infer = TRUE, adjust = "none")
+```
+
+Facilitation in d':
+```{r}
+# one-sided tests
 summary(emm_fie_d[2], side=">", infer=TRUE)
 ```
 
 Interference in d':
 ```{r}
+# one-sided tests:
 summary(emm_fie_d[3], side="<", infer=TRUE)
 ```
 
@@ -1579,9 +1587,14 @@ Plot of each condition:
 emmip(emm_fi_rt,  ~ Congruency, CIs = TRUE, type = "response") 
 ```
 
+```{r}
+# two-sided tests
+emm_fie_rt <- contrast(emm_fi_rt, "pairwise")
+summary(emm_fie_rt[2:3], infer=TRUE, adjust="none", type="response")
+```
+
 Facilitation in RT (differences of log RT):
 ```{r}
-emm_fie_rt <- contrast(emm_fi_rt, "pairwise")
 summary(emm_fie_rt[2], side="<", infer=TRUE)
 ```
 
@@ -1676,11 +1689,18 @@ Condition means in each condition:
 Facilitation and interference effects:
 ```{r}
 emm_fie_iv <- contrast(emm_iv, "pairwise")
-
-summary(emm_fie_iv[2], side=">", infer=TRUE)
+# two-sided tests
+summary(emm_fie_iv[2:3], infer=TRUE, adjust="none")
 ```
 
 ```{r}
+# one-sided test
+summary(emm_fie_iv[2], side=">", infer=TRUE)
+```
+
+
+```{r}
+# one-sided test
 summary(emm_fie_iv[3], side="<", infer=TRUE)
 ```
 
