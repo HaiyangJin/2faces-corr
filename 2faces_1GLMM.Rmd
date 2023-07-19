@@ -1637,6 +1637,54 @@ plot_fi_rt <- emm_fi_rt %>%
 plot_fi_rt
 ```
 
+### Inverse efficiency
+As shown above, the sensitivity d' was higher in the congruent-aligned condition compared to the isolated condition, while the response times was longer in the congruent-aligned condition relative to the isolated condition, which may reflect a trade-off. Therefore, we performed analysis on the inverse efficiency, which was calculated as (accuracy/correct response times). For this analysis, repeated-measures ANOVA is used.
+
+
+Calculate the inverse efficiency for each condition:
+```{r}
+df_fi_ie <- df_fi %>% 
+  mutate(correctRT = if_else(Correct, RT/1000, NaN)) %>% # convert RT to the unit of seconds (instead of millisecond)
+  group_by(Subject, Congruency) %>% 
+  summarize(acc = mean(Correct),
+            meanRT = mean(correctRT, na.rm = TRUE),
+            .groups = "drop") %>% 
+  mutate(inverse_eff = acc / meanRT)
+
+head(df_fi_ie, 10)
+```
+
+
+```{r message=FALSE}
+# load the package for ANOVA here
+library(afex)
+```
+
+
+Condcut repeated-measures ANOVA:
+```{r}
+aov_iv <- aov_4(inverse_eff ~ Congruency + (Congruency | Subject),
+                df_fi_ie)
+aov_iv
+```
+
+Condition means in each condition:
+```{r}
+(emm_iv <- emmeans(aov_iv, ~ Congruency))
+```
+
+Facilitation and interference effects:
+```{r}
+emm_fie_iv <- contrast(emm_iv, "pairwise")
+
+summary(emm_fie_iv[2], side=">", infer=TRUE)
+```
+
+```{r}
+summary(emm_fie_iv[3], side="<", infer=TRUE)
+```
+
+
 ## Figures
 
 ### Figure 2: holsitic processing effects 
