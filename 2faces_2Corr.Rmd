@@ -3190,6 +3190,84 @@ hpe_rt %>%
   cor.plot()
 ```
 
+## Comparing correlations
+
+```{r}
+library(cocor)
+```
+
+### r(CCF,SCF) vs. r(interference,SCF)
+
+```{r}
+cocor(~ scfe_regr + ccfe_subt_regr | scfe_regr + int_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ scfe_regr + ccfe_subt_regr | scfe_regr + int_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
+### r(CCF,PW) vs. r(facilitation,PW)
+
+```{r}
+cocor(~ pwe_regr + ccfe_subt_regr | pwe_regr + fac_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ pwe_regr + ccfe_subt_regr | pwe_regr + fac_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
+### r(interference,SCF) vs. r(facilitation,SCF)
+
+```{r}
+cocor(~ scfe_regr + int_regr_iso | scfe_regr + fac_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ scfe_regr + int_regr_iso | scfe_regr + fac_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
+### r(facilitation,PW) vs. r(interference,PW)
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
+### r(SCF,interference) vs. r(PW,interference)
+
+```{r}
+cocor(~ scfe_regr + int_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ scfe_regr + int_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
+### r(PW,facilitation) vs. r(SCF,facilitation)
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | scfe_regr + fac_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | scfe_regr + fac_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
 ## Tables
 
 ### Table 1: reliability
