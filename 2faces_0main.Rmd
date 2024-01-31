@@ -175,6 +175,8 @@ df_tidy <- df_raw %>%
   filter(!isout) %>% 
   select(-c(Z_rt, isout))
 
+# saveRDS(df_tidy, file=here("data", "df_tidy.rds"))
+
 str(df_tidy)
 ```
 
