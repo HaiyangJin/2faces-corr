@@ -3220,7 +3220,7 @@ cocor(~ pwe_regr + ccfe_subt_regr | pwe_regr + fac_regr_iso,
       as.data.frame(hpe_rt))
 ```
 
-### r(interference,SCF) vs. r(facilitation,SCF)
+### r(SCF,interference) vs. r(SCF,facilitation)
 
 ```{r}
 cocor(~ scfe_regr + int_regr_iso | scfe_regr + fac_regr_iso,
@@ -3229,18 +3229,6 @@ cocor(~ scfe_regr + int_regr_iso | scfe_regr + fac_regr_iso,
 
 ```{r}
 cocor(~ scfe_regr + int_regr_iso | scfe_regr + fac_regr_iso,
-      as.data.frame(hpe_rt))
-```
-
-### r(facilitation,PW) vs. r(interference,PW)
-
-```{r}
-cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
-      as.data.frame(hpe_acc))
-```
-
-```{r}
-cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
       as.data.frame(hpe_rt))
 ```
 
@@ -3255,6 +3243,19 @@ cocor(~ scfe_regr + int_regr_iso | pwe_regr + int_regr_iso,
 cocor(~ scfe_regr + int_regr_iso | pwe_regr + int_regr_iso,
       as.data.frame(hpe_rt))
 ```
+
+### r(PW,facilitation) vs. r(PW,interference)
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_acc))
+```
+
+```{r}
+cocor(~ pwe_regr + fac_regr_iso | pwe_regr + int_regr_iso,
+      as.data.frame(hpe_rt))
+```
+
 
 ### r(PW,facilitation) vs. r(SCF,facilitation)
 
