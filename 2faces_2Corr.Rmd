@@ -3190,7 +3190,7 @@ hpe_rt %>%
   cor.plot()
 ```
 
-## Comparing correlations
+## Comparing correlations (non-preregistered)
 
 ```{r}
 library(cocor)
@@ -3267,6 +3267,124 @@ cocor(~ pwe_regr + fac_regr_iso | scfe_regr + fac_regr_iso,
 ```{r}
 cocor(~ pwe_regr + fac_regr_iso | scfe_regr + fac_regr_iso,
       as.data.frame(hpe_rt))
+```
+
+## Correlations between facilitation and interference (non-preregistered)
+
+### With isolated as baseline
+
+```{r}
+hpe_acc %>% 
+  select(fac_subt_iso, int_subt_iso) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_acc %>% 
+  select(fac_regr_iso, int_regr_iso) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_rt %>% 
+  select(fac_subt_iso, int_subt_iso) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_rt %>% 
+  select(fac_regr_iso, int_regr_iso) %>% 
+  psych_cor2()
+```
+
+
+### With misaligned as baseline
+
+```{r}
+hpe_acc %>% 
+  select(fac_subt, int_subt) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_acc %>% 
+  select(fac_regr, int_regr) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_rt %>% 
+  select(fac_subt, int_subt) %>% 
+  psych_cor2()
+```
+
+```{r}
+hpe_rt %>% 
+  select(fac_regr, int_regr) %>% 
+  psych_cor2()
+```
+
+### Simulation
+
+```{r}
+set.seed(200)
+con_simu <- rnorm(400)
+inc_simu <- rnorm(400)
+iso_simu <- rnorm(400)
+
+cor.test(con_simu, inc_simu)
+```
+
+```{r}
+cor.test(con_simu, iso_simu)
+```
+
+```{r}
+cor.test(inc_simu, iso_simu)
+```
+
+```{r}
+# subtraction
+fac_sub_simu <- con_simu - iso_simu
+int_sub_simu <- inc_simu - iso_simu
+cor.test(fac_sub_simu, int_sub_simu)
+```
+
+```{r}
+# regression
+lm_fac <- lm(con_simu ~ iso_simu)
+fac_reg_simu <- lm_fac$residuals
+lm_int <- lm(inc_simu ~ iso_simu)
+int_reg_simu <- lm_int$residuals
+
+cor.test(fac_reg_simu, int_reg_simu)
+```
+
+
+## Check "chance" participants
+```{r}
+df_pw_acc <- df_pw %>% 
+  group_by(Subject) %>% 
+  summarize(pw_acc = mean(Correct)) 
+
+df_scf_acc <- df_scf %>% 
+  group_by(Subject) %>% 
+  summarize(scf_acc = mean(Correct))
+
+df_ccf_acc <- df_ccf %>% 
+  group_by(Subject) %>% 
+  summarize(ccf_acc = mean(Correct))
+
+df_acc <- left_join(df_pw_acc, df_scf_acc) %>% 
+  left_join(df_ccf_acc)
+```
+
+
+```{r}
+df_acc %>% 
+  filter(pw_acc < .6,
+         scf_acc < .6,
+         ccf_acc < .6)
 ```
 
 ## Tables
