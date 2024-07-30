@@ -1,16 +1,18 @@
 
 # Demographic information
-```{r}
+```{r eval=FALSE, include=TRUE}
 # To run the code in this chunk, you need to put all demographic data files into data/.
 
 # read demographic files
-# df_demo <- list.files("data", pattern = "*.csv", full.names = TRUE) %>%
-#   map_dfr(read_csv, col_types="cccccccccdidfcffffffff", .id="id") %>% 
-#   select(ProlificID=`Participant id`, Age, Sex) %>% 
-#   right_join(df_subjects, by="ProlificID") %>% 
-#   select(Subject, Age, Sex)
-# 
-# saveRDS(df_demo, here("data", "df_demo.rds"))
+df_demo <- list.files(file.path("data", "prolific"), pattern = "*.csv", full.names = TRUE) %>%
+  map_dfr(read_csv, col_types="cccccccccdidfcffffffff", .id="id") %>%
+  select(ProlificID=`Participant id`, Age, Sex,
+         Country_birth=`Country of birth`,
+         Country_residence=`Country of residence`) %>%
+  right_join(df_subjects, by="ProlificID") %>%
+  select(Subject, Age, Sex, Country_birth, Country_residence)
+
+saveRDS(df_demo, here("data", "df_demographic.rds"))
 ```
 
 Sex
@@ -34,6 +36,58 @@ df_demo %>%
             Age_min = min(Age),
             Age_max = max(Age))
 ```
+
+Number of countries of birth:
+```{r}
+df_demo$Country_birth %>% unique() %>% length()
+```
+
+Number of countries of residence:
+```{r}
+df_demo$Country_residence %>% unique() %>% length()
+```
+
+```{r}
+# obtain the list of Europe names
+countries <- countrycode::codelist %>%
+  filter(continent == "Europe") %>%
+  select(country.name.en) %>% 
+  as.list
+countriesE <- countries$country.name.en
+
+# get the continent information
+df_demo <- df_demo %>% 
+  mutate(
+    Continent_birth = case_when(
+      Country_birth %in% c(countriesE, "Czech Republic", "Russian Federation", "Bosnia and Herzegovina") ~ "Europe",
+      Country_birth %in% c("United States", "Canada") ~ "NorthAmerica",
+      Country_birth %in% c("Australia", "New Zealand") ~ "A$NZ",
+      .default = "others"),
+    Continent_birth = factor(Continent_birth),
+    Continent_resi = case_when(
+      Country_residence %in% c(countriesE, "Czech Republic", "Russian Federation", "Bosnia and Herzegovina") ~ "Europe",
+      Country_residence %in% c("United States", "Canada") ~ "NorthAmerica",
+      Country_residence %in% c("Australia", "New Zealand") ~ "A$NZ",
+      .default = "others"),
+    Continent_resi = factor(Continent_resi)) 
+```
+
+```{r}
+# percentage of countries of birth
+df_demo %>% 
+  group_by(Continent_birth) %>% 
+  summarize(N = n(),
+            ratio = N/nrow(df_demo) * 100)
+```
+
+```{r}
+# percentage of countries of residence
+df_demo %>% 
+  group_by(Continent_resi) %>% 
+  summarize(N = n(),
+            ratio = N/nrow(df_demo) * 100)
+```
+
 
 # Session information {.unnumbered}
 ```{r}

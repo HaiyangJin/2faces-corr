@@ -69,15 +69,15 @@ theme_update(strip.placement = "outside")
 # df_raw_tmp <- list.files("data", pattern = "*.csv", full.names = TRUE) %>%
 #   map_dfr(read_csv, show_col_types = FALSE, .id="Subject") %>% # overwrite Subject ID from Prolific
 #   mutate(Subject = sprintf("subj%03d", as.integer(Subject))) # add new Subject
-#
+# 
 # write_rds(df_raw_tmp, here("data", "2faces_pro_raw480.rds"))
 # write_csv(df_raw_tmp, here("data", "2faces_pro_raw480.csv"))
-
-# connections between prolific subject ID and ID in this study
+# 
+# # connections between prolific subject ID and ID in this study
 # df_subjects <- list.files("data", pattern = "*.csv", full.names = TRUE) %>%
 #   map_dfr(read_csv, show_col_types = FALSE, .id="SubjectThis") %>% # overwrite Subject ID from Prolific
 #   mutate(SubjectThis = sprintf("subj%03d", as.integer(SubjectThis))) %>%  # add new Subject
-#   select(ProlificID = Subject, Subject = SubjectThis) %>% 
+#   select(ProlificID = Subject, Subject = SubjectThis) %>%
 #   distinct()
 # 
 # write_rds(df_subjects, here("data", "2faces_pro_subjectID.rds"))
