@@ -38,9 +38,6 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
-
 # Output data
 *.Rda
 *.pdf
